@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+html {
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  width: 100%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Admin panel mobil overflow kontrolü */
+@media (max-width: 1023px) {
+  html, body, #__next {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
+    position: relative !important;
+  }
+  
+  /* Admin panel için agresif overflow kontrolü */
+  body * {
+    box-sizing: border-box !important;
+  }
+  
+  /* Admin panel container'ları */
+  [class*="admin-panel"],
+  [class*="admin-panel"] * {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Grid containers - gap'i içeren genişlik hesabı */
+  .grid {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Grid items */
+  .grid > * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+}
+
+#__next {
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+*:not(img):not(video):not(svg) {
+  max-width: 100%;
+}
+
+@keyframes scroll-text {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  display: inline-block;
+  animation: scroll-text 20s linear infinite;
+  white-space: nowrap;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* Telefon numarası mobilde kalıcı siyah */
+.phone-number-black,
+a.phone-number-black {
+  color: #000000 !important;
+}
+
+a.phone-number-black:visited,
+a.phone-number-black:hover,
+a.phone-number-black:active,
+a.phone-number-black:focus {
+  color: #000000 !important;
+}
+
+/* Fatura sayfası mobil önizleme - tam sayfada görünsün */
+@media (max-width: 1023px) {
+  .invoice-content {
+    transform: scale(0.5) !important;
+    transform-origin: top center !important;
+    margin-bottom: 2rem !important;
+  }
+}
+
+@media print {
+  .invoice-content {
+    transform: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Print preview'da fatura içeriğinin görünür olmasını sağla */
+  body {
+    background: white !important;
+  }
+  
+  .min-h-screen {
+    background: white !important;
+  }
+}

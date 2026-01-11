@@ -1,0 +1,1 @@
+ALTER TABLE "dealerSales" ADD COLUMN "isSaved" boolean DEFAULT false;

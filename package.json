@@ -1,0 +1,51 @@
+{
+  "name": "baharat",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "clean": "rm -rf .next && echo 'Cache temizlendi'",
+    "clean:win": "if exist .next rmdir /s /q .next && echo Cache temizlendi",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "create-db": "tsx scripts/create-database.ts",
+    "create-admin": "tsx scripts/create-admin.ts",
+    "seed": "tsx scripts/seed-data.ts",
+    "migrate-to-supabase": "tsx scripts/migrate-to-supabase.ts",
+    "update-products": "tsx scripts/update-products.ts",
+    "check-data": "tsx scripts/check-data.ts",
+    "fix-slugs": "tsx scripts/fix-product-slugs.ts",
+    "activate-all-products": "tsx scripts/activate-all-products.ts"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.45.1",
+    "html2pdf.js": "^0.13.0",
+    "i18next": "^25.7.3",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "next": "15.1.0",
+    "postgres": "^3.4.8",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-i18next": "^16.5.0",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.8",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
