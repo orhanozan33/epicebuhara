@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     }
 
     // Toplam sipariş ve gelir
-    let ordersQuery = db
+    const ordersQuery = db
       .select({
         totalOrders: sql<number>`COUNT(${orders.id})::int`,
         orderRevenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`,
@@ -31,16 +31,14 @@ export async function GET(request: Request) {
       })
       .from(orders);
 
-    if (dateFilter) {
-      ordersQuery = ordersQuery.where(
-        and(
-          gte(orders.createdAt, dateFilter.start),
-          lte(orders.createdAt, dateFilter.end)
+    const ordersResult = dateFilter
+      ? await ordersQuery.where(
+          and(
+            gte(orders.createdAt, dateFilter.start),
+            lte(orders.createdAt, dateFilter.end)
+          )
         )
-      );
-    }
-
-    const ordersResult = await ordersQuery;
+      : await ordersQuery;
     const totalOrders = ordersResult[0]?.totalOrders || 0;
     const orderRevenue = parseFloat(ordersResult[0]?.orderRevenue?.toString() || '0');
     const orderSubtotal = parseFloat(ordersResult[0]?.orderSubtotal?.toString() || '0');
@@ -48,7 +46,7 @@ export async function GET(request: Request) {
     const orderTVQ = orderSubtotal * 0.09975;
 
     // Toplam bayi satışları
-    let dealerSalesQuery = db
+    const dealerSalesQuery = db
       .select({
         totalSales: sql<number>`COUNT(${dealerSales.id})::int`,
         dealerRevenue: sql<number>`COALESCE(SUM(CAST(${dealerSales.total} AS DECIMAL)), 0)`,
@@ -57,16 +55,14 @@ export async function GET(request: Request) {
       })
       .from(dealerSales);
 
-    if (dateFilter) {
-      dealerSalesQuery = dealerSalesQuery.where(
-        and(
-          gte(dealerSales.createdAt, dateFilter.start),
-          lte(dealerSales.createdAt, dateFilter.end)
+    const dealerSalesResult = dateFilter
+      ? await dealerSalesQuery.where(
+          and(
+            gte(dealerSales.createdAt, dateFilter.start),
+            lte(dealerSales.createdAt, dateFilter.end)
+          )
         )
-      );
-    }
-
-    const dealerSalesResult = await dealerSalesQuery;
+      : await dealerSalesQuery;
     const totalSales = dealerSalesResult[0]?.totalSales || 0;
     const dealerRevenue = parseFloat(dealerSalesResult[0]?.dealerRevenue?.toString() || '0');
     const dealerSubtotalRaw = parseFloat(dealerSalesResult[0]?.dealerSubtotal?.toString() || '0');
@@ -76,26 +72,24 @@ export async function GET(request: Request) {
     const dealerTVQ = dealerAfterDiscount * 0.09975;
 
     // Toplam alacak (borçlu satışlar)
-    let alacakQuery = db
+    const alacakQuery = db
       .select({
         totalAlacak: sql<number>`COALESCE(SUM(CASE WHEN ${dealerSales.isPaid} = false THEN CAST(${dealerSales.total} AS DECIMAL) - COALESCE(CAST(${dealerSales.paidAmount} AS DECIMAL), 0) ELSE 0 END), 0)`,
       })
       .from(dealerSales);
 
-    if (dateFilter) {
-      alacakQuery = alacakQuery.where(
-        and(
-          gte(dealerSales.createdAt, dateFilter.start),
-          lte(dealerSales.createdAt, dateFilter.end)
+    const alacakResult = dateFilter
+      ? await alacakQuery.where(
+          and(
+            gte(dealerSales.createdAt, dateFilter.start),
+            lte(dealerSales.createdAt, dateFilter.end)
+          )
         )
-      );
-    }
-
-    const alacakResult = await alacakQuery;
+      : await alacakQuery;
     const totalAlacak = parseFloat(alacakResult[0]?.totalAlacak?.toString() || '0');
 
     // Sipariş durumlarına göre gruplama
-    let ordersByStatusQuery = db
+    const ordersByStatusQuery = db
       .select({
         status: orders.status,
         count: sql<number>`COUNT(${orders.id})::int`,
@@ -103,16 +97,14 @@ export async function GET(request: Request) {
       .from(orders)
       .groupBy(orders.status);
 
-    if (dateFilter) {
-      ordersByStatusQuery = ordersByStatusQuery.where(
-        and(
-          gte(orders.createdAt, dateFilter.start),
-          lte(orders.createdAt, dateFilter.end)
+    const ordersByStatusResult = dateFilter
+      ? await ordersByStatusQuery.where(
+          and(
+            gte(orders.createdAt, dateFilter.start),
+            lte(orders.createdAt, dateFilter.end)
+          )
         )
-      );
-    }
-
-    const ordersByStatusResult = await ordersByStatusQuery;
+      : await ordersByStatusQuery;
     const ordersByStatus = ordersByStatusResult.map((item) => ({
       status: item.status || 'Bilinmiyor',
       count: item.count || 0,
@@ -120,7 +112,7 @@ export async function GET(request: Request) {
 
     // En çok satan ürünler (hem order_items hem dealer_sale_items'tan)
     // Önce order_items'tan
-    let orderItemsQuery = db
+    const orderItemsQuery = db
       .select({
         productId: orderItems.productId,
         totalQuantity: sql<number>`SUM(${orderItems.quantity})::int`,
@@ -130,19 +122,17 @@ export async function GET(request: Request) {
       .innerJoin(orders, eq(orderItems.orderId, orders.id))
       .groupBy(orderItems.productId);
 
-    if (dateFilter) {
-      orderItemsQuery = orderItemsQuery.where(
-        and(
-          gte(orders.createdAt, dateFilter.start),
-          lte(orders.createdAt, dateFilter.end)
+    const orderItemsResult = dateFilter
+      ? await orderItemsQuery.where(
+          and(
+            gte(orders.createdAt, dateFilter.start),
+            lte(orders.createdAt, dateFilter.end)
+          )
         )
-      );
-    }
-
-    const orderItemsResult = await orderItemsQuery;
+      : await orderItemsQuery;
 
     // dealer_sale_items'tan
-    let dealerItemsQuery = db
+    const dealerItemsQuery = db
       .select({
         productId: dealerSaleItems.productId,
         totalQuantity: sql<number>`SUM(${dealerSaleItems.quantity})::int`,
@@ -152,16 +142,14 @@ export async function GET(request: Request) {
       .innerJoin(dealerSales, eq(dealerSaleItems.saleId, dealerSales.id))
       .groupBy(dealerSaleItems.productId);
 
-    if (dateFilter) {
-      dealerItemsQuery = dealerItemsQuery.where(
-        and(
-          gte(dealerSales.createdAt, dateFilter.start),
-          lte(dealerSales.createdAt, dateFilter.end)
+    const dealerItemsResult = dateFilter
+      ? await dealerItemsQuery.where(
+          and(
+            gte(dealerSales.createdAt, dateFilter.start),
+            lte(dealerSales.createdAt, dateFilter.end)
+          )
         )
-      );
-    }
-
-    const dealerItemsResult = await dealerItemsQuery;
+      : await dealerItemsQuery;
 
     // Her iki kaynaktan gelen verileri birleştir
     const productStats = new Map<number, { quantity: number; revenue: number }>();
