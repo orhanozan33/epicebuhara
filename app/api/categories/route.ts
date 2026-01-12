@@ -32,12 +32,39 @@ export async function GET(request: Request) {
     console.error('Error stack:', error?.stack);
     console.error('Error code:', error?.code);
     console.error('Error name:', error?.name);
+    console.error('Error query:', error?.query);
+    console.error('Error detail:', error?.detail);
+    console.error('Error constraint:', error?.constraint);
     
-    const errorMessage = error?.message || 'Bilinmeyen hata';
+    // Drizzle/postgres hataları farklı formatta olabilir
+    const postgresError = error?.cause || error;
+    const errorCode = postgresError?.code || error?.code;
+    const errorMessage = postgresError?.message || error?.message || 'Bilinmeyen hata';
+    const errorQuery = postgresError?.query || error?.query;
+    const errorDetail = postgresError?.detail || error?.detail;
+    
+    // Daha detaylı hata mesajı
+    let detailedMessage = errorMessage;
+    if (errorQuery) {
+      detailedMessage = `Failed query: ${errorQuery}`;
+      if (errorDetail) {
+        detailedMessage += `\nDetail: ${errorDetail}`;
+      }
+    } else if (errorCode === '42703') {
+      detailedMessage = 'Kolon bulunamadı - Veritabanı şeması güncel değil';
+    } else if (errorCode === '42P01') {
+      detailedMessage = 'Tablo bulunamadı - categories tablosu mevcut değil';
+    } else if (errorCode === '08006') {
+      detailedMessage = 'Veritabanı bağlantı hatası - Connection string kontrol edin';
+    }
+    
     return NextResponse.json(
       { 
         error: 'Kategoriler getirilemedi',
-        details: errorMessage
+        details: detailedMessage,
+        code: errorCode,
+        query: errorQuery || 'N/A',
+        message: errorMessage
       },
       { status: 500 }
     );
