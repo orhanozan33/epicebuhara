@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getDealerRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { dealers } from '@/src/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
@@ -13,16 +15,18 @@ export async function GET(
       return NextResponse.json({ error: 'Geçersiz bayi ID' }, { status: 400 });
     }
 
-    const dealerRepo = await getDealerRepository();
-    const dealer = await dealerRepo.findOne({ where: { id } });
+    const dealer = await db.select()
+      .from(dealers)
+      .where(eq(dealers.id, id))
+      .limit(1);
 
-    if (!dealer) {
+    if (dealer.length === 0) {
       return NextResponse.json({ error: 'Bayi bulunamadı' }, { status: 404 });
     }
 
-    return NextResponse.json(dealer);
+    return NextResponse.json(dealer[0]);
   } catch (error: any) {
-    console.error('Error fetching dealer (TypeORM):', error);
+    console.error('Error fetching dealer (Drizzle):', error);
     return NextResponse.json(
       { error: 'Bayi getirilirken hata oluştu', details: error?.message },
       { status: 500 }
@@ -43,30 +47,38 @@ export async function PUT(
       return NextResponse.json({ error: 'Geçersiz bayi ID' }, { status: 400 });
     }
 
-    const dealerRepo = await getDealerRepository();
-    const dealer = await dealerRepo.findOne({ where: { id } });
+    const existingDealer = await db.select()
+      .from(dealers)
+      .where(eq(dealers.id, id))
+      .limit(1);
 
-    if (!dealer) {
+    if (existingDealer.length === 0) {
       return NextResponse.json({ error: 'Bayi bulunamadı' }, { status: 404 });
     }
 
     const { companyName, phone, email, address, taxNumber, tpsNumber, tvqNumber, discount, isActive } = body;
 
-    if (companyName !== undefined) dealer.companyName = companyName;
-    if (phone !== undefined) dealer.phone = phone || null;
-    if (email !== undefined) dealer.email = email || null;
-    if (address !== undefined) dealer.address = address || null;
-    if (taxNumber !== undefined) dealer.taxNumber = taxNumber || null;
-    if (tpsNumber !== undefined) dealer.tpsNumber = tpsNumber || null;
-    if (tvqNumber !== undefined) dealer.tvqNumber = tvqNumber || null;
-    if (discount !== undefined) dealer.discount = discount || '0';
-    if (isActive !== undefined) dealer.isActive = isActive;
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+    if (companyName !== undefined) updateData.companyName = companyName;
+    if (phone !== undefined) updateData.phone = phone || null;
+    if (email !== undefined) updateData.email = email || null;
+    if (address !== undefined) updateData.address = address || null;
+    if (taxNumber !== undefined) updateData.taxNumber = taxNumber || null;
+    if (tpsNumber !== undefined) updateData.tpsNumber = tpsNumber || null;
+    if (tvqNumber !== undefined) updateData.tvqNumber = tvqNumber || null;
+    if (discount !== undefined) updateData.discount = discount || '0';
+    if (isActive !== undefined) updateData.isActive = isActive;
 
-    await dealerRepo.save(dealer);
+    const updatedDealer = await db.update(dealers)
+      .set(updateData)
+      .where(eq(dealers.id, id))
+      .returning();
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(updatedDealer[0]);
   } catch (error: any) {
-    console.error('Error updating dealer (TypeORM):', error);
+    console.error('Error updating dealer (Drizzle):', error);
     return NextResponse.json(
       { error: 'Bayi güncellenirken hata oluştu', details: error?.message },
       { status: 500 }
@@ -86,12 +98,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Geçersiz bayi ID' }, { status: 400 });
     }
 
-    const dealerRepo = await getDealerRepository();
-    await dealerRepo.delete(id);
+    await db.delete(dealers).where(eq(dealers.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting dealer (TypeORM):', error);
+    console.error('Error deleting dealer (Drizzle):', error);
     return NextResponse.json(
       { error: 'Bayi silinirken hata oluştu', details: error?.message },
       { status: 500 }

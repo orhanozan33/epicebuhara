@@ -40,3 +40,36 @@ export const products = pgTable('products', {
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
 });
+
+export const dealers = pgTable('dealers', {
+  id: serial('id').primaryKey().notNull(),
+  companyName: varchar('companyName', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 20 }),
+  email: varchar('email', { length: 255 }),
+  address: text('address'),
+  taxNumber: varchar('taxNumber', { length: 100 }),
+  tpsNumber: varchar('tpsNumber', { length: 100 }),
+  tvqNumber: varchar('tvqNumber', { length: 100 }),
+  discount: numeric('discount', { precision: 5, scale: 2 }).default('0'),
+  isActive: boolean('isActive').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+});
+
+export const dealerSales = pgTable('dealerSales', {
+  id: serial('id').primaryKey().notNull(),
+  dealerId: integer('dealerId').notNull(),
+  saleNumber: varchar('saleNumber', { length: 100 }).notNull(),
+  paymentMethod: varchar('paymentMethod', { length: 50 }).notNull(),
+  subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),
+  discount: numeric('discount', { precision: 10, scale: 2 }).default('0'),
+  total: numeric('total', { precision: 10, scale: 2 }).notNull(),
+  isPaid: boolean('isPaid').default(false),
+  paidAmount: numeric('paidAmount', { precision: 10, scale: 2 }).default('0'),
+  paidAt: timestamp('paidAt'),
+  notes: text('notes'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+}, (table) => ({
+  saleNumberUnique: unique('dealerSales_saleNumber_unique').on(table.saleNumber),
+}));

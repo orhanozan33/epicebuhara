@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getDealerSaleRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { dealerSales } from '@/src/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 // Satış ödemesi al
 export async function PUT(
@@ -36,43 +38,54 @@ export async function PUT(
     }
 
     // Satışı getir
-    const dealerSaleRepo = await getDealerSaleRepository();
-    const sale = await dealerSaleRepo.findOne({
-      where: { id: saleIdNum, dealerId },
-    });
+    const sale = await db.select()
+      .from(dealerSales)
+      .where(and(
+        eq(dealerSales.id, saleIdNum),
+        eq(dealerSales.dealerId, dealerId)
+      ))
+      .limit(1);
 
-    if (!sale) {
+    if (sale.length === 0) {
       return NextResponse.json(
         { error: 'Satış bulunamadı' },
         { status: 404 }
       );
     }
 
-    const totalAmount = parseFloat(sale.total || '0');
+    const saleData = sale[0];
+    const totalAmount = parseFloat(saleData.total || '0');
     const newPaidAmount = parseFloat(amount);
-    const currentPaidAmount = parseFloat(sale.paidAmount || '0');
+    const currentPaidAmount = parseFloat(saleData.paidAmount || '0');
     const totalPaidAmount = currentPaidAmount + newPaidAmount;
     const isFullyPaid = totalPaidAmount >= totalAmount;
 
     // Satışı güncelle
-    sale.paymentMethod = paymentMethod;
-    sale.isPaid = isFullyPaid;
-    sale.paidAmount = Math.min(totalPaidAmount, totalAmount).toFixed(2);
-    sale.paidAt = new Date();
-    const updatedSale = await dealerSaleRepo.save(sale);
+    const updateData = {
+      paymentMethod,
+      isPaid: isFullyPaid,
+      paidAmount: Math.min(totalPaidAmount, totalAmount).toFixed(2),
+      paidAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const updatedSale = await db.update(dealerSales)
+      .set(updateData)
+      .where(eq(dealerSales.id, saleIdNum))
+      .returning();
 
     const finalPaidAmount = Math.min(totalPaidAmount, totalAmount);
     const remainingAmount = Math.max(0, totalAmount - finalPaidAmount);
 
     return NextResponse.json({
       success: true,
-      sale: updatedSale,
+      sale: updatedSale[0],
       isFullyPaid,
       remainingAmount: remainingAmount,
       paidAmount: finalPaidAmount,
     });
   } catch (error: any) {
-    console.error('Error processing payment (TypeORM):', error);
+    console.error('Error processing payment (Drizzle):', error);
     return NextResponse.json(
       { error: 'Ödeme işlenirken hata oluştu', details: error?.message || 'Bilinmeyen hata' },
       { status: 500 }
