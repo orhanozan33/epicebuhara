@@ -12,17 +12,33 @@ function getDatabaseUrl(): string {
   return process.env.DATABASE_URL || 'postgresql://postgres:333333@localhost:5432/baharat';
 }
 
+function parseDatabaseUrl(url: string) {
+  try {
+    const urlObj = new URL(url);
+    return {
+      host: urlObj.hostname,
+      port: parseInt(urlObj.port) || 5432,
+      user: urlObj.username,
+      password: urlObj.password,
+      database: urlObj.pathname.slice(1),
+      ssl: url.includes('supabase.co') || url.includes('pooler.supabase.com') ? { rejectUnauthorized: false } : false,
+    };
+  } catch {
+    return null;
+  }
+}
+
 const dbUrl = getDatabaseUrl();
 
 if (!dbUrl) {
   throw new Error('DATABASE_URL veya DB_* environment variables bulunamadı');
 }
 
+const credentials = parseDatabaseUrl(dbUrl);
+
 export default defineConfig({
   schema: './src/db/schema.ts',
   out: './drizzle',
   dialect: 'postgresql',
-  dbCredentials: {
-    url: dbUrl,
-  },
+  dbCredentials: credentials || { url: dbUrl, ssl: dbUrl.includes('supabase.co') || dbUrl.includes('pooler.supabase.com') ? { rejectUnauthorized: false } : false },
 });
