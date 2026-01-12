@@ -82,3 +82,19 @@ export const cart = pgTable('cart', {
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
 });
+
+export const companySettings = pgTable('companySettings', {
+  id: serial('id').primaryKey().notNull(),
+  companyName: varchar('companyName', { length: 255 }),
+  address: text('address'),
+  phone: varchar('phone', { length: 20 }),
+  email: varchar('email', { length: 255 }),
+  postalCode: varchar('postalCode', { length: 20 }),
+  taxNumber: varchar('taxNumber', { length: 100 }),
+  tpsNumber: varchar('tpsNumber', { length: 100 }),
+  tvqNumber: varchar('tvqNumber', { length: 100 }),
+  instagramUrl: varchar('instagramUrl', { length: 500 }),
+  facebookUrl: varchar('facebookUrl', { length: 500 }),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+});
