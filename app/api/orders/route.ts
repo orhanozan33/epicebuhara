@@ -212,7 +212,7 @@ export async function POST(request: Request) {
 
     // Stok güncelle (trackStock true olan ürünler için)
     const productIds = itemsToInsert
-      .map(item => item.productId)
+      .map((item: { productId: number; quantity: number; price: string; total: string }) => item.productId)
       .filter((id): id is number => id !== null && id !== undefined);
     
     if (productIds.length > 0) {
