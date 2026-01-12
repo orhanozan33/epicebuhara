@@ -58,6 +58,10 @@ function SiparisTakibiContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
+  const [showAllOrders, setShowAllOrders] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -65,6 +69,44 @@ function SiparisTakibiContent() {
       handleSearch();
     }
   }, []);
+
+  const handleSearchAllOrders = async () => {
+    if (!searchEmail.trim() && !searchPhone.trim()) {
+      showToast(mounted ? t('orderTracking.enterEmailOrPhone') || 'Lütfen email veya telefon girin' : 'Lütfen email veya telefon girin', 'error');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setShowAllOrders(true);
+    setOrder(null);
+    setItems([]);
+
+    try {
+      const url = searchEmail.trim() 
+        ? `/api/orders?email=${encodeURIComponent(searchEmail.trim())}`
+        : `/api/orders?phone=${encodeURIComponent(searchPhone.trim())}`;
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setAllOrders(Array.isArray(data) ? data : []);
+        if (data.length === 0) {
+          setError(mounted ? t('orderTracking.noOrdersFound') || 'Sipariş bulunamadı' : 'Sipariş bulunamadı');
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || (mounted ? t('orderTracking.fetchError') : 'Siparişler getirilirken hata oluştu'));
+        setAllOrders([]);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setError(mounted ? t('orderTracking.fetchError') : 'Siparişler getirilirken hata oluştu');
+      setAllOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!orderNumber.trim()) {
@@ -144,22 +186,70 @@ function SiparisTakibiContent() {
 
         {/* Sipariş Arama Formu */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <input
-              type="text"
-              value={orderNumber}
-              onChange={(e) => setOrderNumber(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder={mounted ? t('orderTracking.searchPlaceholder') : "Sipariş numarası girin (örn: ORD-1234567890-ABC123)"}
-              className="flex-1 px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm sm:text-base"
-            />
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-6 py-2.5 sm:py-3 bg-[#E91E63] text-white font-medium rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base whitespace-nowrap"
-            >
-              {loading ? (mounted ? t('products.loading') : 'Yükleniyor...') : (mounted ? t('admin.common.search') : 'Ara')}
-            </button>
+          <div className="space-y-4">
+            {/* Sipariş Numarası ile Arama */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{mounted ? t('orderTracking.searchByOrderNumber') || 'Sipariş Numarası ile Ara' : 'Sipariş Numarası ile Ara'}</label>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <input
+                  type="text"
+                  value={orderNumber}
+                  onChange={(e) => {
+                    setOrderNumber(e.target.value);
+                    setShowAllOrders(false);
+                    setOrder(null);
+                    setItems([]);
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder={mounted ? t('orderTracking.searchPlaceholder') : "Sipariş numarası girin (örn: ORD-000001)"}
+                  className="flex-1 px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm sm:text-base"
+                />
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="px-6 py-2.5 sm:py-3 bg-[#E91E63] text-white font-medium rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base whitespace-nowrap"
+                >
+                  {loading ? (mounted ? t('products.loading') : 'Yükleniyor...') : (mounted ? t('admin.common.search') : 'Ara')}
+                </button>
+              </div>
+            </div>
+            
+            {/* Email/Telefon ile Tüm Siparişleri Getir */}
+            <div className="border-t pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">{mounted ? t('orderTracking.searchByEmailOrPhone') || 'Email veya Telefon ile Tüm Siparişlerimi Gör' : 'Email veya Telefon ile Tüm Siparişlerimi Gör'}</label>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <input
+                  type="email"
+                  value={searchEmail}
+                  onChange={(e) => {
+                    setSearchEmail(e.target.value);
+                    setSearchPhone('');
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearchAllOrders()}
+                  placeholder={mounted ? t('checkout.email') || 'E-posta' : 'E-posta'}
+                  className="flex-1 px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm sm:text-base"
+                />
+                <span className="self-center text-gray-500 hidden sm:inline">{mounted ? t('orderTracking.or') : 'veya'}</span>
+                <input
+                  type="tel"
+                  value={searchPhone}
+                  onChange={(e) => {
+                    setSearchPhone(e.target.value);
+                    setSearchEmail('');
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearchAllOrders()}
+                  placeholder={mounted ? t('checkout.phone') || 'Telefon' : 'Telefon'}
+                  className="flex-1 px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm sm:text-base"
+                />
+                <button
+                  onClick={handleSearchAllOrders}
+                  disabled={loading}
+                  className="px-6 py-2.5 sm:py-3 bg-[#E91E63] text-white font-medium rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base whitespace-nowrap"
+                >
+                  {loading ? (mounted ? t('products.loading') : 'Yükleniyor...') : (mounted ? t('orderTracking.viewAllOrders') || 'Tüm Siparişlerimi Gör' : 'Tüm Siparişlerimi Gör')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -256,9 +346,35 @@ function SiparisTakibiContent() {
                       {item.product?.images && (
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                           <img
-                            src={item.product.images.split(',')[0].trim()}
+                            src={(() => {
+                              const imgSrc = item.product.images.split(',')[0].trim();
+                              if (!imgSrc) return '';
+
+                              // Eğer zaten tam URL ise (http/https veya Supabase Storage URL), olduğu gibi döndür
+                              if (imgSrc.startsWith('http://') || imgSrc.startsWith('https://')) {
+                                return imgSrc;
+                              }
+
+                              // Eğer / ile başlıyorsa, olduğu gibi döndür
+                              if (imgSrc.startsWith('/')) {
+                                return imgSrc;
+                              }
+
+                              // Supabase Storage URL kontrolü (storage/v1/object/public içeriyorsa)
+                              if (imgSrc.includes('storage/v1/object/public')) {
+                                return imgSrc;
+                              }
+
+                              // Local dosya yolu - /uploads/products/ ekle
+                              return `/uploads/products/${imgSrc}`;
+                            })()}
                             alt={item.product.baseName || item.product.name}
                             className="w-full h-full object-contain p-1 sm:p-2"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              console.error('Resim yükleme hatası:', target.src, item.product?.name);
+                              target.style.display = 'none';
+                            }}
                           />
                         </div>
                       )}
@@ -288,10 +404,16 @@ function SiparisTakibiContent() {
                   <span>${parseFloat(order.subtotal).toFixed(2)}</span>
                 </div>
                 {parseFloat(order.tax) > 0 && (
-                  <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                    <span>Vergi (TPS + TVQ)</span>
-                    <span>${parseFloat(order.tax).toFixed(2)}</span>
-                  </div>
+                  <>
+                    <div className="flex justify-between text-sm sm:text-base text-gray-600">
+                      <span>TPS (5%)</span>
+                      <span>${(parseFloat(order.subtotal) * 0.05).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm sm:text-base text-gray-600">
+                      <span>TVQ (9.975%)</span>
+                      <span>${(parseFloat(order.subtotal) * 0.09975).toFixed(2)}</span>
+                    </div>
+                  </>
                 )}
                 {parseFloat(order.shipping) > 0 && (
                   <div className="flex justify-between text-sm sm:text-base text-gray-600">
@@ -308,10 +430,68 @@ function SiparisTakibiContent() {
           </div>
         )}
 
+        {/* Tüm Siparişler Listesi */}
+        {!loading && showAllOrders && allOrders.length > 0 && (
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{mounted ? t('orderTracking.allOrders') || 'Tüm Siparişlerim' : 'Tüm Siparişlerim'}</h2>
+            <div className="space-y-4">
+              {allOrders.map((orderItem) => (
+                <div
+                  key={orderItem.id}
+                  className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={async () => {
+                    setOrderNumber(orderItem.orderNumber);
+                    setShowAllOrders(false);
+                    setOrder(null);
+                    setItems([]);
+                    setSearched(false);
+                    // handleSearch'i async olarak çağır
+                    await handleSearch();
+                  }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">{orderItem.orderNumber}</h3>
+                        <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${getStatusColor(orderItem.status)}`}>
+                          {getStatusLabel(orderItem.status)}
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                        {new Date(orderItem.createdAt).toLocaleDateString(getLocale(), {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                      {orderItem.shippingName && (
+                        <p className="text-xs sm:text-sm text-gray-600">{orderItem.shippingName}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg sm:text-xl font-bold text-[#E91E63]">${parseFloat(orderItem.total).toFixed(2)}</p>
+                      <p className="text-xs sm:text-sm text-gray-500 mt-1">{mounted ? t('orderTracking.clickToView') || 'Detayları görmek için tıklayın' : 'Detayları görmek için tıklayın'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Sipariş bulunamadı mesajı (sadece arama yapıldıysa göster) */}
-        {!loading && searched && !order && (
+        {!loading && searched && !order && !showAllOrders && (
           <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
             <p className="text-gray-600 text-base sm:text-lg">{error || (mounted ? t('orderTracking.orderNotFound') : 'Sipariş bulunamadı. Lütfen sipariş numaranızı kontrol edin.')}</p>
+          </div>
+        )}
+
+        {/* Tüm siparişler bulunamadı mesajı */}
+        {!loading && showAllOrders && allOrders.length === 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
+            <p className="text-gray-600 text-base sm:text-lg">{error || (mounted ? t('orderTracking.noOrdersFound') || 'Sipariş bulunamadı' : 'Sipariş bulunamadı')}</p>
           </div>
         )}
       </div>

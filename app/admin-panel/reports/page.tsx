@@ -53,9 +53,14 @@ export default function RaporlarPage() {
   };
 
   const handleDateChange = () => {
+    // Eğer her iki tarih de seçilmişse, tarih aralığı ile filtrele
     if (startDate && endDate) {
       fetchReports(startDate, endDate);
+    } else if (startDate || endDate) {
+      // Sadece bir tarih seçilmişse, tüm raporları göster
+      fetchReports('', '');
     } else {
+      // Hiç tarih seçilmemişse, tüm raporları göster
       fetchReports('', '');
     }
   };
@@ -105,14 +110,27 @@ export default function RaporlarPage() {
               className="w-full px-3 lg:px-4 py-2 text-sm lg:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
             />
           </div>
-          <div className="flex items-end">
+          <div className="flex items-end gap-2">
             <button
               onClick={handleDateChange}
-              disabled={loading || !startDate || !endDate}
-              className="w-full bg-[#E91E63] text-white px-3 lg:px-4 py-2 text-sm lg:text-base rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 font-medium"
+              disabled={loading || (!startDate && !endDate)}
+              className="flex-1 bg-[#E91E63] text-white px-3 lg:px-4 py-2 text-sm lg:text-base rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 font-medium"
             >
               {loading ? (mounted ? t('admin.common.loading') : 'Yükleniyor...') : (mounted ? t('admin.reports.getReport') : 'Raporu Getir')}
             </button>
+            {(startDate || endDate) && (
+              <button
+                onClick={() => {
+                  setStartDate('');
+                  setEndDate('');
+                  fetchReports('', '');
+                }}
+                disabled={loading}
+                className="px-3 lg:px-4 py-2 text-sm lg:text-base border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:bg-gray-100 font-medium text-gray-700"
+              >
+                {mounted ? t('admin.common.clear') : 'Temizle'}
+              </button>
+            )}
           </div>
         </div>
       </div>

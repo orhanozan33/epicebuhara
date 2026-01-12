@@ -3,8 +3,11 @@ import { db } from '@/src/db';
 import { dealerSales } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Faturayı kaydet (isSaved = true yap)
-export async function POST(
+export async function PUT(
   request: Request,
   { params }: { params: Promise<{ saleId: string }> }
 ) {

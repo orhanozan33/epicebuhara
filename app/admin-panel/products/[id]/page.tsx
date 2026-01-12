@@ -30,9 +30,9 @@ interface Product {
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
-  const id = params?.id as string;
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
+  const [id, setId] = useState<string | null>(null);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -62,23 +62,78 @@ export default function EditProductPage() {
     setMounted(true);
   }, []);
 
+  // Params handling - Next.js 15 compatible
   useEffect(() => {
-    if (id === 'yeni') {
+    let isActive = true;
+    
+    const resolveParams = async () => {
+      try {
+        let resolvedParams: any = params;
+        
+        // Next.js 15'te params Promise olabilir
+        if (params && typeof params === 'object' && 'then' in params && typeof (params as any).then === 'function') {
+          resolvedParams = await params;
+        }
+        
+        const idParam = resolvedParams?.id ? String(resolvedParams.id) : null;
+        
+        if (isActive) {
+          setId(idParam);
+        }
+      } catch (error: any) {
+        console.error('Error resolving params:', error);
+        if (isActive) {
+          setId(null);
+        }
+      }
+    };
+    
+    resolveParams();
+    
+    return () => {
+      isActive = false;
+    };
+  }, [params]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    // "yeni" veya "new" yeni ürün oluşturma sayfası için
+    if (id === 'yeni' || id === 'new') {
       fetchCategories();
       setLoading(false);
+      setError(''); // Hata mesajını temizle
       return;
     }
 
     fetchProduct();
     fetchCategories();
-  }, [id]);
+  }, [id, mounted]);
 
   const fetchProduct = async () => {
+    // "yeni" veya "new" yeni ürün oluşturma sayfası için
+    if (!id || id === 'yeni' || id === 'new') {
+      return;
+    }
+
+    // ID'nin geçerli bir sayı olup olmadığını kontrol et
+    const productId = parseInt(id);
+    if (isNaN(productId) || productId <= 0) {
+      // "new" veya "yeni" değerleri için hata gösterme, bunlar yeni ürün oluşturma için
+      if (id !== 'new' && id !== 'yeni') {
+        setError(mounted ? t('admin.common.error') : 'Geçersiz ürün ID');
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/products?admin=true`);
       if (response.ok) {
         const products = await response.json();
-        const product = products.find((p: Product) => p.id === parseInt(id));
+        const product = products.find((p: Product) => p.id === productId);
         if (product) {
           setProduct(product);
           const images = product.images ? product.images.split(',').map((img: string) => img.trim()).filter(Boolean) : [];
@@ -120,7 +175,11 @@ export default function EditProductPage() {
             description: product.description || '',
             images: product.images || '',
           });
+        } else {
+          setError(mounted ? t('admin.common.notFound') : 'Ürün bulunamadı');
         }
+      } else {
+        setError(mounted ? t('admin.common.error') : 'Ürün yüklenirken hata oluştu');
       }
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -173,16 +232,27 @@ export default function EditProductPage() {
       if (response.ok) {
         const data = await response.json();
         const newImageUrl = data.url;
+        console.log('Image upload successful, URL:', newImageUrl);
+        
+        // URL'i kontrol et
+        if (!newImageUrl) {
+          throw new Error('Resim URL\'i alınamadı');
+        }
+        
         const updatedUrls = [...imageUrls, newImageUrl];
         setImageUrls(updatedUrls);
         setFormData({ ...formData, images: updatedUrls.join(',') });
+        setError(''); // Başarılı olduğunda hatayı temizle
       } else {
-        const errorData = await response.json();
-        setError(errorData.error || (mounted ? t('admin.common.error') : 'Resim yüklenirken hata oluştu'));
+        const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }));
+        const errorMessage = errorData.error || errorData.details || (mounted ? t('admin.common.error') : 'Resim yüklenirken hata oluştu');
+        console.error('Image upload failed:', errorMessage, errorData);
+        setError(errorMessage);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
-      setError(mounted ? t('admin.common.error') : 'Resim yüklenirken hata oluştu');
+      const errorMessage = error?.message || (mounted ? t('admin.common.error') : 'Resim yüklenirken hata oluştu');
+      setError(errorMessage);
     } finally {
       setUploading(false);
       // Input'u temizle
@@ -200,6 +270,12 @@ export default function EditProductPage() {
     e.preventDefault();
     setError('');
     setSaving(true);
+
+    if (!id) {
+      setError(mounted ? t('admin.common.error') : 'Ürün ID bulunamadı');
+      setSaving(false);
+      return;
+    }
 
     try {
       // Weight kaydetme: ondalık kısmı kaldır, unit'i olduğu gibi kaydet
@@ -228,8 +304,10 @@ export default function EditProductPage() {
         images: imageUrls.join(',') || null,
       };
 
-      const url = id === 'yeni' ? '/api/products' : `/api/products/${id}`;
-      const method = id === 'yeni' ? 'POST' : 'PUT';
+      // "yeni" veya "new" yeni ürün oluşturma için
+      const isNew = id === 'yeni' || id === 'new';
+      const url = isNew ? '/api/products' : `/api/products/${id}`;
+      const method = isNew ? 'POST' : 'PUT';
 
       const response = await fetch(url, {
         method,
@@ -263,7 +341,7 @@ export default function EditProductPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          {id === 'yeni' ? (mounted ? t('admin.products.addNew') : 'Yeni Ürün Ekle') : (mounted ? t('admin.products.editProduct') : 'Ürün Düzenle')}
+          {(id === 'yeni' || id === 'new') ? (mounted ? t('admin.products.addNew') : 'Yeni Ürün Ekle') : (mounted ? t('admin.products.editProduct') : 'Ürün Düzenle')}
         </h2>
         <Link
           href="/admin-panel/products"
@@ -596,6 +674,7 @@ export default function EditProductPage() {
                         loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
+                          console.error('Image load error:', target.src);
                           target.style.display = 'none';
                           const parent = target.parentElement;
                           if (parent && !parent.querySelector('.error-placeholder')) {

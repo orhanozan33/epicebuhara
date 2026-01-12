@@ -52,7 +52,6 @@ export default function BayiPage() {
     phone: '',
     email: '',
     address: '',
-    taxNumber: '',
     tpsNumber: '',
     tvqNumber: '',
     discount: '0',
@@ -130,7 +129,6 @@ export default function BayiPage() {
       phone: '',
       email: '',
       address: '',
-      taxNumber: '',
       tpsNumber: '',
       tvqNumber: '',
       discount: '0',
@@ -148,7 +146,6 @@ export default function BayiPage() {
       phone: dealer.phone || '',
       email: dealer.email || '',
       address: dealer.address || '',
-      taxNumber: dealer.taxNumber || '',
       tpsNumber: dealer.tpsNumber || '',
       tvqNumber: dealer.tvqNumber || '',
       discount: dealer.discount || '0',
@@ -546,18 +543,6 @@ export default function BayiPage() {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {mounted ? 'Vergi Numarası' : 'Vergi Numarası'}
-                </label>
-                <input
-                  type="text"
-                  value={formData.taxNumber}
-                  onChange={(e) => setFormData({ ...formData, taxNumber: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                 />
               </div>

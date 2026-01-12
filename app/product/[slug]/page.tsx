@@ -273,7 +273,28 @@ export default function ProductDetailPage() {
     ? selectedVariantProduct  // Seçilen varyantın tam ürün bilgilerini doğrudan kullan
     : product;
   
-  const images = displayProduct?.images ? displayProduct.images.split(',').map(img => img.trim()).filter(Boolean) : [];
+  const images = displayProduct?.images ? displayProduct.images.split(',').map(img => {
+    const trimmed = img.trim();
+    if (!trimmed) return '';
+    
+    // Eğer zaten tam URL ise (http/https veya Supabase Storage URL), olduğu gibi döndür
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    
+    // Eğer / ile başlıyorsa, olduğu gibi döndür
+    if (trimmed.startsWith('/')) {
+      return trimmed;
+    }
+    
+    // Supabase Storage URL kontrolü (storage/v1/object/public içeriyorsa)
+    if (trimmed.includes('storage/v1/object/public')) {
+      return trimmed;
+    }
+    
+    // Local dosya yolu - /uploads/products/ ekle
+    return `/uploads/products/${trimmed}`;
+  }).filter(Boolean) : [];
 
   const hasDiscount = displayProduct.comparePrice && parseFloat(displayProduct.comparePrice) > parseFloat(displayProduct.price);
 
@@ -309,6 +330,18 @@ export default function ProductDetailPage() {
                     alt={displayProduct.name}
                     className="w-full h-full object-contain p-2 sm:p-4"
                     loading="eager"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      console.error('Resim yükleme hatası:', target.src, displayProduct.name);
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent && !parent.querySelector('.error-placeholder')) {
+                        const placeholder = document.createElement('span');
+                        placeholder.className = 'error-placeholder text-gray-400 text-sm sm:text-base';
+                        placeholder.textContent = mounted ? t('admin.common.noImage') : 'Resim Yüklenemedi';
+                        parent.appendChild(placeholder);
+                      }
+                    }}
                   />
                 </div>
                 {images.length > 1 && (
@@ -319,6 +352,11 @@ export default function ProductDetailPage() {
                           src={img}
                           alt={`${displayProduct.name} ${index + 2}`}
                           className="w-full h-full object-contain p-1 sm:p-2"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            console.error('Resim yükleme hatası:', target.src);
+                            target.style.display = 'none';
+                          }}
                         />
                       </div>
                     ))}

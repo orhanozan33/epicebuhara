@@ -29,8 +29,38 @@ export async function GET() {
     return NextResponse.json(settings[0]);
   } catch (error: any) {
     console.error('Error fetching company settings (Drizzle):', error);
+    console.error('Error stack:', error?.stack);
+    console.error('Error code:', error?.code);
+    console.error('Error name:', error?.name);
+    console.error('Error query:', error?.query);
+    console.error('Error cause:', error?.cause);
+    console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    
+    // Drizzle/postgres hataları farklı formatta olabilir
+    const postgresError = error?.cause || error;
+    const errorCode = postgresError?.code || error?.code;
+    const errorMessage = postgresError?.message || error?.message || 'Bilinmeyen hata';
+    const errorQuery = postgresError?.query || error?.query;
+    
+    // Daha detaylı hata mesajı
+    let detailedMessage = errorMessage;
+    if (errorCode === '42703') {
+      detailedMessage = 'Kolon bulunamadı - Veritabanı şeması güncel değil';
+    } else if (errorCode === '42P01') {
+      detailedMessage = 'Tablo bulunamadı - company_settings tablosu mevcut değil';
+    } else if (errorQuery) {
+      detailedMessage = `Failed query: ${errorQuery}`;
+    }
+    
     return NextResponse.json(
-      { error: 'Firma bilgileri getirilirken hata oluştu', details: error?.message || 'Bilinmeyen hata' },
+      { 
+        error: 'Firma bilgileri getirilirken hata oluştu', 
+        details: detailedMessage,
+        code: errorCode,
+        query: errorQuery || 'N/A',
+        message: errorMessage,
+        originalError: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
@@ -82,8 +112,26 @@ export async function PUT(request: Request) {
     }
   } catch (error: any) {
     console.error('Error updating company settings (Drizzle):', error);
+    console.error('Error stack:', error?.stack);
+    console.error('Error code:', error?.code);
+    console.error('Error name:', error?.name);
+    console.error('Request body:', body);
+    
+    // Daha detaylı hata mesajı
+    let errorMessage = error?.message || 'Bilinmeyen hata';
+    if (error?.code === '42703') {
+      errorMessage = 'Kolon bulunamadı - Veritabanı şeması güncel değil';
+    } else if (error?.code === '42P01') {
+      errorMessage = 'Tablo bulunamadı - company_settings tablosu mevcut değil';
+    }
+    
     return NextResponse.json(
-      { error: 'Firma bilgileri güncellenirken hata oluştu', details: error?.message || 'Bilinmeyen hata' },
+      { 
+        error: 'Firma bilgileri güncellenirken hata oluştu', 
+        details: errorMessage,
+        code: error?.code,
+        query: error?.query || 'N/A'
+      },
       { status: 500 }
     );
   }

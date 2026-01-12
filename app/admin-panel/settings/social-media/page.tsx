@@ -88,7 +88,12 @@ export default function SosyalMedyaPage() {
         await fetchSettings();
       } else {
         const error = await response.json();
-        showToast(error.error || (mounted ? t('admin.common.error') : 'Sosyal medya ayarları kaydedilirken hata oluştu'), 'error');
+        console.error('Error saving social media settings:', error);
+        // Daha detaylı hata mesajı göster
+        const errorMessage = error.details 
+          ? `${error.error}: ${error.details}` 
+          : (error.error || (mounted ? t('admin.common.error') : 'Sosyal medya ayarları kaydedilirken hata oluştu'));
+        showToast(errorMessage, 'error');
       }
     } catch (error) {
       console.error('Error saving social media settings:', error);

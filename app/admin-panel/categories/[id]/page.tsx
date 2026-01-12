@@ -76,8 +76,10 @@ export default function EditCategoryPage() {
       return;
     }
 
-    if (id === 'yeni') {
+    // "yeni" veya "new" yeni kategori oluşturma sayfası için
+    if (id === 'yeni' || id === 'new') {
       setLoading(false);
+      setError(''); // Hata mesajını temizle
       return;
     }
 
@@ -85,7 +87,8 @@ export default function EditCategoryPage() {
   }, [id, mounted]);
 
   const fetchCategory = async () => {
-    if (!id || id === 'yeni') {
+    // "yeni" veya "new" yeni kategori oluşturma sayfası için
+    if (!id || id === 'yeni' || id === 'new') {
       return;
     }
 
@@ -109,8 +112,11 @@ export default function EditCategoryPage() {
       
       const categoryId = parseInt(id);
       if (isNaN(categoryId) || categoryId <= 0) {
-        console.error('Invalid category ID:', id);
-        setError(mounted ? t('admin.common.error') : 'Geçersiz kategori ID');
+        // "new" veya "yeni" değerleri için hata gösterme, bunlar yeni kategori oluşturma için
+        if (id !== 'new' && id !== 'yeni') {
+          setError(mounted ? t('admin.common.error') : 'Geçersiz kategori ID');
+        }
+        setLoading(false);
         return;
       }
       
@@ -149,8 +155,10 @@ export default function EditCategoryPage() {
         isActive: formData.isActive,
       };
 
-      const url = id === 'yeni' ? '/api/categories' : `/api/categories/${id}`;
-      const method = id === 'yeni' ? 'POST' : 'PUT';
+      // "yeni" veya "new" yeni kategori oluşturma için
+      const isNew = id === 'yeni' || id === 'new';
+      const url = isNew ? '/api/categories' : `/api/categories/${id}`;
+      const method = isNew ? 'POST' : 'PUT';
 
       const response = await fetch(url, {
         method,
@@ -184,7 +192,7 @@ export default function EditCategoryPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          {id === 'yeni' ? (mounted ? t('admin.categories.addNew') : 'Yeni Kategori Ekle') : (mounted ? t('admin.categories.editCategory') : 'Kategori Düzenle')}
+          {(id === 'yeni' || id === 'new') ? (mounted ? t('admin.categories.addNew') : 'Yeni Kategori Ekle') : (mounted ? t('admin.categories.editCategory') : 'Kategori Düzenle')}
         </h2>
         <Link
           href="/admin-panel/categories"

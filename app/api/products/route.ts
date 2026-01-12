@@ -63,8 +63,27 @@ export async function POST(request: Request) {
     return NextResponse.json(newProduct[0], { status: 201 });
   } catch (error: any) {
     console.error('Error creating product (Drizzle):', error);
+    console.error('Error stack:', error?.stack);
+    console.error('Error code:', error?.code);
+    console.error('Error query:', error?.query);
+    
+    // Daha detaylı hata mesajı
+    let errorMessage = error?.message || 'Bilinmeyen hata';
+    if (error?.code === '42703') {
+      errorMessage = 'Kolon bulunamadı - Veritabanı şeması güncel değil';
+    } else if (error?.code === '42P01') {
+      errorMessage = 'Tablo bulunamadı - products tablosu mevcut değil';
+    } else if (error?.code === '23505') {
+      errorMessage = 'Bu ürün zaten mevcut (duplicate key)';
+    }
+    
     return NextResponse.json(
-      { error: 'Ürün oluşturulurken hata oluştu', details: error?.message },
+      { 
+        error: 'Ürün oluşturulurken hata oluştu', 
+        details: errorMessage,
+        code: error?.code,
+        query: error?.query || 'N/A'
+      },
       { status: 500 }
     );
   }

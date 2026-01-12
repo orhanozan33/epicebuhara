@@ -74,6 +74,15 @@ export default function FaturaPage() {
   const [sale, setSale] = useState<Sale | null>(null);
   const [dealer, setDealer] = useState<Dealer | null>(null);
   const [company, setCompany] = useState<CompanySettings | null>(null);
+  const [orderInfo, setOrderInfo] = useState<{
+    shippingName: string | null;
+    shippingPhone: string | null;
+    shippingEmail: string | null;
+    shippingAddress: string | null;
+    shippingCity: string | null;
+    shippingProvince: string | null;
+    shippingPostalCode: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -159,6 +168,44 @@ export default function FaturaPage() {
           const sales = Array.isArray(salesData) ? salesData : [];
           const foundSale = sales.find((s: Sale) => s.id === saleId);
           if (foundSale && isMountedRef.current) {
+            // Eğer satış numarası ORD- ile başlıyorsa, sipariş bilgilerini çek
+            if (foundSale.saleNumber && foundSale.saleNumber.startsWith('ORD-')) {
+              try {
+                const orderResponse = await fetch(`/api/orders?orderNumber=${encodeURIComponent(foundSale.saleNumber)}`, {
+                  cache: 'no-store',
+                });
+                if (orderResponse.ok) {
+                  const orderData = await orderResponse.json();
+                  if (orderData.order && isMountedRef.current) {
+                    setOrderInfo({
+                      shippingName: orderData.order.shippingName,
+                      shippingPhone: orderData.order.shippingPhone,
+                      shippingEmail: orderData.order.shippingEmail,
+                      shippingAddress: orderData.order.shippingAddress,
+                      shippingCity: orderData.order.shippingCity,
+                      shippingProvince: orderData.order.shippingProvince,
+                      shippingPostalCode: orderData.order.shippingPostalCode,
+                    });
+                  }
+                  // Eğer items boşsa, order items'ı kullan
+                  if ((!foundSale.items || foundSale.items.length === 0) && orderData.items && orderData.items.length > 0 && isMountedRef.current) {
+                    // Order items'ı sale items formatına çevir
+                    const formattedItems: SaleItem[] = orderData.items.map((item: any) => ({
+                      id: item.id,
+                      productId: item.productId,
+                      quantity: item.quantity,
+                      price: item.price,
+                      total: item.total,
+                      productName: item.product?.baseName || item.product?.name || 'Ürün bulunamadı',
+                      productImage: item.product?.images || null,
+                    }));
+                    foundSale.items = formattedItems;
+                  }
+                }
+              } catch (error) {
+                console.error('Error fetching order info:', error);
+              }
+            }
             setSale(foundSale);
           }
         }
@@ -199,15 +246,42 @@ export default function FaturaPage() {
       });
 
       if (response.ok) {
+        // Response'u kontrol et
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const data = await response.json();
+            // JSON başarıyla parse edildi
+          } catch (jsonError) {
+            // JSON parse hatası, ama response ok olduğu için devam et
+            console.warn('Response OK but JSON parse failed:', jsonError);
+          }
+        }
         setIsSaved(true);
         showToast(mounted ? t('admin.invoices.saved') : 'Fatura başarıyla kaydedildi!', 'success');
       } else {
-        const data = await response.json();
-        showToast((mounted ? t('admin.common.error') : 'Fatura kaydedilemedi: ') + (data.error || (mounted ? '' : 'Bilinmeyen hata')), 'error');
+        // Hata durumunda response'u güvenli şekilde parse et
+        let errorMessage = mounted ? t('admin.common.error') : 'Fatura kaydedilemedi';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            errorMessage = data.error || data.details || errorMessage;
+          } else {
+            const text = await response.text();
+            if (text) {
+              errorMessage = text;
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          errorMessage = `${errorMessage}: ${response.status} ${response.statusText}`;
+        }
+        showToast(errorMessage, 'error');
       }
     } catch (error: any) {
       console.error('Error saving invoice:', error);
-      showToast((mounted ? t('admin.common.error') : 'Fatura kaydedilemedi: ') + error.message, 'error');
+      showToast((mounted ? t('admin.common.error') : 'Fatura kaydedilemedi: ') + (error.message || 'Bilinmeyen hata'), 'error');
     } finally {
       setSaving(false);
     }
@@ -293,14 +367,40 @@ export default function FaturaPage() {
                 <u>{mounted ? t('admin.invoices.clientInfo') : 'Müşteri Bilgileri'}</u>
               </h2>
               <div className="text-[10px] lg:text-sm text-gray-700 space-y-0.5 lg:space-y-1 mt-1.5 lg:mt-3">
-                <p><strong>{mounted ? t('admin.invoices.companyNameLabel') : 'Firma Adı'}:</strong> {dealer.companyName}</p>
-                {dealer.phone && <p><strong>{mounted ? t('checkout.phone') : 'Telefon'}:</strong> {dealer.phone}</p>}
-                {dealer.address && <p><strong>{mounted ? t('checkout.address') : 'Adres'}:</strong> {dealer.address}</p>}
-                {(dealer.tpsNumber || dealer.tvqNumber) && (
-                  <div className="flex flex-col gap-0.5 lg:gap-1 mt-1 lg:mt-2">
-                    {dealer.tpsNumber && <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tpsRegistrationNumber') : 'TPS Kayıt No'}:</strong> {dealer.tpsNumber}</p>}
-                    {dealer.tvqNumber && <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tvqRegistrationNumber') : 'TVQ Kayıt No'}:</strong> {dealer.tvqNumber}</p>}
-                  </div>
+                {/* Eğer sipariş bilgileri varsa (ORD- satışları için), onları göster */}
+                {orderInfo && sale?.saleNumber?.startsWith('ORD-') ? (
+                  <>
+                    {orderInfo.shippingName && (
+                      <p><strong>{mounted ? t('admin.invoices.companyNameLabel') : 'Ad Soyad'}:</strong> {orderInfo.shippingName}</p>
+                    )}
+                    {orderInfo.shippingPhone && (
+                      <p><strong>{mounted ? t('checkout.phone') : 'Telefon'}:</strong> {orderInfo.shippingPhone}</p>
+                    )}
+                    {orderInfo.shippingEmail && (
+                      <p><strong>{mounted ? t('checkout.email') : 'E-posta'}:</strong> {orderInfo.shippingEmail}</p>
+                    )}
+                    {orderInfo.shippingAddress && (
+                      <p><strong>{mounted ? t('checkout.address') : 'Adres'}:</strong> {orderInfo.shippingAddress}</p>
+                    )}
+                    {(orderInfo.shippingCity || orderInfo.shippingProvince) && (
+                      <p><strong>{mounted ? (t('checkout.city') + ' / ' + t('checkout.province')) : 'Şehir / Eyalet'}:</strong> {orderInfo.shippingCity || ''} {orderInfo.shippingProvince ? `, ${orderInfo.shippingProvince}` : ''}</p>
+                    )}
+                    {orderInfo.shippingPostalCode && (
+                      <p><strong>{mounted ? t('admin.invoices.postalCode') : 'Posta Kodu'}:</strong> {orderInfo.shippingPostalCode}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p><strong>{mounted ? t('admin.invoices.companyNameLabel') : 'Firma Adı'}:</strong> {dealer.companyName}</p>
+                    {dealer.phone && <p><strong>{mounted ? t('checkout.phone') : 'Telefon'}:</strong> {dealer.phone}</p>}
+                    {dealer.address && <p><strong>{mounted ? t('checkout.address') : 'Adres'}:</strong> {dealer.address}</p>}
+                    {(dealer.tpsNumber || dealer.tvqNumber) && (
+                      <div className="flex flex-col gap-0.5 lg:gap-1 mt-1 lg:mt-2">
+                        {dealer.tpsNumber && <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tpsRegistrationNumber') : 'TPS Kayıt No'}:</strong> {dealer.tpsNumber}</p>}
+                        {dealer.tvqNumber && <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tvqRegistrationNumber') : 'TVQ Kayıt No'}:</strong> {dealer.tvqNumber}</p>}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

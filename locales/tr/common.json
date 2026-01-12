@@ -64,7 +64,15 @@
     "orderSummary": "Sipariş Özeti",
     "searchPlaceholder": "Sipariş numarası girin (örn: ORD-1234567890-ABC123)",
     "searchDescription": "Sipariş numaranızı girerek siparişinizin durumunu takip edebilirsiniz",
-    "fetchError": "Sipariş getirilirken hata oluştu"
+    "fetchError": "Sipariş getirilirken hata oluştu",
+    "searchByOrderNumber": "Sipariş Numarası ile Ara",
+    "searchByEmailOrPhone": "Email veya Telefon ile Tüm Siparişlerimi Gör",
+    "viewAllOrders": "Tüm Siparişlerimi Gör",
+    "enterEmailOrPhone": "Lütfen email veya telefon girin",
+    "noOrdersFound": "Sipariş bulunamadı",
+    "allOrders": "Tüm Siparişlerim",
+    "clickToView": "Detayları görmek için tıklayın",
+    "or": "veya"
   },
   "checkout": {
     "title": "Sipariş Bilgileri",

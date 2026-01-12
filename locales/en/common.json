@@ -71,7 +71,15 @@
     "orderSummary": "Order Summary",
     "searchPlaceholder": "Enter order number (e.g.: ORD-1234567890-ABC123)",
     "searchDescription": "Enter your order number to track your order status",
-    "fetchError": "Error fetching order"
+    "fetchError": "Error fetching order",
+    "searchByOrderNumber": "Search by Order Number",
+    "searchByEmailOrPhone": "View All My Orders by Email or Phone",
+    "viewAllOrders": "View All My Orders",
+    "enterEmailOrPhone": "Please enter email or phone",
+    "noOrdersFound": "No orders found",
+    "allOrders": "All My Orders",
+    "clickToView": "Click to view details",
+    "or": "or"
   },
   "checkout": {
     "title": "Order Information",

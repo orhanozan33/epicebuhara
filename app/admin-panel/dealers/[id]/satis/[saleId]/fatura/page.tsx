@@ -148,6 +148,32 @@ export default function FaturaPage() {
           const sales = Array.isArray(salesData) ? salesData : [];
           const foundSale = sales.find((s: Sale) => s.id === saleId);
           if (foundSale && isMountedRef.current) {
+            // Eğer items boşsa ve ORD- satışıysa, order items'ı çek
+            if ((!foundSale.items || foundSale.items.length === 0) && foundSale.saleNumber?.startsWith('ORD-')) {
+              try {
+                const orderResponse = await fetch(`/api/orders?orderNumber=${encodeURIComponent(foundSale.saleNumber)}`, {
+                  cache: 'no-store',
+                });
+                if (orderResponse.ok) {
+                  const orderData = await orderResponse.json();
+                  if (orderData.items && orderData.items.length > 0 && isMountedRef.current) {
+                    // Order items'ı sale items formatına çevir
+                    const formattedItems: SaleItem[] = orderData.items.map((item: any) => ({
+                      id: item.id,
+                      productId: item.productId,
+                      quantity: item.quantity,
+                      price: item.price,
+                      total: item.total,
+                      productName: item.product?.baseName || item.product?.name || 'Ürün bulunamadı',
+                      productImage: item.product?.images || null,
+                    }));
+                    foundSale.items = formattedItems;
+                  }
+                }
+              } catch (error) {
+                console.error('Error fetching order items:', error);
+              }
+            }
             setSale(foundSale);
           }
         }
@@ -188,15 +214,42 @@ export default function FaturaPage() {
       });
 
       if (response.ok) {
+        // Response'u kontrol et
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const data = await response.json();
+            // JSON başarıyla parse edildi
+          } catch (jsonError) {
+            // JSON parse hatası, ama response ok olduğu için devam et
+            console.warn('Response OK but JSON parse failed:', jsonError);
+          }
+        }
         setIsSaved(true);
         showToast(mounted ? t('admin.invoices.saved') : 'Fatura başarıyla kaydedildi!', 'success');
       } else {
-        const data = await response.json();
-        showToast((mounted ? t('admin.common.error') : 'Fatura kaydedilemedi: ') + (data.error || (mounted ? '' : 'Bilinmeyen hata')), 'error');
+        // Hata durumunda response'u güvenli şekilde parse et
+        let errorMessage = mounted ? t('admin.common.error') : 'Fatura kaydedilemedi';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            errorMessage = data.error || data.details || errorMessage;
+          } else {
+            const text = await response.text();
+            if (text) {
+              errorMessage = text;
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          errorMessage = `${errorMessage}: ${response.status} ${response.statusText}`;
+        }
+        showToast(errorMessage, 'error');
       }
     } catch (error: any) {
       console.error('Error saving invoice:', error);
-      showToast((mounted ? t('admin.common.error') : 'Fatura kaydedilemedi: ') + error.message, 'error');
+      showToast((mounted ? t('admin.common.error') : 'Fatura kaydedilemedi: ') + (error.message || 'Bilinmeyen hata'), 'error');
     } finally {
       setSaving(false);
     }

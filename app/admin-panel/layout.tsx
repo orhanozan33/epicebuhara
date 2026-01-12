@@ -36,8 +36,10 @@ export default function AdminLayout({
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
-  // Login sayfası ve invoice/fatura sayfaları için layout gösterme
-  if (pathname === '/admin-panel' || (pathname && (pathname.includes('/invoice') || pathname.includes('/fatura')))) {
+  // Login sayfası ve invoice/fatura detay sayfaları için layout gösterme (liste sayfası hariç)
+  if (pathname === '/admin-panel' || 
+      (pathname && pathname !== '/admin-panel/invoices' && 
+       (pathname.includes('/invoice') || pathname.includes('/fatura')))) {
     return <>{children}</>;
   }
 

@@ -71,7 +71,15 @@
     "orderSummary": "Résumé de la Commande",
     "searchPlaceholder": "Entrez le numéro de commande (ex: ORD-1234567890-ABC123)",
     "searchDescription": "Entrez votre numéro de commande pour suivre le statut de votre commande",
-    "fetchError": "Erreur lors de la récupération de la commande"
+    "fetchError": "Erreur lors de la récupération de la commande",
+    "searchByOrderNumber": "Rechercher par Numéro de Commande",
+    "searchByEmailOrPhone": "Voir Toutes Mes Commandes par E-mail ou Téléphone",
+    "viewAllOrders": "Voir Toutes Mes Commandes",
+    "enterEmailOrPhone": "Veuillez entrer un e-mail ou un téléphone",
+    "noOrdersFound": "Aucune commande trouvée",
+    "allOrders": "Toutes Mes Commandes",
+    "clickToView": "Cliquez pour voir les détails",
+    "or": "ou"
   },
   "checkout": {
     "title": "Informations de Commande",

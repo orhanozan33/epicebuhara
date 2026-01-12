@@ -6,62 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function IndirimliUrunlerPage() {
-  const [mounted, setMounted] = useState(false);
-  const { t } = useTranslation();
-  const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-    // URL'den categoryId parametresini oku
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const categoryId = params.get('categoryId');
-      setSelectedCategory(categoryId);
-    }
-  }, []);
-
-  const handleCategorySelect = (categoryId: string | null) => {
-    setSelectedCategory(categoryId);
-    if (categoryId) {
-      router.push(`/discounted-products?categoryId=${categoryId}`);
-    } else {
-      router.push('/discounted-products');
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-7xl">
-        {/* Mobil Navigasyon Linkleri - Kategoriler Üstünde */}
-        <nav className="lg:hidden flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 text-gray-700 overflow-x-auto pb-2">
-          <Link href="/" className="hover:text-[#E91E63] font-medium transition-colors whitespace-nowrap text-xs sm:text-sm px-2 py-1 rounded hover:bg-gray-100">
-            {mounted ? t('header.allProducts') : 'Tüm Ürünler'}
-          </Link>
-          <Link href="/discounted-products" className="hover:text-[#E91E63] font-medium transition-colors whitespace-nowrap text-xs sm:text-sm px-2 py-1 rounded hover:bg-gray-100">
-            {mounted ? t('header.discountedProducts') : 'İndirimli Ürünler'}
-          </Link>
-          <Link href="/new-products" className="hover:text-[#E91E63] font-medium transition-colors whitespace-nowrap text-xs sm:text-sm px-2 py-1 rounded hover:bg-gray-100">
-            {mounted ? t('header.newProducts') : 'Yeni Ürünler'}
-          </Link>
-        </nav>
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-          {/* Sol: Kategoriler */}
-          <aside className="lg:w-1/5">
-            <CategoriesFilter onCategorySelect={handleCategorySelect} selectedCategory={selectedCategory} />
-          </aside>
-          {/* Sağ: Ürünler */}
-          <main className="lg:w-4/5">
-            <Products categoryId={selectedCategory} discounted={true} />
-          </main>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// CategoriesFilter component'i önce tanımlanmalı
 function CategoriesFilter({ onCategorySelect, selectedCategory }: { onCategorySelect: (id: string | null) => void; selectedCategory: string | null }) {
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation();
@@ -145,6 +90,62 @@ function CategoriesFilter({ onCategorySelect, selectedCategory }: { onCategorySe
             ))}
           </ul>
         )}
+      </div>
+    </div>
+  );
+}
+
+export default function IndirimliUrunlerPage() {
+  const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
+  const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    // URL'den categoryId parametresini oku
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const categoryId = params.get('categoryId');
+      setSelectedCategory(categoryId);
+    }
+  }, []);
+
+  const handleCategorySelect = (categoryId: string | null) => {
+    setSelectedCategory(categoryId);
+    if (categoryId) {
+      router.push(`/discounted-products?categoryId=${categoryId}`);
+    } else {
+      router.push('/discounted-products');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Content */}
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-7xl">
+        {/* Mobil Navigasyon Linkleri - Kategoriler Üstünde */}
+        <nav className="lg:hidden flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 text-gray-700 overflow-x-auto pb-2">
+          <Link href="/" className="hover:text-[#E91E63] font-medium transition-colors whitespace-nowrap text-xs sm:text-sm px-2 py-1 rounded hover:bg-gray-100">
+            {mounted ? t('header.allProducts') : 'Tüm Ürünler'}
+          </Link>
+          <Link href="/discounted-products" className="hover:text-[#E91E63] font-medium transition-colors whitespace-nowrap text-xs sm:text-sm px-2 py-1 rounded hover:bg-gray-100">
+            {mounted ? t('header.discountedProducts') : 'İndirimli Ürünler'}
+          </Link>
+          <Link href="/new-products" className="hover:text-[#E91E63] font-medium transition-colors whitespace-nowrap text-xs sm:text-sm px-2 py-1 rounded hover:bg-gray-100">
+            {mounted ? t('header.newProducts') : 'Yeni Ürünler'}
+          </Link>
+        </nav>
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          {/* Sol: Kategoriler */}
+          <aside className="lg:w-1/5">
+            <CategoriesFilter onCategorySelect={handleCategorySelect} selectedCategory={selectedCategory} />
+          </aside>
+          {/* Sağ: Ürünler */}
+          <main className="lg:w-4/5">
+            <Products categoryId={selectedCategory} discounted={true} />
+          </main>
+        </div>
       </div>
     </div>
   );

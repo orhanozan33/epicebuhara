@@ -17,7 +17,7 @@ export default function AyarlarPage() {
       <h2 className="text-lg lg:text-2xl font-bold text-gray-900 mb-2 lg:mb-6">{mounted ? t('admin.settings.title') : 'Ayarlar'}</h2>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-6">
         <Link
-          href="/admin-panel/ayarlar/firma-bilgileri"
+          href="/admin-panel/settings/company-info"
           className="bg-white border border-gray-200 rounded-lg p-3 lg:p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <div className="flex items-center gap-3 lg:gap-4">

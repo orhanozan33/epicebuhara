@@ -1,0 +1,24 @@
+# ✅ Transaction Pooler Connection String (Port 6543)
+# Vercel için önerilen bağlantı
+
+# ⚠️ ÖNEMLİ: [YOUR-PASSWORD] kısmını kendi şifrenizle değiştirin!
+
+# Doğru Format (Transaction Pooler):
+postgresql://postgres.kxnatjmutvogwoayiajw:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+
+# Alternatif Format (Eğer yukarıdaki çalışmazsa):
+postgresql://postgres.kxnatjmutvogwoayiajw:[YOUR-PASSWORD]@kxnatjmutvogwoayiajw.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+
+# 📝 KULLANIM:
+# 1. [YOUR-PASSWORD] kısmını Supabase şifrenizle değiştirin
+# 2. Vercel Dashboard > Settings > Environment Variables
+# 3. POSTGRES_URL veya DATABASE_URL değişkenini bulun/güncelleyin
+# 4. Yukarıdaki connection string'i (şifre ile birlikte) yapıştırın
+# 5. Save butonuna tıklayın
+# 6. MUTLAKA REDEPLOY YAPIN!
+
+# ⚠️ NOT: 
+# - Domain: pooler.supabase.com (db.supabase.co değil!)
+# - Port: 6543 (Transaction Pooler)
+# - pgbouncer=true parametresi zorunlu
+# - sslmode=require parametresi zorunlu

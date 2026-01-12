@@ -125,7 +125,7 @@ export default function FirmaBilgileriPage() {
     <div>
       <div className="mb-6">
         <Link
-          href="/admin-panel/ayarlar"
+          href="/admin-panel/settings"
           className="text-[#E91E63] hover:text-[#C2185B] mb-4 inline-block"
         >
           ← {mounted ? t('admin.settings.backToSettings') : 'Ayarlar\'a Dön'}

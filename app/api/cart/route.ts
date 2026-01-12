@@ -65,9 +65,10 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ success: true, cartItem: result });
     response.cookies.set('sessionId', sessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30, // 30 gün
+      path: '/',
     });
 
     return response;
@@ -84,18 +85,29 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
-    const sessionId = cookieStore.get('sessionId')?.value;
+    let sessionId = cookieStore.get('sessionId')?.value;
 
+    // Eğer sessionId yoksa, yeni bir tane oluştur ama boş sepet döndür
+    // (Cookie'yi set etmek için response'a ekleyeceğiz)
     if (!sessionId) {
-      return NextResponse.json({ items: [] });
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
     }
 
     const cartItems = await db.select()
       .from(cart)
       .where(eq(cart.sessionId, sessionId));
 
+    // Eğer sepet boşsa, boş array döndür ama cookie'yi set et
     if (cartItems.length === 0) {
-      return NextResponse.json({ items: [] });
+      const response = NextResponse.json({ items: [] });
+      response.cookies.set('sessionId', sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30, // 30 gün
+        path: '/',
+      });
+      return response;
     }
 
     // Ürün bilgilerini getir
@@ -104,24 +116,35 @@ export async function GET(request: Request) {
       .filter((id): id is number => id !== null && id !== undefined);
 
     if (productIds.length === 0) {
-      return NextResponse.json({ items: [] });
+      const response = NextResponse.json({ items: [] });
+      response.cookies.set('sessionId', sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30, // 30 gün
+        path: '/',
+      });
+      return response;
     }
 
-    // Ürünleri getir (IN query)
-    const filteredProducts = await db.select({
-      id: products.id,
-      name: products.name,
-      baseName: products.baseName,
-      slug: products.slug,
-      price: products.price,
-      comparePrice: products.comparePrice,
-      images: products.images,
-      weight: products.weight,
-      unit: products.unit,
-      stock: products.stock,
-    })
-      .from(products)
-      .where(inArray(products.id, productIds));
+    // Ürünleri getir (IN query) - Boş array kontrolü
+    let filteredProducts: any[] = [];
+    if (productIds.length > 0) {
+      filteredProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        baseName: products.baseName,
+        slug: products.slug,
+        price: products.price,
+        comparePrice: products.comparePrice,
+        images: products.images,
+        weight: products.weight,
+        unit: products.unit,
+        stock: products.stock,
+      })
+        .from(products)
+        .where(inArray(products.id, productIds));
+    }
 
     const items = cartItems.map(cartItem => {
       const product = filteredProducts.find(p => p.id === cartItem.productId);
@@ -146,7 +169,17 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json({ items });
+    // Response oluştur ve cookie'yi set et
+    const response = NextResponse.json({ items });
+    response.cookies.set('sessionId', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 gün
+      path: '/',
+    });
+    
+    return response;
   } catch (error: any) {
     console.error('Error fetching cart (Drizzle):', error);
     console.error('Error stack:', error?.stack);

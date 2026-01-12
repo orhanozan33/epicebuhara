@@ -271,12 +271,34 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                   
                   {product.images ? (
                     <img 
-                      src={product.images.split(',')[0].trim()} 
+                      src={(() => {
+                        const imgSrc = product.images.split(',')[0].trim();
+                        if (!imgSrc) return '';
+                        
+                        // Eğer zaten tam URL ise (http/https veya Supabase Storage URL), olduğu gibi döndür
+                        if (imgSrc.startsWith('http://') || imgSrc.startsWith('https://')) {
+                          return imgSrc;
+                        }
+                        
+                        // Eğer / ile başlıyorsa, olduğu gibi döndür
+                        if (imgSrc.startsWith('/')) {
+                          return imgSrc;
+                        }
+                        
+                        // Supabase Storage URL kontrolü (storage/v1/object/public içeriyorsa)
+                        if (imgSrc.includes('storage/v1/object/public')) {
+                          return imgSrc;
+                        }
+                        
+                        // Local dosya yolu - /uploads/products/ ekle
+                        return `/uploads/products/${imgSrc}`;
+                      })()}
                       alt={product.name} 
                       className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-300" 
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
+                        console.error('Resim yükleme hatası:', target.src, product.name);
                         target.style.display = 'none';
                         const parent = target.parentElement;
                         if (parent && !parent.querySelector('.error-placeholder')) {
