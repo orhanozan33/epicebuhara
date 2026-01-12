@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getCategoryRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { categories } from '@/src/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function DELETE(
   request: Request,
@@ -13,12 +15,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Geçersiz kategori ID' }, { status: 400 });
     }
 
-    const categoryRepo = await getCategoryRepository();
-    await categoryRepo.delete(id);
+    await db.delete(categories).where(eq(categories.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting category (TypeORM):', error);
+    console.error('Error deleting category (Drizzle):', error);
     return NextResponse.json(
       { error: 'Kategori silinirken hata oluştu', details: error?.message },
       { status: 500 }
@@ -39,31 +40,38 @@ export async function PUT(
       return NextResponse.json({ error: 'Geçersiz kategori ID' }, { status: 400 });
     }
 
-    const categoryRepo = await getCategoryRepository();
-    const category = await categoryRepo.findOne({ where: { id } });
+    const existingCategory = await db.select()
+      .from(categories)
+      .where(eq(categories.id, id))
+      .limit(1);
 
-    if (!category) {
+    if (existingCategory.length === 0) {
       return NextResponse.json({ error: 'Kategori bulunamadı' }, { status: 404 });
     }
 
     const { name, slug, description, order, isActive } = body;
     
-    if (name) {
-      category.name = name;
+    const updateData: any = {};
+    if (name !== undefined) {
+      updateData.name = name;
       if (!slug) {
-        category.slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        updateData.slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       }
     }
-    if (slug !== undefined) category.slug = slug;
-    if (description !== undefined) category.description = description || null;
-    if (order !== undefined) category.order = parseInt(order) || 0;
-    if (isActive !== undefined) category.isActive = isActive;
+    if (slug !== undefined) updateData.slug = slug;
+    if (description !== undefined) updateData.description = description || null;
+    if (order !== undefined) updateData.order = parseInt(order) || 0;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    updateData.updatedAt = new Date();
 
-    await categoryRepo.save(category);
+    const updatedCategory = await db.update(categories)
+      .set(updateData)
+      .where(eq(categories.id, id))
+      .returning();
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(updatedCategory[0]);
   } catch (error: any) {
-    console.error('Error updating category (TypeORM):', error);
+    console.error('Error updating category (Drizzle):', error);
     return NextResponse.json(
       { error: 'Kategori güncellenirken hata oluştu', details: error?.message },
       { status: 500 }

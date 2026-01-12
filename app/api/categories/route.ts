@@ -1,31 +1,31 @@
 import { NextResponse } from 'next/server';
-import { getCategoryRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { categories } from '@/src/db/schema';
+import { eq, desc, asc } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const adminView = searchParams.get('admin') === 'true';
     
-    const categoryRepo = await getCategoryRepository();
-    
     let result;
     
     if (!adminView) {
-      result = await categoryRepo.find({
-        where: { isActive: true },
-        order: { order: 'ASC', name: 'ASC' },
-      });
+      result = await db.select()
+        .from(categories)
+        .where(eq(categories.isActive, true))
+        .orderBy(asc(categories.order), asc(categories.name));
     } else {
-      result = await categoryRepo.find({
-        order: { order: 'ASC', name: 'ASC' },
-      });
+      result = await db.select()
+        .from(categories)
+        .orderBy(asc(categories.order), asc(categories.name));
     }
 
-    console.log(`Categories API (TypeORM): Found ${result.length} categories`);
+    console.log(`Categories API (Drizzle): Found ${result.length} categories`);
 
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error('Error fetching categories (TypeORM):', error);
+    console.error('Error fetching categories (Drizzle):', error);
     console.error('Error stack:', error?.stack);
     console.error('Error code:', error?.code);
     console.error('Error name:', error?.name);
@@ -53,22 +53,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const categoryRepo = await getCategoryRepository();
     const categorySlug = slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-    const newCategory = categoryRepo.create({
+    const newCategory = await db.insert(categories).values({
       name,
       slug: categorySlug,
       description: description || null,
       order: order || 0,
       isActive: isActive ?? true,
-    });
+    }).returning();
 
-    const savedCategory = await categoryRepo.save(newCategory);
-
-    return NextResponse.json(savedCategory, { status: 201 });
+    return NextResponse.json(newCategory[0], { status: 201 });
   } catch (error: any) {
-    console.error('Error creating category (TypeORM):', error);
+    console.error('Error creating category (Drizzle):', error);
     return NextResponse.json(
       { error: 'Kategori oluşturulurken hata oluştu', details: error?.message },
       { status: 500 }
