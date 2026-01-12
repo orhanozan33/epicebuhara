@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { companySettings } from '@/src/db/schema';
+import { eq } from 'drizzle-orm';
 
 // Force dynamic rendering to avoid build-time metadata issues
 export const dynamic = 'force-dynamic';
