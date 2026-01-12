@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { dealerSales, dealers } from '@/src/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 // Force dynamic rendering to avoid build-time circular dependency issues
 export const dynamic = 'force-dynamic';

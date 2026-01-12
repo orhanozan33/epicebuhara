@@ -1,35 +1,34 @@
 import { NextResponse } from 'next/server';
-import { getOrderRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { orders } from '@/src/db/schema';
+import { eq, desc, ne } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
 
-    const orderRepo = await getOrderRepository();
-    let orders: any[];
-
+    let ordersList;
     if (status && status !== 'all') {
       if (status === 'SHIPPED') {
-        orders = [];
+        ordersList = [];
       } else {
-        orders = await orderRepo.find({
-          where: { status },
-          order: { createdAt: 'DESC' },
-        });
+        ordersList = await db.select()
+          .from(orders)
+          .where(eq(orders.status, status))
+          .orderBy(desc(orders.createdAt));
       }
     } else {
       // Tüm siparişler seçildiyse, SHIPPED hariç
-      orders = await orderRepo
-        .createQueryBuilder('order')
-        .where('order.status != :status', { status: 'SHIPPED' })
-        .orderBy('order.createdAt', 'DESC')
-        .getMany();
+      ordersList = await db.select()
+        .from(orders)
+        .where(ne(orders.status, 'SHIPPED'))
+        .orderBy(desc(orders.createdAt));
     }
 
-    return NextResponse.json({ orders });
+    return NextResponse.json({ orders: ordersList });
   } catch (error: any) {
-    console.error('Error fetching orders list (TypeORM):', error);
+    console.error('Error fetching orders list (Drizzle):', error);
     return NextResponse.json(
       { error: 'Siparişler getirilemedi', details: error?.message },
       { status: 500 }
