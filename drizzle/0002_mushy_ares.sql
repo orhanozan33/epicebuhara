@@ -1,0 +1,1 @@
+ALTER TABLE "companySettings" ADD COLUMN "email" varchar(255);
