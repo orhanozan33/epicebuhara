@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getCartRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { cart } from '@/src/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 
 // Sepetten ürün sil
@@ -28,25 +30,27 @@ export async function DELETE(
       );
     }
 
-    const cartRepo = await getCartRepository();
-    
     // Sepet öğesinin session'a ait olduğunu kontrol et
-    const cartItem = await cartRepo.findOne({
-      where: { id: cartItemId, sessionId },
-    });
+    const cartItem = await db.select()
+      .from(cart)
+      .where(and(
+        eq(cart.id, cartItemId),
+        eq(cart.sessionId, sessionId)
+      ))
+      .limit(1);
 
-    if (!cartItem) {
+    if (cartItem.length === 0) {
       return NextResponse.json(
         { error: 'Sepet öğesi bulunamadı' },
         { status: 404 }
       );
     }
 
-    await cartRepo.delete(cartItemId);
+    await db.delete(cart).where(eq(cart.id, cartItemId));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting cart item (TypeORM):', error);
+    console.error('Error deleting cart item (Drizzle):', error);
     return NextResponse.json(
       { error: 'Sepet öğesi silinirken hata oluştu', details: error?.message },
       { status: 500 }
@@ -89,26 +93,33 @@ export async function PUT(
       );
     }
 
-    const cartRepo = await getCartRepository();
-    
     // Sepet öğesinin session'a ait olduğunu kontrol et
-    const cartItem = await cartRepo.findOne({
-      where: { id: cartItemId, sessionId },
-    });
+    const cartItem = await db.select()
+      .from(cart)
+      .where(and(
+        eq(cart.id, cartItemId),
+        eq(cart.sessionId, sessionId)
+      ))
+      .limit(1);
 
-    if (!cartItem) {
+    if (cartItem.length === 0) {
       return NextResponse.json(
         { error: 'Sepet öğesi bulunamadı' },
         { status: 404 }
       );
     }
 
-    cartItem.quantity = parseInt(quantity);
-    const updatedItem = await cartRepo.save(cartItem);
+    const updatedItem = await db.update(cart)
+      .set({
+        quantity: parseInt(quantity),
+        updatedAt: new Date(),
+      })
+      .where(eq(cart.id, cartItemId))
+      .returning();
 
-    return NextResponse.json({ success: true, cartItem: updatedItem });
+    return NextResponse.json({ success: true, cartItem: updatedItem[0] });
   } catch (error: any) {
-    console.error('Error updating cart item (TypeORM):', error);
+    console.error('Error updating cart item (Drizzle):', error);
     return NextResponse.json(
       { error: 'Sepet öğesi güncellenirken hata oluştu', details: error?.message },
       { status: 500 }

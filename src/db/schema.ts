@@ -73,3 +73,12 @@ export const dealerSales = pgTable('dealerSales', {
 }, (table) => ({
   saleNumberUnique: unique('dealerSales_saleNumber_unique').on(table.saleNumber),
 }));
+
+export const cart = pgTable('cart', {
+  id: serial('id').primaryKey().notNull(),
+  sessionId: varchar('sessionId', { length: 255 }),
+  productId: integer('productId'),
+  quantity: integer('quantity').default(1).notNull(),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+});

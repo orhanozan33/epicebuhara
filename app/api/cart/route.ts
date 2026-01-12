@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getCartRepository, getProductRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { cart, products } from '@/src/db/schema';
+import { eq, and, inArray } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 
 // Session ID'yi al veya oluştur
@@ -28,30 +30,36 @@ export async function POST(request: Request) {
     }
 
     const sessionId = await getSessionId();
-    const cartRepo = await getCartRepository();
 
     // Aynı ürün sepette var mı kontrol et
-    const existingCartItem = await cartRepo.findOne({
-      where: {
-        sessionId,
-        productId: parseInt(productId),
-      },
-    });
+    const existingCartItem = await db.select()
+      .from(cart)
+      .where(and(
+        eq(cart.sessionId, sessionId),
+        eq(cart.productId, parseInt(productId))
+      ))
+      .limit(1);
 
     let result;
 
-    if (existingCartItem) {
+    if (existingCartItem.length > 0) {
       // Ürün zaten sepette varsa, miktarını artır
-      existingCartItem.quantity = existingCartItem.quantity + quantity;
-      result = await cartRepo.save(existingCartItem);
+      const updatedCartItem = await db.update(cart)
+        .set({
+          quantity: existingCartItem[0].quantity + quantity,
+          updatedAt: new Date(),
+        })
+        .where(eq(cart.id, existingCartItem[0].id))
+        .returning();
+      result = updatedCartItem[0];
     } else {
       // Yeni ürün ekle
-      const newCartItem = cartRepo.create({
+      const newCartItem = await db.insert(cart).values({
         sessionId,
         productId: parseInt(productId),
         quantity: parseInt(quantity) || 1,
-      });
-      result = await cartRepo.save(newCartItem);
+      }).returning();
+      result = newCartItem[0];
     }
 
     const response = NextResponse.json({ success: true, cartItem: result });
@@ -64,7 +72,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error: any) {
-    console.error('Error adding to cart (TypeORM):', error);
+    console.error('Error adding to cart (Drizzle):', error);
     return NextResponse.json(
       { error: 'Ürün sepete eklenirken hata oluştu', details: error?.message },
       { status: 500 }
@@ -82,12 +90,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ items: [] });
     }
 
-    const cartRepo = await getCartRepository();
-    const productRepo = await getProductRepository();
-
-    const cartItems = await cartRepo.find({
-      where: { sessionId },
-    });
+    const cartItems = await db.select()
+      .from(cart)
+      .where(eq(cart.sessionId, sessionId));
 
     if (cartItems.length === 0) {
       return NextResponse.json({ items: [] });
@@ -103,22 +108,20 @@ export async function GET(request: Request) {
     }
 
     // Ürünleri getir (IN query)
-    const filteredProducts = await productRepo
-      .createQueryBuilder('product')
-      .where('product.id IN (:...ids)', { ids: productIds })
-      .select([
-        'product.id',
-        'product.name',
-        'product.baseName',
-        'product.slug',
-        'product.price',
-        'product.comparePrice',
-        'product.images',
-        'product.weight',
-        'product.unit',
-        'product.stock',
-      ])
-      .getMany();
+    const filteredProducts = await db.select({
+      id: products.id,
+      name: products.name,
+      baseName: products.baseName,
+      slug: products.slug,
+      price: products.price,
+      comparePrice: products.comparePrice,
+      images: products.images,
+      weight: products.weight,
+      unit: products.unit,
+      stock: products.stock,
+    })
+      .from(products)
+      .where(inArray(products.id, productIds));
 
     const items = cartItems.map(cartItem => {
       const product = filteredProducts.find(p => p.id === cartItem.productId);
@@ -145,7 +148,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ items });
   } catch (error: any) {
-    console.error('Error fetching cart (TypeORM):', error);
+    console.error('Error fetching cart (Drizzle):', error);
     return NextResponse.json(
       { error: 'Sepet getirilirken hata oluştu', details: error?.message },
       { status: 500 }
