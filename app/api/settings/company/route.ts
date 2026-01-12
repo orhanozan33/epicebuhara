@@ -68,8 +68,9 @@ export async function GET() {
 
 // Firma bilgilerini güncelle veya oluştur
 export async function PUT(request: Request) {
+  let body: any = null;
   try {
-    const body = await request.json();
+    body = await request.json();
     const { companyName, address, phone, email, postalCode, tpsNumber, tvqNumber, instagramUrl, facebookUrl } = body;
 
     // Mevcut kayıt var mı kontrol et
