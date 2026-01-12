@@ -36,7 +36,7 @@ async function uploadToSupabaseStorage(fileBuffer: Buffer, fileName: string, con
       'Content-Type': contentType,
       'x-upsert': 'true', // Aynı isimde dosya varsa üzerine yaz
     },
-    body: fileBuffer,
+    body: new Uint8Array(fileBuffer),
   });
 
   if (!response.ok) {
