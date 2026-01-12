@@ -3,6 +3,9 @@ import { db } from '@/src/db';
 import { products, categories } from '@/src/db/schema';
 import { eq, and, or, isNotNull, desc, asc, like, sql } from 'drizzle-orm';
 
+// Force dynamic rendering because we use request.url
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();

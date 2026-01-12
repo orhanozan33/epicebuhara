@@ -10,7 +10,8 @@ function getDatabaseUrl(): string {
   if (process.env.DB_HOST && process.env.DB_NAME) {
     url = `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD || '333333'}@${process.env.DB_HOST}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME}`;
   } else {
-    url = process.env.DATABASE_URL || 'postgresql://postgres:333333@localhost:5432/baharat';
+    // Supabase-Vercel entegrasyonu POSTGRES_URL ekler, ama DATABASE_URL de desteklenir
+    url = process.env.DATABASE_URL || process.env.POSTGRES_URL || 'postgresql://postgres:333333@localhost:5432/baharat';
   }
   
   // Supabase Pooler için SSL ve pgbouncer parametrelerini ekle

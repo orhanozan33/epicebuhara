@@ -15,8 +15,11 @@ if (process.env.NODE_ENV !== 'production') {
 
 function getDatabaseUrl(): string {
   let url = '';
+  // Öncelik sırası: DATABASE_URL > POSTGRES_URL > DB_* variables
   if (process.env.DATABASE_URL) {
     url = process.env.DATABASE_URL;
+  } else if (process.env.POSTGRES_URL) {
+    url = process.env.POSTGRES_URL;
   } else if (process.env.DB_HOST && process.env.DB_NAME) {
     const user = process.env.DB_USER || 'postgres';
     const password = process.env.DB_PASSWORD || '';
@@ -45,7 +48,7 @@ function getDatabaseUrl(): string {
 const connectionString = getDatabaseUrl();
 
 if (!connectionString) {
-  throw new Error('DATABASE_URL or DB_* environment variables are required');
+  throw new Error('DATABASE_URL, POSTGRES_URL, or DB_* environment variables are required');
 }
 
 const client = postgres(connectionString, {

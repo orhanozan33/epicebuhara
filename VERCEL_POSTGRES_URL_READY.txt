@@ -1,0 +1,35 @@
+# Vercel için POSTGRES_URL - HAZIR CONNECTION STRING'LER
+
+## ✅ Format 1: AWS Pooler (ÖNERİLEN - İlk Bunu Deneyin)
+
+postgresql://postgres.kxnatjmutvogwoayiajw:Orhanozan33@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+
+## ✅ Format 2: Direct Pooler Domain (Alternatif)
+
+postgresql://postgres.kxnatjmutvogwoayiajw:Orhanozan33@kxnatjmutvogwoayiajw.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+
+## 📋 Vercel'e Ekleme Adımları:
+
+1. Vercel Dashboard > Projeniz > Settings > Environment Variables
+2. "Add New" butonuna tıklayın
+3. Name: POSTGRES_URL
+4. Value: Yukarıdaki Format 1'i kopyalayıp yapıştırın
+5. Environment seçin:
+   - ✅ Production
+   - ✅ Preview
+   - ✅ Development (isteğe bağlı)
+6. "Save" butonuna tıklayın
+7. Yeni bir deployment tetikleyin (Redeploy)
+
+## ⚠️ ÖNEMLİ:
+
+- Format 1 çalışmazsa Format 2'yi deneyin
+- Her iki format da Transaction Pooler (port 6543) kullanır
+- SSL ve pooler parametreleri zaten eklenmiş durumda
+- Şifre: Orhanozan33
+
+## 🔍 Test:
+
+Deployment sonrası Runtime Logs'u kontrol edin:
+- Database connection hatası olmamalı
+- "DATABASE_URL or POSTGRES_URL is required" hatası görünmemeli

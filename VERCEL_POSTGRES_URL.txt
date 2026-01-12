@@ -1,0 +1,47 @@
+# Vercel için POSTGRES_URL Environment Variable
+
+## Transaction Pooler Connection String (Port 6543)
+
+Aşağıdaki connection string'i Vercel Dashboard > Settings > Environment Variables > POSTGRES_URL olarak ekleyin.
+
+### Format 1: AWS Pooler (Genellikle Bu)
+
+postgresql://postgres.kxnatjmutvogwoayiajw:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+
+### Format 2: Direct Pooler Domain (Alternatif)
+
+postgresql://postgres.kxnatjmutvogwoayiajw:[YOUR-PASSWORD]@kxnatjmutvogwoayiajw.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+
+## ⚠️ ÖNEMLİ NOTLAR:
+
+1. [YOUR-PASSWORD] kısmını Supabase Dashboard'dan aldığınız gerçek şifre ile değiştirin
+2. Şifre özel karakterler içeriyorsa URL encode edin:
+   - @ → %40
+   - : → %3A
+   - / → %2F
+   - + → %2B
+   - = → %3D
+   - & → %26
+   - # → %23
+   - ? → %3F
+   - % → %25
+
+3. Vercel'e eklerken:
+   - Name: POSTGRES_URL
+   - Value: Yukarıdaki connection string'i [YOUR-PASSWORD] yerine gerçek şifre ile yapıştırın
+   - Environment: Production, Preview, Development (hepsini seçin)
+
+## 📋 Supabase Dashboard'dan Şifre Alma:
+
+1. Supabase Dashboard > Settings > Database
+2. "Connection String" bölümüne gidin
+3. "Reset database password" ile şifreyi yenileyebilir veya mevcut şifreyi görebilirsiniz
+4. Şifreyi kopyalayın ve yukarıdaki [YOUR-PASSWORD] yerine yapıştırın
+
+## ✅ Test:
+
+Connection string'i ekledikten sonra:
+1. Vercel Dashboard > Deployments
+2. "Redeploy" yapın
+3. Runtime Logs'u kontrol edin
+4. Database connection hatası olmamalı

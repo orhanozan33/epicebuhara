@@ -3,6 +3,9 @@ import { db } from '@/src/db';
 import { orders } from '@/src/db/schema';
 import { eq, desc, ne } from 'drizzle-orm';
 
+// Force dynamic rendering because we use request.url
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
