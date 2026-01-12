@@ -55,7 +55,7 @@ export const dealers = pgTable('dealers', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const dealerSales = pgTable('dealerSales', {
+export const dealerSales = pgTable('dealer_sales', {
   id: serial('id').primaryKey().notNull(),
   dealerId: integer('dealer_id').notNull(),
   saleNumber: varchar('sale_number', { length: 100 }).notNull(),
@@ -71,10 +71,10 @@ export const dealerSales = pgTable('dealerSales', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
-  saleNumberUnique: unique('dealerSales_saleNumber_unique').on(table.saleNumber),
+  saleNumberUnique: unique('dealer_sales_saleNumber_unique').on(table.saleNumber),
 }));
 
-export const dealerSaleItems = pgTable('dealerSaleItems', {
+export const dealerSaleItems = pgTable('dealer_sale_items', {
   id: serial('id').primaryKey().notNull(),
   saleId: integer('sale_id').notNull(),
   productId: integer('product_id').notNull(),
@@ -93,7 +93,7 @@ export const cart = pgTable('cart', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const companySettings = pgTable('companySettings', {
+export const companySettings = pgTable('company_settings', {
   id: serial('id').primaryKey().notNull(),
   companyName: varchar('company_name', { length: 255 }),
   address: text('address'),
