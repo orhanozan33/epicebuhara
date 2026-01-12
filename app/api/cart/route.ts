@@ -149,8 +149,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ items });
   } catch (error: any) {
     console.error('Error fetching cart (Drizzle):', error);
+    console.error('Error stack:', error?.stack);
+    console.error('Error code:', error?.code);
+    console.error('Error name:', error?.name);
+    
+    // Daha detaylı hata mesajı
+    const errorMessage = error?.message || 'Bilinmeyen hata';
+    const errorDetails = {
+      message: errorMessage,
+      code: error?.code,
+      name: error?.name,
+      query: error?.query || 'N/A',
+    };
+    
     return NextResponse.json(
-      { error: 'Sepet getirilirken hata oluştu', details: error?.message },
+      { 
+        error: 'Sepet getirilirken hata oluştu', 
+        details: errorMessage,
+        debug: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      },
       { status: 500 }
     );
   }
