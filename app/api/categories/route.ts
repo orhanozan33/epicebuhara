@@ -14,11 +14,11 @@ export async function GET(request: Request) {
       result = await db.select()
         .from(categories)
         .where(eq(categories.isActive, true))
-        .orderBy(asc(categories.order), asc(categories.name));
+        .orderBy(asc(categories.sortOrder), asc(categories.name));
     } else {
       result = await db.select()
         .from(categories)
-        .orderBy(asc(categories.order), asc(categories.name));
+        .orderBy(asc(categories.sortOrder), asc(categories.name));
     }
 
     console.log(`Categories API (Drizzle): Found ${result.length} categories`);
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, slug, description, order, isActive } = body;
+    const { name, slug, description, sortOrder, isActive } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       name,
       slug: categorySlug,
       description: description || null,
-      order: order || 0,
+      sortOrder: sortOrder || 0,
       isActive: isActive ?? true,
     }).returning();
 

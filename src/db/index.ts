@@ -14,20 +14,32 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 function getDatabaseUrl(): string {
+  let url = '';
   if (process.env.DATABASE_URL) {
-    return process.env.DATABASE_URL;
-  }
-  
-  if (process.env.DB_HOST && process.env.DB_NAME) {
+    url = process.env.DATABASE_URL;
+  } else if (process.env.DB_HOST && process.env.DB_NAME) {
     const user = process.env.DB_USER || 'postgres';
     const password = process.env.DB_PASSWORD || '';
     const host = process.env.DB_HOST;
     const port = process.env.DB_PORT || '5432';
     const database = process.env.DB_NAME;
-    return `postgresql://${user}:${password}@${host}:${port}/${database}`;
+    url = `postgresql://${user}:${password}@${host}:${port}/${database}`;
+  } else {
+    return '';
   }
   
-  return '';
+  // Supabase Pooler için SSL ve pgbouncer parametrelerini ekle
+  if (url.includes('pooler.supabase.com') || url.includes('supabase.co')) {
+    const separator = url.includes('?') ? '&' : '?';
+    if (!url.includes('sslmode=')) {
+      url += `${separator}sslmode=require`;
+    }
+    if (!url.includes('pgbouncer=')) {
+      url += `&pgbouncer=true`;
+    }
+  }
+  
+  return url;
 }
 
 const connectionString = getDatabaseUrl();

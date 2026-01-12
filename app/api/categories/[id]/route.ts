@@ -49,7 +49,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Kategori bulunamadı' }, { status: 404 });
     }
 
-    const { name, slug, description, order, isActive } = body;
+    const { name, slug, description, sortOrder, isActive } = body;
     
     const updateData: any = {};
     if (name !== undefined) {
@@ -60,7 +60,7 @@ export async function PUT(
     }
     if (slug !== undefined) updateData.slug = slug;
     if (description !== undefined) updateData.description = description || null;
-    if (order !== undefined) updateData.order = parseInt(order) || 0;
+    if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder) || 0;
     if (isActive !== undefined) updateData.isActive = isActive;
     updateData.updatedAt = new Date();
 
