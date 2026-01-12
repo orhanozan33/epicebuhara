@@ -229,7 +229,7 @@ export async function POST(request: Request) {
           const newStock = Math.max(0, currentStock - quantityToSubtract);
           
           await db.update(products)
-            .set({ stock: newStock.toString() })
+            .set({ stock: newStock })
             .where(eq(products.id, product.id));
         }
       }
