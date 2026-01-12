@@ -68,6 +68,7 @@ export const dealerSales = pgTable('dealerSales', {
   paidAmount: numeric('paidAmount', { precision: 10, scale: 2 }).default('0'),
   paidAt: timestamp('paidAt'),
   notes: text('notes'),
+  isSaved: boolean('isSaved').default(false),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
 }, (table) => ({

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getDealerSaleRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { dealerSales } from '@/src/db/schema';
+import { eq } from 'drizzle-orm';
 
 // Faturayı kaydet (isSaved = true yap)
 export async function POST(
@@ -17,22 +19,25 @@ export async function POST(
       );
     }
 
-    const dealerSaleRepo = await getDealerSaleRepository();
-    const sale = await dealerSaleRepo.findOne({ where: { id: saleIdNum } });
+    const sale = await db.select()
+      .from(dealerSales)
+      .where(eq(dealerSales.id, saleIdNum))
+      .limit(1);
 
-    if (!sale) {
+    if (sale.length === 0) {
       return NextResponse.json(
         { error: 'Fatura bulunamadı' },
         { status: 404 }
       );
     }
 
-    sale.isSaved = true;
-    await dealerSaleRepo.save(sale);
+    await db.update(dealerSales)
+      .set({ isSaved: true, updatedAt: new Date() })
+      .where(eq(dealerSales.id, saleIdNum));
 
     return NextResponse.json({ success: true, message: 'Fatura kaydedildi' });
   } catch (error: any) {
-    console.error('Error saving invoice (TypeORM):', error);
+    console.error('Error saving invoice (Drizzle):', error);
     return NextResponse.json(
       { error: 'Fatura kaydedilemedi', details: error?.message || 'Bilinmeyen hata' },
       { status: 500 }

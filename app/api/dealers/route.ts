@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getDealerRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { dealers } from '@/src/db/schema';
+import { desc } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    const dealerRepo = await getDealerRepository();
-    const dealers = await dealerRepo.find({
-      order: { createdAt: 'DESC' },
-    });
+    const dealersList = await db.select()
+      .from(dealers)
+      .orderBy(desc(dealers.createdAt));
 
-    return NextResponse.json(dealers);
+    return NextResponse.json(dealersList);
   } catch (error: any) {
-    console.error('Error fetching dealers (TypeORM):', error);
+    console.error('Error fetching dealers (Drizzle):', error);
     return NextResponse.json(
       { error: 'Bayiler getirilemedi', details: error?.message },
       { status: 500 }
@@ -28,8 +29,7 @@ export async function POST(request: Request) {
       ? companyName.trim() 
       : 'İsimsiz Bayi';
 
-    const dealerRepo = await getDealerRepository();
-    const newDealer = dealerRepo.create({
+    const newDealer = await db.insert(dealers).values({
       companyName: finalCompanyName,
       phone: phone?.trim() || null,
       email: email?.trim() || null,
@@ -39,13 +39,11 @@ export async function POST(request: Request) {
       tvqNumber: tvqNumber?.trim() || null,
       discount: discount ? discount.toString() : '0',
       isActive: true,
-    });
+    }).returning();
 
-    const savedDealer = await dealerRepo.save(newDealer);
-
-    return NextResponse.json(savedDealer, { status: 201 });
+    return NextResponse.json(newDealer[0], { status: 201 });
   } catch (error: any) {
-    console.error('Error creating dealer (TypeORM):', error);
+    console.error('Error creating dealer (Drizzle):', error);
     return NextResponse.json(
       { error: 'Bayi oluşturulurken hata oluştu', details: error?.message },
       { status: 500 }

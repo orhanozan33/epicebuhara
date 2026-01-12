@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getProductRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { products } from '@/src/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function DELETE(
   request: Request,
@@ -13,12 +15,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Geçersiz ürün ID' }, { status: 400 });
     }
 
-    const productRepo = await getProductRepository();
-    await productRepo.delete(id);
+    await db.delete(products).where(eq(products.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting product (TypeORM):', error);
+    console.error('Error deleting product (Drizzle):', error);
     return NextResponse.json(
       { error: 'Ürün silinirken hata oluştu', details: error?.message },
       { status: 500 }
@@ -39,17 +40,20 @@ export async function PUT(
       return NextResponse.json({ error: 'Geçersiz ürün ID' }, { status: 400 });
     }
 
-    const productRepo = await getProductRepository();
-    const product = await productRepo.findOne({ where: { id } });
+    const existingProduct = await db.select()
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
 
-    if (!product) {
+    if (existingProduct.length === 0) {
       return NextResponse.json({ error: 'Ürün bulunamadı' }, { status: 404 });
     }
 
+    const product = existingProduct[0];
     const { name, baseName, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
-    // Slug generation helper function
-    const generateSlug = (name: string, baseName?: string | null, weight?: string | null, unit?: string | null) => {
+    // Slug oluşturma fonksiyonu
+    const generateSlug = (name: string, baseName: string | null | undefined, weight: string | null | undefined, unit: string | null | undefined) => {
       let slugBase = (baseName || name).toLowerCase().trim();
       if (!baseName) {
         slugBase = slugBase.replace(/\s*\d+(\.\d+)?\s*(gr|g|kg|lt|Gr|G|Kg|Kg)\s*$/i, '').trim();
@@ -71,37 +75,43 @@ export async function PUT(
     };
 
     // Update fields
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
     if (name !== undefined) {
-      product.name = name;
+      updateData.name = name;
       const finalWeight = weight !== undefined ? weight : product.weight;
       const finalUnit = unit !== undefined ? unit : (product.unit || 'Gr');
-      product.slug = generateSlug(name, baseName !== undefined ? baseName : product.baseName, finalWeight?.toString(), finalUnit);
+      updateData.slug = generateSlug(name, baseName !== undefined ? baseName : product.baseName, finalWeight?.toString(), finalUnit);
     } else if (baseName !== undefined || weight !== undefined || unit !== undefined) {
       // Sadece baseName, weight veya unit değiştiyse slug'ı güncelle
       const finalBaseName = baseName !== undefined ? baseName : product.baseName;
       const finalWeight = weight !== undefined ? weight : product.weight;
       const finalUnit = unit !== undefined ? unit : (product.unit || 'Gr');
-      product.slug = generateSlug(product.name, finalBaseName, finalWeight?.toString(), finalUnit);
+      updateData.slug = generateSlug(product.name, finalBaseName, finalWeight?.toString(), finalUnit);
     }
 
-    if (baseName !== undefined) product.baseName = baseName || null;
-    if (sku !== undefined) product.sku = sku || null;
-    if (price !== undefined) product.price = price.toString();
-    if (comparePrice !== undefined) product.comparePrice = comparePrice ? comparePrice.toString() : null;
-    if (stock !== undefined) product.stock = parseInt(stock.toString()) || 0;
-    if (weight !== undefined) product.weight = weight || null;
-    if (unit !== undefined) product.unit = unit || 'Gr';
-    if (productGroup !== undefined) product.productGroup = productGroup || null;
-    if (categoryId !== undefined) product.categoryId = categoryId ? parseInt(categoryId.toString()) : null;
-    if (isActive !== undefined) product.isActive = isActive;
-    if (description !== undefined) product.description = description || null;
-    if (images !== undefined) product.images = images || null;
+    if (baseName !== undefined) updateData.baseName = baseName || null;
+    if (sku !== undefined) updateData.sku = sku || null;
+    if (price !== undefined) updateData.price = price.toString();
+    if (comparePrice !== undefined) updateData.comparePrice = comparePrice ? comparePrice.toString() : null;
+    if (stock !== undefined) updateData.stock = parseInt(stock.toString()) || 0;
+    if (weight !== undefined) updateData.weight = weight || null;
+    if (unit !== undefined) updateData.unit = unit || 'Gr';
+    if (productGroup !== undefined) updateData.productGroup = productGroup || null;
+    if (categoryId !== undefined) updateData.categoryId = categoryId ? parseInt(categoryId.toString()) : null;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    if (description !== undefined) updateData.description = description || null;
+    if (images !== undefined) updateData.images = images || null;
 
-    await productRepo.save(product);
+    await db.update(products)
+      .set(updateData)
+      .where(eq(products.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error updating product (TypeORM):', error);
+    console.error('Error updating product (Drizzle):', error);
     return NextResponse.json(
       { error: 'Ürün güncellenirken hata oluştu', details: error?.message },
       { status: 500 }

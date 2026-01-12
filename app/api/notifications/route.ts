@@ -1,61 +1,83 @@
 import { NextResponse } from 'next/server';
-import { getNotificationRepository } from '@/src/db/index.typeorm';
+import { db } from '@/src/db';
+import { notifications } from '@/src/db/schema';
+import { desc, eq, and } from 'drizzle-orm';
 
-// Bildirimleri getir
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
-    const notificationRepo = await getNotificationRepository();
-    
-    const findOptions: any = {
-      order: { createdAt: 'DESC' },
-      take: 50,
-    };
+    let query = db.select()
+      .from(notifications)
+      .orderBy(desc(notifications.createdAt))
+      .limit(50);
 
     if (unreadOnly) {
-      findOptions.where = { isRead: false };
+      query = query.where(eq(notifications.isRead, false)) as any;
     }
 
-    const allNotifications = await notificationRepo.find(findOptions);
+    const notificationsList = await query;
 
-    return NextResponse.json({ notifications: allNotifications });
+    return NextResponse.json({ notifications: notificationsList });
   } catch (error: any) {
-    console.error('Error fetching notifications (TypeORM):', error);
+    console.error('Error fetching notifications (Drizzle):', error);
     return NextResponse.json(
-      { error: 'Bildirimler getirilirken hata oluştu', details: error?.message },
+      { error: 'Bildirimler getirilemedi', details: error?.message },
       { status: 500 }
     );
   }
 }
 
-// Bildirimi okundu olarak işaretle
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { type, title, message, orderId } = body;
+
+    if (!type || !title || !message) {
+      return NextResponse.json(
+        { error: 'Type, title ve message gerekli' },
+        { status: 400 }
+      );
+    }
+
+    const newNotification = await db.insert(notifications).values({
+      type,
+      title,
+      message,
+      orderId: orderId ? parseInt(orderId) : null,
+      isRead: false,
+    }).returning();
+
+    return NextResponse.json(newNotification[0], { status: 201 });
+  } catch (error: any) {
+    console.error('Error creating notification (Drizzle):', error);
+    return NextResponse.json(
+      { error: 'Bildirim oluşturulurken hata oluştu', details: error?.message },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
     const { id, isRead } = body;
 
-    if (!id) {
+    if (id === undefined || isRead === undefined) {
       return NextResponse.json(
-        { error: 'Bildirim ID gerekli' },
+        { error: 'ID ve isRead gerekli' },
         { status: 400 }
       );
     }
 
-    const notificationRepo = await getNotificationRepository();
-    const notification = await notificationRepo.findOne({ where: { id: parseInt(id) } });
-
-    if (!notification) {
-      return NextResponse.json({ error: 'Bildirim bulunamadı' }, { status: 404 });
-    }
-
-    notification.isRead = isRead ?? true;
-    await notificationRepo.save(notification);
+    await db.update(notifications)
+      .set({ isRead })
+      .where(eq(notifications.id, parseInt(id)));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error updating notification (TypeORM):', error);
+    console.error('Error updating notification (Drizzle):', error);
     return NextResponse.json(
       { error: 'Bildirim güncellenirken hata oluştu', details: error?.message },
       { status: 500 }
