@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { products, categories } from '@/src/db/schema';
-import { eq, and, or, isNotNull, desc, asc } from 'drizzle-orm';
-import { sql } from 'drizzle-orm';
+import { eq, and, or, isNotNull, desc, asc, like, sql } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
@@ -104,9 +103,13 @@ export async function GET(request: Request) {
     }
 
     if (search && search.trim()) {
-      const searchTerm = `%${search.trim()}%`;
+      const searchTerm = `%${search.trim().toLowerCase()}%`;
       conditions.push(
-        sql`(LOWER(${products.name}) LIKE LOWER(${searchTerm}) OR LOWER(COALESCE(${products.description}, '')) LIKE LOWER(${searchTerm}) OR LOWER(COALESCE(${products.baseName}, '')) LIKE LOWER(${searchTerm}))`
+        or(
+          like(sql`LOWER(${products.name})`, searchTerm),
+          like(sql`LOWER(COALESCE(${products.description}, ''))`, searchTerm),
+          like(sql`LOWER(COALESCE(${products.baseName}, ''))`, searchTerm)
+        )!
       );
     }
 
