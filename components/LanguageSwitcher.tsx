@@ -17,9 +17,9 @@ export function LanguageSwitcher() {
     { code: 'tr', label: 'TR' },
   ];
 
-  // Server-side render için default olarak 'tr' seçili göster
+  // Server-side render için default olarak 'fr' seçili göster
   // i18n.language undefined olabilir, bu yüzden fallback ekliyoruz
-  const currentLanguage = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
+  const currentLanguage = mounted && i18n?.language ? i18n.language.split('-')[0] : 'fr';
 
   const handleLanguageChange = (langCode: string) => {
     if (mounted && i18n && typeof i18n.changeLanguage === 'function') {
