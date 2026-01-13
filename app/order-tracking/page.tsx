@@ -62,6 +62,7 @@ function SiparisTakibiContent() {
   const [searchEmail, setSearchEmail] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [showAllOrders, setShowAllOrders] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -79,8 +80,6 @@ function SiparisTakibiContent() {
     setLoading(true);
     setError(null);
     setShowAllOrders(true);
-    setOrder(null);
-    setItems([]);
 
     try {
       const url = searchEmail.trim() 
@@ -90,19 +89,49 @@ function SiparisTakibiContent() {
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        setAllOrders(Array.isArray(data) ? data : []);
-        if (data.length === 0) {
+        const ordersList = Array.isArray(data) ? data : [];
+        setAllOrders(ordersList);
+        if (ordersList.length === 0) {
           setError(mounted ? t('orderTracking.noOrdersFound') || 'Sipariş bulunamadı' : 'Sipariş bulunamadı');
+          setOrder(null);
+          setItems([]);
+          setSelectedOrderId(null);
+        } else {
+          // İlk siparişi otomatik seç
+          if (ordersList.length > 0) {
+            const firstOrder = ordersList[0];
+            setSelectedOrderId(firstOrder.id);
+            setOrderNumber(firstOrder.orderNumber);
+            // İlk siparişin detaylarını getir
+            try {
+              const detailResponse = await fetch(`/api/orders?orderNumber=${encodeURIComponent(firstOrder.orderNumber)}`);
+              if (detailResponse.ok) {
+                const detailData = await detailResponse.json();
+                if (detailData.order) {
+                  setOrder(detailData.order);
+                  setItems(detailData.items || []);
+                }
+              }
+            } catch (err) {
+              console.error('Error fetching first order details:', err);
+            }
+          }
         }
       } else {
         const errorData = await response.json();
         setError(errorData.error || (mounted ? t('orderTracking.fetchError') : 'Siparişler getirilirken hata oluştu'));
         setAllOrders([]);
+        setOrder(null);
+        setItems([]);
+        setSelectedOrderId(null);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
       setError(mounted ? t('orderTracking.fetchError') : 'Siparişler getirilirken hata oluştu');
       setAllOrders([]);
+      setOrder(null);
+      setItems([]);
+      setSelectedOrderId(null);
     } finally {
       setLoading(false);
     }
@@ -125,22 +154,32 @@ function SiparisTakibiContent() {
         if (data.order) {
           setOrder(data.order);
           setItems(data.items || []);
+          setSelectedOrderId(data.order.id);
+          // Siparişi listeye ekle (zaten yoksa)
+          setAllOrders(prev => {
+            const exists = prev.find(o => o.id === data.order.id);
+            if (exists) return prev;
+            return [data.order, ...prev].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          });
         } else {
           setError(mounted ? t('orderTracking.orderNotFound') : 'Sipariş bulunamadı. Lütfen sipariş numaranızı kontrol edin.');
           setOrder(null);
           setItems([]);
+          setSelectedOrderId(null);
         }
       } else {
         const errorData = await response.json();
         setError(errorData.error || (mounted ? t('orderTracking.fetchError') : 'Sipariş getirilirken hata oluştu'));
         setOrder(null);
         setItems([]);
+        setSelectedOrderId(null);
       }
     } catch (error) {
       console.error('Error fetching order:', error);
       setError(mounted ? t('orderTracking.fetchError') : 'Sipariş getirilirken hata oluştu');
       setOrder(null);
       setItems([]);
+      setSelectedOrderId(null);
     } finally {
       setLoading(false);
     }
@@ -173,6 +212,28 @@ function SiparisTakibiContent() {
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleOrderClick = async (orderId: number, orderNum: string) => {
+    setSelectedOrderId(orderId);
+    setOrderNumber(orderNum);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/orders?orderNumber=${encodeURIComponent(orderNum)}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.order) {
+          setOrder(data.order);
+          setItems(data.items || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -253,14 +314,57 @@ function SiparisTakibiContent() {
           </div>
         </div>
 
-        {/* Sipariş Detayları */}
-        {loading && (
-          <div className="bg-white border border-gray-200 rounded-lg p-8 sm:p-12 text-center">
-            <p className="text-gray-600">{mounted ? t('products.loading') : 'Yükleniyor...'}</p>
-          </div>
-        )}
+        {/* İki Kolonlu Layout: Sol - Sipariş Listesi, Sağ - Sipariş Detayları */}
+        {(showAllOrders && allOrders.length > 0) || order ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+            {/* Sol Kolon: Sipariş Listesi */}
+            {(showAllOrders && allOrders.length > 0) && (
+              <div className="lg:order-1">
+                <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">{mounted ? t('orderTracking.allOrders') || 'Siparişlerim' : 'Siparişlerim'}</h2>
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                    {allOrders.map((orderItem) => (
+                      <div
+                        key={orderItem.id}
+                        className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer ${
+                          selectedOrderId === orderItem.id
+                            ? 'border-[#E91E63] bg-[#E91E63]/5 shadow-md'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleOrderClick(orderItem.id, orderItem.orderNumber)}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <h3 className={`text-sm sm:text-base font-semibold ${selectedOrderId === orderItem.id ? 'text-[#E91E63]' : 'text-gray-900'}`}>
+                            {orderItem.orderNumber}
+                          </h3>
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${getStatusColor(orderItem.status)}`}>
+                            {getStatusLabel(orderItem.status)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {new Date(orderItem.createdAt).toLocaleDateString(getLocale(), {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </p>
+                        <p className="text-sm sm:text-base font-bold text-[#E91E63]">${parseFloat(orderItem.total).toFixed(2)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
-        {!loading && order && (
+            {/* Sağ Kolon: Sipariş Detayları */}
+            <div className={showAllOrders && allOrders.length > 0 ? 'lg:order-2' : 'lg:col-span-2'}>
+              {loading && (
+                <div className="bg-white border border-gray-200 rounded-lg p-8 sm:p-12 text-center">
+                  <p className="text-gray-600">{mounted ? t('products.loading') : 'Yükleniyor...'}</p>
+                </div>
+              )}
+
+              {!loading && order && (
           <div className="space-y-4 sm:space-y-6">
             {/* Sipariş Özeti */}
             <div className="bg-gradient-to-r from-[#E91E63] to-[#C2185B] rounded-xl p-4 sm:p-6 text-white">
@@ -430,56 +534,6 @@ function SiparisTakibiContent() {
           </div>
         )}
 
-        {/* Tüm Siparişler Listesi */}
-        {!loading && showAllOrders && allOrders.length > 0 && (
-          <div className="space-y-4 sm:space-y-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{mounted ? t('orderTracking.allOrders') || 'Tüm Siparişlerim' : 'Tüm Siparişlerim'}</h2>
-            <div className="space-y-4">
-              {allOrders.map((orderItem) => (
-                <div
-                  key={orderItem.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={async () => {
-                    setOrderNumber(orderItem.orderNumber);
-                    setShowAllOrders(false);
-                    setOrder(null);
-                    setItems([]);
-                    setSearched(false);
-                    // handleSearch'i async olarak çağır
-                    await handleSearch();
-                  }}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">{orderItem.orderNumber}</h3>
-                        <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${getStatusColor(orderItem.status)}`}>
-                          {getStatusLabel(orderItem.status)}
-                        </span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-gray-500 mb-1">
-                        {new Date(orderItem.createdAt).toLocaleDateString(getLocale(), {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                      {orderItem.shippingName && (
-                        <p className="text-xs sm:text-sm text-gray-600">{orderItem.shippingName}</p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg sm:text-xl font-bold text-[#E91E63]">${parseFloat(orderItem.total).toFixed(2)}</p>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-1">{mounted ? t('orderTracking.clickToView') || 'Detayları görmek için tıklayın' : 'Detayları görmek için tıklayın'}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Sipariş bulunamadı mesajı (sadece arama yapıldıysa göster) */}
         {!loading && searched && !order && !showAllOrders && (
