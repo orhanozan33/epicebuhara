@@ -43,6 +43,22 @@ export function AdminNotificationBanner() {
 
   const fetchNotifications = async () => {
     try {
+      // Önce pending siparişler var mı kontrol et
+      const ordersResponse = await fetch('/api/orders?status=PENDING');
+      let hasPendingOrders = false;
+      if (ordersResponse.ok) {
+        const ordersData = await ordersResponse.json();
+        // API direkt array döndürüyor, orders wrapper yok
+        hasPendingOrders = Array.isArray(ordersData) && ordersData.length > 0;
+      }
+
+      // Eğer pending sipariş varsa bildirim gösterme
+      if (hasPendingOrders) {
+        setNotifications([]);
+        return;
+      }
+
+      // Pending yoksa bildirimleri getir (gönderilmemiş ürünler için)
       const response = await fetch('/api/notifications?unreadOnly=true');
       if (response.ok) {
         const data = await response.json();
