@@ -151,7 +151,17 @@ export function Footer() {
         </div>
         <div className="border-t border-gray-700 pt-3 sm:pt-4">
           <div className="text-center text-xs sm:text-sm text-gray-400">
-            <p>{mounted ? t('footer.copyright') : '© 2026 Epicê Buhara. Tüm hakları saklıdır.'}</p>
+            <p>
+              {mounted ? t('footer.copyright') : '© 2026 Epicê Buhara. Tüm hakları saklıdır.'} {' '}
+              <a 
+                href="https://www.findpoint.ca" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="hover:text-white transition-colors underline"
+              >
+                Findpoint
+              </a>
+            </p>
           </div>
         </div>
       </div>
