@@ -280,9 +280,9 @@ function SiparisTakibiContent() {
                 </div>
                 
                 {/* Email/Telefon ile Tüm Siparişleri Getir */}
-                <div className="border-t pt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{mounted ? t('orderTracking.searchByEmailOrPhone') || 'Email veya Telefon ile Tüm Siparişlerimi Gör' : 'Email veya Telefon ile Tüm Siparişlerimi Gör'}</label>
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <div className="border-t pt-3" style={{ transform: 'scale(0.8)', transformOrigin: 'top left' }}>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">{mounted ? t('orderTracking.searchByEmailOrPhone') || 'Email veya Telefon ile Tüm Siparişlerimi Gör' : 'Email veya Telefon ile Tüm Siparişlerimi Gör'}</label>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <input
                   type="email"
                   value={searchEmail}
@@ -292,9 +292,9 @@ function SiparisTakibiContent() {
                   }}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearchAllOrders()}
                     placeholder={mounted ? t('checkout.email') || 'E-posta' : 'E-posta'}
-                    className="flex-1 px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm sm:text-base"
+                    className="flex-1 px-3 py-2 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-xs sm:text-sm"
                   />
-                  <span className="self-center text-gray-500 hidden sm:inline">{mounted ? t('orderTracking.or') : 'veya'}</span>
+                  <span className="self-center text-gray-500 hidden sm:inline text-xs">{mounted ? t('orderTracking.or') : 'veya'}</span>
                   <input
                     type="tel"
                     value={searchPhone}
@@ -304,12 +304,12 @@ function SiparisTakibiContent() {
                     }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearchAllOrders()}
                     placeholder={mounted ? t('checkout.phone') || 'Telefon' : 'Telefon'}
-                    className="flex-1 px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm sm:text-base"
+                    className="flex-1 px-3 py-2 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-xs sm:text-sm"
                   />
                   <button
                     onClick={handleSearchAllOrders}
                     disabled={loading}
-                    className="px-6 py-2.5 sm:py-3 bg-[#E91E63] text-white font-medium rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base whitespace-nowrap"
+                    className="px-5 py-2 sm:py-2 bg-[#E91E63] text-white font-medium rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
                   >
                     {loading ? (mounted ? t('products.loading') : 'Yükleniyor...') : (mounted ? t('orderTracking.viewAllOrders') || 'Tüm Siparişlerimi Gör' : 'Tüm Siparişlerimi Gör')}
                   </button>
