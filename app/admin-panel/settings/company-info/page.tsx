@@ -85,7 +85,9 @@ export default function FirmaBilgileriPage() {
         await fetchSettings();
       } else {
         const error = await response.json();
-        showToast(error.error || (mounted ? t('admin.common.error') : 'Firma bilgileri kaydedilirken hata oluştu'), 'error');
+        console.error('Company settings update error:', error);
+        const errorMessage = error.details || error.error || error.message || (mounted ? t('admin.common.error') : 'Firma bilgileri kaydedilirken hata oluştu');
+        showToast(errorMessage, 'error');
       }
     } catch (error) {
       console.error('Error saving company settings:', error);

@@ -184,9 +184,14 @@ export default function FaturaPage() {
         });
         if (companyResponse.ok) {
           const companyData = await companyResponse.json();
+          console.log('Company data received:', companyData);
           if (isMountedRef.current) {
             setCompany(companyData);
           }
+        } else {
+          console.error('Company API error:', companyResponse.status, companyResponse.statusText);
+          const errorData = await companyResponse.json().catch(() => ({}));
+          console.error('Company API error data:', errorData);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -313,20 +318,16 @@ export default function FaturaPage() {
               <h1 className="text-sm lg:text-2xl font-bold text-gray-900 mb-2 lg:mb-4">
                 {mounted ? t('admin.invoices.invoice') : 'FATURA'}
               </h1>
-              {company && (
-                <div className="text-[10px] lg:text-sm text-gray-700 space-y-0.5 lg:space-y-1">
-                  {company.companyName && <p className="font-semibold text-xs lg:text-base">{company.companyName}</p>}
-                  {company.address && <p><strong>{mounted ? t('checkout.address') : 'Adres'}:</strong> {company.address}</p>}
-                  {company.postalCode && <p><strong>{mounted ? t('admin.invoices.postalCode') : 'Posta Kodu'}:</strong> {company.postalCode}</p>}
-                  {company.phone && <p><strong>{mounted ? t('checkout.phone') : 'Telefon'}:</strong> {company.phone}</p>}
-                  {(company.tpsNumber || company.tvqNumber) && (
-                    <div className="flex flex-col gap-0.5 lg:gap-1 mt-1 lg:mt-2">
-                      {company.tpsNumber && <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tpsRegistrationNumber') : 'TPS Kayıt No'}:</strong> {company.tpsNumber}</p>}
-                      {company.tvqNumber && <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tvqRegistrationNumber') : 'TVQ Kayıt No'}:</strong> {company.tvqNumber}</p>}
-                    </div>
-                  )}
+              <div className="text-[10px] lg:text-sm text-gray-700 space-y-0.5 lg:space-y-1">
+                {company?.companyName && <p className="font-semibold text-xs lg:text-base">{company.companyName}</p>}
+                <p><strong>{mounted ? t('checkout.address') : 'Adres'}:</strong> {company?.address || ''}</p>
+                <p><strong>{mounted ? t('admin.invoices.postalCode') : 'Posta Kodu'}:</strong> {company?.postalCode || ''}</p>
+                <p><strong>{mounted ? t('checkout.phone') : 'Telefon'}:</strong> {company?.phone || ''}</p>
+                <div className="flex flex-col gap-0.5 lg:gap-1 mt-1 lg:mt-2">
+                  <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tpsRegistrationNumber') : 'TPS Kayıt No'}:</strong> {company?.tpsNumber || ''}</p>
+                  <p className="text-[9px] lg:text-xs"><strong>{mounted ? t('admin.invoices.tvqRegistrationNumber') : 'TVQ Kayıt No'}:</strong> {company?.tvqNumber || ''}</p>
                 </div>
-              )}
+              </div>
             </div>
             
             {/* Sağ: Müşteri Bilgileri */}
