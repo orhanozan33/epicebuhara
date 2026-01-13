@@ -497,9 +497,10 @@ export default function BayiSatisPage() {
   }, [afterDiscount]);
   
   // TVQ (Quebec Goods and Services Tax) %9.975
+  // Quebec sistemi: TVQ, TPS eklenmiş fiyat üzerinden hesaplanır
   const tvqAmount = useMemo(() => {
-    return Math.round((afterDiscount * 0.09975) * 100) / 100;
-  }, [afterDiscount]);
+    return Math.round((afterDiscount + tpsAmount) * 0.09975 * 100) / 100;
+  }, [afterDiscount, tpsAmount]);
   
   // Toplam (İskonto + TPS + TVQ)
   const total = useMemo(() => {

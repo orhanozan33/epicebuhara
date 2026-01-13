@@ -361,14 +361,14 @@ export default function BayiPage() {
                           <button
                             type="button"
                             onClick={(e) => handleEdit(dealer, e)}
-                            className="px-3 py-1.5 text-blue-600 hover:text-blue-800 transition-colors text-xs font-medium"
+                            className="px-3 py-1.5 text-blue-600 hover:text-blue-800 transition-colors text-xs font-medium hidden"
                           >
                             {mounted ? t('admin.common.edit') : 'Düzenle'}
                           </button>
                           <button
                             type="button"
                             onClick={(e) => handleDelete(dealer.id, e)}
-                            className="px-3 py-1.5 text-red-600 hover:text-red-800 transition-colors text-xs font-medium"
+                            className="px-3 py-1.5 text-red-600 hover:text-red-800 transition-colors text-xs font-medium hidden"
                           >
                             {mounted ? t('admin.common.delete') : 'Sil'}
                           </button>
@@ -443,7 +443,7 @@ export default function BayiPage() {
                 >
                   {mounted ? t('admin.dealers.viewSales') : 'Satış Yap'}
                 </button>
-                <div className="flex gap-2">
+                <div className="flex gap-2 hidden">
                   <button
                     type="button"
                     onClick={(e) => handleEdit(dealer, e)}

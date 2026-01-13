@@ -252,9 +252,9 @@ export async function POST(
     const discountAmount = (subtotal * dealerDiscount) / 100;
     const afterDiscount = subtotal - discountAmount;
 
-    // TPS ve TVQ hesapla
+    // TPS ve TVQ hesapla (Quebec sistemi: Önce TPS, sonra TVQ TPS dahil fiyat üzerinden)
     const tpsAmount = afterDiscount * 0.05;
-    const tvqAmount = afterDiscount * 0.09975;
+    const tvqAmount = (afterDiscount + tpsAmount) * 0.09975;
     const total = afterDiscount + tpsAmount + tvqAmount;
 
     // Satış numarası oluştur - Benzersiz olmalı

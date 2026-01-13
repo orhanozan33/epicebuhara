@@ -51,7 +51,7 @@ export function Header() {
         <div className="flex items-center justify-between py-2 text-xs sm:text-sm border-b">
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <LanguageSwitcher />
-            <a href="tel:+15147267067" className="whitespace-nowrap !text-black font-medium text-xs sm:text-sm phone-number-black" style={{ color: '#000000' }}>📞 +1 (514) 726-7067</a>
+            <a href="tel:15147267067" className="whitespace-nowrap !text-black font-medium text-xs sm:text-sm phone-number-black" style={{ color: '#000000' }}>📞 (514) 726-7067</a>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <Link href="/order-tracking" className="hover:text-[#E91E63] whitespace-nowrap text-xs sm:text-sm">

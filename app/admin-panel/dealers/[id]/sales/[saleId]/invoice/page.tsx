@@ -300,7 +300,7 @@ export default function FaturaPage() {
   const discount = parseFloat(sale.discount || '0');
   const afterDiscount = Math.max(0, subtotal - discount);
   const tps = Math.round(afterDiscount * 0.05 * 100) / 100;
-  const tvq = Math.round(afterDiscount * 0.09975 * 100) / 100;
+  const tvq = Math.round((afterDiscount + tps) * 0.09975 * 100) / 100; // Quebec: TVQ, TPS dahil fiyat üzerinden
   const total = parseFloat(sale.total || '0');
 
   const paymentMethodText: Record<string, string> = {

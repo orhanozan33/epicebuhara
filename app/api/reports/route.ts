@@ -69,7 +69,7 @@ export async function GET(request: Request) {
     const dealerDiscountTotal = parseFloat(dealerSalesResult[0]?.dealerDiscount?.toString() || '0');
     const dealerAfterDiscount = dealerSubtotalRaw - dealerDiscountTotal;
     const dealerTPS = dealerAfterDiscount * 0.05;
-    const dealerTVQ = dealerAfterDiscount * 0.09975;
+    const dealerTVQ = (dealerAfterDiscount + dealerTPS) * 0.09975; // Quebec: TVQ, TPS dahil fiyat üzerinden
 
     // Toplam alacak (borçlu satışlar)
     const alacakQuery = db

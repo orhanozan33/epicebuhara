@@ -103,6 +103,8 @@ export const companySettings = pgTable('company_settings', {
   taxNumber: varchar('tax_number', { length: 100 }),
   tpsNumber: varchar('tps_number', { length: 100 }),
   tvqNumber: varchar('tvq_number', { length: 100 }),
+  tpsRate: numeric('tps_rate', { precision: 5, scale: 2 }).default('5.00'),
+  tvqRate: numeric('tvq_rate', { precision: 6, scale: 3 }).default('9.975'),
   instagramUrl: varchar('instagram_url', { length: 500 }),
   facebookUrl: varchar('facebook_url', { length: 500 }),
   createdAt: timestamp('created_at').defaultNow(),
