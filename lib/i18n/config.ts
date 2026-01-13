@@ -18,6 +18,7 @@ if (typeof window !== 'undefined' && !i18n.isInitialized) {
         en: { common: en },
         fr: { common: fr },
       },
+      lng: 'fr',
       fallbackLng: 'fr',
       defaultNS: 'common',
       interpolation: {
@@ -44,6 +45,7 @@ if (typeof window === 'undefined' && !i18n.isInitialized) {
         en: { common: en },
         fr: { common: fr },
       },
+      lng: 'fr',
       fallbackLng: 'fr',
       defaultNS: 'common',
       interpolation: {
