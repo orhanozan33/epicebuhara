@@ -30,8 +30,6 @@ if (typeof window !== 'undefined' && !i18n.isInitialized) {
         order: ['localStorage', 'navigator'],
         caches: ['localStorage'],
         lookupLocalStorage: 'i18nextLng',
-        // localStorage'da değer yoksa FR kullan
-        checkWhitelist: true,
       },
     });
 }
