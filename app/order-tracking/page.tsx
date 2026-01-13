@@ -239,14 +239,18 @@ function SiparisTakibiContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{mounted ? t('orderTracking.title') : 'Sipariş Takibi'}</h1>
           <p className="text-sm sm:text-base text-gray-600">{mounted ? t('orderTracking.searchDescription') : 'Sipariş numaranızı girerek siparişinizin durumunu takip edebilirsiniz'}</p>
         </div>
 
-        {/* Sipariş Arama Formu */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
+        {/* İki Kolonlu Layout: Sol - Arama Formları, Sağ - Sipariş Detayları */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* Sol Kolon: Arama Formları */}
+          <div className="lg:order-1">
+            {/* Sipariş Arama Formu */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
           <div className="space-y-4">
             {/* Sipariş Numarası ile Arama */}
             <div>
@@ -312,59 +316,54 @@ function SiparisTakibiContent() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* İki Kolonlu Layout: Sol - Sipariş Listesi, Sağ - Sipariş Detayları */}
-        {(showAllOrders && allOrders.length > 0) || order ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
-            {/* Sol Kolon: Sipariş Listesi */}
-            {(showAllOrders && allOrders.length > 0) && (
-              <div className="lg:order-1">
-                <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">{mounted ? t('orderTracking.allOrders') || 'Siparişlerim' : 'Siparişlerim'}</h2>
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {allOrders.map((orderItem) => (
-                      <div
-                        key={orderItem.id}
-                        className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer ${
-                          selectedOrderId === orderItem.id
-                            ? 'border-[#E91E63] bg-[#E91E63]/5 shadow-md'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => handleOrderClick(orderItem.id, orderItem.orderNumber)}
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <h3 className={`text-sm sm:text-base font-semibold ${selectedOrderId === orderItem.id ? 'text-[#E91E63]' : 'text-gray-900'}`}>
-                            {orderItem.orderNumber}
-                          </h3>
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${getStatusColor(orderItem.status)}`}>
-                            {getStatusLabel(orderItem.status)}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          {new Date(orderItem.createdAt).toLocaleDateString(getLocale(), {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </p>
-                        <p className="text-sm sm:text-base font-bold text-[#E91E63]">${parseFloat(orderItem.total).toFixed(2)}</p>
-                      </div>
-                    ))}
+          {/* Sipariş Listesi (Email/Telefon ile aranan siparişler) */}
+          {showAllOrders && allOrders.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mt-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">{mounted ? t('orderTracking.allOrders') || 'Siparişlerim' : 'Siparişlerim'}</h2>
+              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                {allOrders.map((orderItem) => (
+                  <div
+                    key={orderItem.id}
+                    className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer ${
+                      selectedOrderId === orderItem.id
+                        ? 'border-[#E91E63] bg-[#E91E63]/5 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleOrderClick(orderItem.id, orderItem.orderNumber)}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <h3 className={`text-sm sm:text-base font-semibold ${selectedOrderId === orderItem.id ? 'text-[#E91E63]' : 'text-gray-900'}`}>
+                        {orderItem.orderNumber}
+                      </h3>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${getStatusColor(orderItem.status)}`}>
+                        {getStatusLabel(orderItem.status)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      {new Date(orderItem.createdAt).toLocaleDateString(getLocale(), {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                    <p className="text-sm sm:text-base font-bold text-[#E91E63]">${parseFloat(orderItem.total).toFixed(2)}</p>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
+          )}
+          </div>
+
+          {/* Sağ Kolon: Sipariş Detayları */}
+          <div className="lg:order-2">
+            {loading && (
+              <div className="bg-white border border-gray-200 rounded-lg p-8 sm:p-12 text-center">
+                <p className="text-gray-600">{mounted ? t('products.loading') : 'Yükleniyor...'}</p>
               </div>
             )}
 
-            {/* Sağ Kolon: Sipariş Detayları */}
-            <div className={showAllOrders && allOrders.length > 0 ? 'lg:order-2' : 'lg:col-span-2'}>
-              {loading && (
-                <div className="bg-white border border-gray-200 rounded-lg p-8 sm:p-12 text-center">
-                  <p className="text-gray-600">{mounted ? t('products.loading') : 'Yükleniyor...'}</p>
-                </div>
-              )}
-
-              {!loading && order && (
+            {!loading && order && (
           <div className="space-y-4 sm:space-y-6">
             {/* Sipariş Özeti */}
             <div className="bg-gradient-to-r from-[#E91E63] to-[#C2185B] rounded-xl p-4 sm:p-6 text-white">
@@ -534,20 +533,21 @@ function SiparisTakibiContent() {
           </div>
         )}
 
+            {/* Sipariş bulunamadı mesajı (sadece arama yapıldıysa göster) */}
+            {!loading && searched && !order && !showAllOrders && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
+                <p className="text-gray-600 text-base sm:text-lg">{error || (mounted ? t('orderTracking.orderNotFound') : 'Sipariş bulunamadı. Lütfen sipariş numaranızı kontrol edin.')}</p>
+              </div>
+            )}
 
-        {/* Sipariş bulunamadı mesajı (sadece arama yapıldıysa göster) */}
-        {!loading && searched && !order && !showAllOrders && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
-            <p className="text-gray-600 text-base sm:text-lg">{error || (mounted ? t('orderTracking.orderNotFound') : 'Sipariş bulunamadı. Lütfen sipariş numaranızı kontrol edin.')}</p>
+            {/* Tüm siparişler bulunamadı mesajı */}
+            {!loading && showAllOrders && allOrders.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
+                <p className="text-gray-600 text-base sm:text-lg">{error || (mounted ? t('orderTracking.noOrdersFound') || 'Sipariş bulunamadı' : 'Sipariş bulunamadı')}</p>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Tüm siparişler bulunamadı mesajı */}
-        {!loading && showAllOrders && allOrders.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
-            <p className="text-gray-600 text-base sm:text-lg">{error || (mounted ? t('orderTracking.noOrdersFound') || 'Sipariş bulunamadı' : 'Sipariş bulunamadı')}</p>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
