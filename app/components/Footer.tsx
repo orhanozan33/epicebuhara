@@ -56,6 +56,15 @@ export function Footer() {
               {companyInfo.address && (
                 <p className="text-xs sm:text-sm break-words">📍 {companyInfo.address}</p>
               )}
+              <p className="text-xs sm:text-sm break-words">
+                ✉️ <span>{mounted ? t('footer.email') || 'E-posta' : 'E-posta'}: </span>
+                <a 
+                  href="mailto:epicebuhara@hotmail.com" 
+                  className="hover:text-white transition-colors underline"
+                >
+                  epicebuhara@hotmail.com
+                </a>
+              </p>
             </div>
             <div className="hidden md:flex items-center justify-center gap-2 text-xs sm:text-sm">
               <button
