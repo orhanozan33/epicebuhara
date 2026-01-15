@@ -306,6 +306,41 @@ export default function FaturaPage() {
       hasDownloadedRef.current = true;
       
       try {
+        // oklch renklerini rgb'ye dönüştür (html2canvas oklch desteklemiyor)
+        const convertOklchToRgb = (element: HTMLElement) => {
+          const style = window.getComputedStyle(element);
+          const color = style.color;
+          const backgroundColor = style.backgroundColor;
+          const borderColor = style.borderColor;
+          
+          // oklch içeren renkleri dönüştür
+          if (color && color.includes('oklch')) {
+            element.style.color = '#000000'; // Varsayılan siyah
+          }
+          if (backgroundColor && backgroundColor.includes('oklch')) {
+            // oklch'yi rgb'ye dönüştürmek için basit bir yaklaşım
+            // Eğer oklch renk varsa, varsayılan renkler kullan
+            if (backgroundColor.includes('gray')) {
+              element.style.backgroundColor = '#f3f4f6';
+            } else if (backgroundColor.includes('white')) {
+              element.style.backgroundColor = '#ffffff';
+            } else {
+              element.style.backgroundColor = '#ffffff';
+            }
+          }
+          if (borderColor && borderColor.includes('oklch')) {
+            element.style.borderColor = '#e5e7eb';
+          }
+        };
+
+        // Tüm elementlerde oklch renklerini dönüştür
+        const allElements = invoiceContent.querySelectorAll('*');
+        allElements.forEach((el) => {
+          if (el instanceof HTMLElement) {
+            convertOklchToRgb(el);
+          }
+        });
+
         const opt = {
           margin: [5, 5, 5, 5] as [number, number, number, number],
           filename: `${sale.saleNumber}.pdf`,
@@ -317,6 +352,45 @@ export default function FaturaPage() {
             backgroundColor: '#ffffff',
             allowTaint: true,
             letterRendering: true,
+            onclone: (clonedDoc: Document) => {
+              // Clone'da da oklch renklerini dönüştür
+              const clonedElements = clonedDoc.querySelectorAll('*');
+              clonedElements.forEach((el) => {
+                if (el instanceof HTMLElement) {
+                  const style = window.getComputedStyle(el);
+                  const color = style.color;
+                  const backgroundColor = style.backgroundColor;
+                  const borderColor = style.borderColor;
+                  
+                  if (color && color.includes('oklch')) {
+                    el.style.color = '#000000';
+                  }
+                  if (backgroundColor && backgroundColor.includes('oklch')) {
+                    el.style.backgroundColor = '#ffffff';
+                  }
+                  if (borderColor && borderColor.includes('oklch')) {
+                    el.style.borderColor = '#e5e7eb';
+                  }
+                  
+                  // Tüm CSS özelliklerini kontrol et
+                  const computedStyle = window.getComputedStyle(el);
+                  for (let i = 0; i < computedStyle.length; i++) {
+                    const prop = computedStyle[i];
+                    const value = computedStyle.getPropertyValue(prop);
+                    if (value && value.includes('oklch')) {
+                      // oklch içeren değerleri temizle veya varsayılan değerler kullan
+                      if (prop.includes('color')) {
+                        el.style.setProperty(prop, '#000000', 'important');
+                      } else if (prop.includes('background')) {
+                        el.style.setProperty(prop, '#ffffff', 'important');
+                      } else if (prop.includes('border')) {
+                        el.style.setProperty(prop, '#e5e7eb', 'important');
+                      }
+                    }
+                  }
+                }
+              });
+            }
           },
           jsPDF: { 
             unit: 'mm', 
