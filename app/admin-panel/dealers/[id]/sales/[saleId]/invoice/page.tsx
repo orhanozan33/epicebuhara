@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import html2pdf from 'html2pdf.js';
 
 interface SaleItem {
   id: number;
@@ -53,9 +54,12 @@ interface CompanySettings {
 
 export default function FaturaPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const { t, i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const isMountedRef = useRef(true);
+  const invoiceContentRef = useRef<HTMLDivElement>(null);
+  const hasDownloadedRef = useRef(false);
   
   // Dil koduna göre locale mapping
   const getLocale = () => {
@@ -237,6 +241,52 @@ export default function FaturaPage() {
     loadData();
   }, [paramsLoaded, dealerId, saleId]);
 
+  // Otomatik PDF indirme (download=true query parametresi varsa)
+  useEffect(() => {
+    const shouldDownload = searchParams?.get('download') === 'true';
+    if (shouldDownload && !loading && sale && dealer && company && !hasDownloadedRef.current && invoiceContentRef.current) {
+      hasDownloadedRef.current = true;
+      
+      // Sayfa tamamen render olsun diye kısa bir bekleme
+      setTimeout(() => {
+        try {
+          const invoiceContent = invoiceContentRef.current;
+          if (!invoiceContent) return;
+
+          const opt = {
+            margin: [5, 5, 5, 5] as [number, number, number, number],
+            filename: `${sale.saleNumber}.pdf`,
+            image: { type: 'jpeg' as const, quality: 0.98 },
+            html2canvas: { 
+              scale: 2,
+              useCORS: true,
+              logging: false,
+              backgroundColor: '#ffffff',
+            },
+            jsPDF: { 
+              unit: 'mm', 
+              format: 'a4', 
+              orientation: 'portrait' as const
+            }
+          };
+
+          html2pdf().set(opt).from(invoiceContent).save().then(() => {
+            // PDF indirildikten sonra pencereyi kapat
+            setTimeout(() => {
+              window.close();
+            }, 500);
+          }).catch((err: any) => {
+            console.error('Error generating PDF:', err);
+            showToast(mounted ? t('admin.invoices.downloadError') : 'PDF oluşturulurken hata oluştu', 'error');
+          });
+        } catch (error) {
+          console.error('Error in PDF download:', error);
+          showToast(mounted ? t('admin.invoices.downloadError') : 'PDF oluşturulurken hata oluştu', 'error');
+        }
+      }, 1500); // 1.5 saniye bekle
+    }
+  }, [loading, sale, dealer, company, searchParams, mounted, t]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -340,7 +390,7 @@ export default function FaturaPage() {
         </button>
       </div>
 
-      <div className="invoice-content max-w-4xl mx-auto bg-white border-2 border-gray-300 p-8 print:border-0 print:shadow-none print:p-4">
+      <div ref={invoiceContentRef} className="invoice-content max-w-4xl mx-auto bg-white border-2 border-gray-300 p-8 print:border-0 print:shadow-none print:p-4">
         {/* Header - Firma Bilgileri ve Müşteri/Fatura Bilgileri */}
         <div className="border-b-2 border-gray-800 pb-6 mb-6">
           {/* Üst: FATURA (Sol) ve Müşteri Bilgileri (Sağ) - Yan Yana */}

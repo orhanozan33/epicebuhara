@@ -429,6 +429,7 @@
       "deleteError": "Erreur lors de la suppression de la facture",
       "popupBlocked": "La facture n'a pas pu être ouverte en raison d'un bloqueur de pop-up",
       "downloading": "Ouverture de {{count}} facture(s) dans un nouvel onglet...",
+      "downloaded": "{{count}} facture(s) téléchargée(s) avec succès",
       "downloadError": "Erreur lors du téléchargement des factures"
     },
     "reports": {

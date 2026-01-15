@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import html2pdf from 'html2pdf.js';
 
 interface Invoice {
   id: number;
@@ -149,6 +150,35 @@ export default function FaturalarPage() {
     }
   };
 
+  const downloadInvoiceAsPDF = async (invoice: Invoice) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        // Yeni pencere aç
+        const invoiceUrl = `/admin-panel/dealers/${invoice.dealerId}/sales/${invoice.id}/invoice?download=true`;
+        const newWindow = window.open(invoiceUrl, '_blank');
+        
+        if (!newWindow) {
+          reject(new Error('Pop-up blocked'));
+          return;
+        }
+
+        // Pencere yüklendiğinde PDF indirmeyi bekle
+        // Bu işlem fatura sayfasında yapılacak
+        // Burada sadece pencereyi açıyoruz, PDF indirme fatura sayfasında otomatik olacak
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+          checkCount++;
+          if (newWindow.closed || checkCount > 60) { // 30 saniye timeout
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 500);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
   const handleDownloadSelected = async () => {
     if (selectedInvoices.size === 0) {
       showToast(mounted ? t('admin.invoices.noSelection') : 'Lütfen indirmek için en az bir fatura seçin', 'error');
@@ -159,26 +189,45 @@ export default function FaturalarPage() {
       setIsDownloading(true);
       const selectedInvoiceList = filteredInvoices.filter(inv => selectedInvoices.has(inv.id));
       
-      if (selectedInvoiceList.length === 1) {
-        // Tek fatura indirme
-        const invoice = selectedInvoiceList[0];
-        const printWindow = window.open(`/admin-panel/dealers/${invoice.dealerId}/sales/${invoice.id}/invoice`, '_blank');
-        if (!printWindow) {
-          showToast(mounted ? t('admin.invoices.popupBlocked') : 'Pop-up engelleyici nedeniyle fatura açılamadı', 'error');
+      // Her bir faturayı sırayla indir
+      for (let i = 0; i < selectedInvoiceList.length; i++) {
+        const invoice = selectedInvoiceList[i];
+        try {
+          await downloadInvoiceAsPDF(invoice);
+          // Her indirme arasında kısa bir bekleme
+          if (i < selectedInvoiceList.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (error) {
+          console.error(`Error downloading invoice ${invoice.saleNumber}:`, error);
+          showToast(mounted ? t('admin.invoices.downloadError') : `Fatura ${invoice.saleNumber} indirilirken hata oluştu`, 'error');
         }
-      } else {
-        // Toplu indirme - her birini sırayla aç
-        for (let i = 0; i < selectedInvoiceList.length; i++) {
-          const invoice = selectedInvoiceList[i];
-          setTimeout(() => {
-            window.open(`/admin-panel/dealers/${invoice.dealerId}/sales/${invoice.id}/invoice`, '_blank');
-          }, i * 500); // Her birini 500ms arayla aç
-        }
-        showToast(mounted ? t('admin.invoices.downloading', { count: selectedInvoiceList.length }) : `${selectedInvoiceList.length} fatura yeni sekmede açılıyor...`, 'info');
+      }
+      
+      if (selectedInvoiceList.length > 0) {
+        showToast(
+          mounted 
+            ? t('admin.invoices.downloaded', { count: selectedInvoiceList.length }) 
+            : `${selectedInvoiceList.length} fatura başarıyla indirildi`, 
+          'success'
+        );
       }
     } catch (error) {
       console.error('Error downloading invoices:', error);
       showToast(mounted ? t('admin.invoices.downloadError') : 'Faturalar indirilirken hata oluştu', 'error');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleDownloadSingle = async (invoice: Invoice) => {
+    try {
+      setIsDownloading(true);
+      await downloadInvoiceAsPDF(invoice);
+      showToast(mounted ? t('admin.invoices.downloaded', { count: 1 }) : 'Fatura başarıyla indirildi', 'success');
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      showToast(mounted ? t('admin.invoices.downloadError') : 'Fatura indirilirken hata oluştu', 'error');
     } finally {
       setIsDownloading(false);
     }
@@ -384,13 +433,9 @@ export default function FaturalarPage() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      const printWindow = window.open(`/admin-panel/dealers/${invoice.dealerId}/sales/${invoice.id}/invoice`, '_blank');
-                      if (!printWindow) {
-                        showToast(mounted ? t('admin.invoices.popupBlocked') : 'Pop-up engelleyici nedeniyle fatura açılamadı', 'error');
-                      }
-                    }}
-                    className="flex-1 bg-blue-600 text-white text-xs font-medium px-2 py-1.5 rounded-lg hover:bg-blue-700 transition-colors text-center"
+                    onClick={() => handleDownloadSingle(invoice)}
+                    disabled={isDownloading}
+                    className="flex-1 bg-blue-600 text-white text-xs font-medium px-2 py-1.5 rounded-lg hover:bg-blue-700 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {mounted ? t('admin.invoices.download') : 'İndir'}
                   </button>
@@ -528,13 +573,9 @@ export default function FaturalarPage() {
                     <td className="px-3 lg:px-4 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => {
-                            const printWindow = window.open(`/admin-panel/dealers/${invoice.dealerId}/sales/${invoice.id}/invoice`, '_blank');
-                            if (!printWindow) {
-                              showToast(mounted ? t('admin.invoices.popupBlocked') : 'Pop-up engelleyici nedeniyle fatura açılamadı', 'error');
-                            }
-                          }}
-                          className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
+                          onClick={() => handleDownloadSingle(invoice)}
+                          disabled={isDownloading}
+                          className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {mounted ? t('admin.invoices.download') : 'İndir'}
                         </button>

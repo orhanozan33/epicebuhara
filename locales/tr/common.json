@@ -423,6 +423,7 @@
       "deleteError": "Fatura silinirken hata oluştu",
       "popupBlocked": "Pop-up engelleyici nedeniyle fatura açılamadı",
       "downloading": "{{count}} fatura yeni sekmede açılıyor...",
+      "downloaded": "{{count}} fatura başarıyla indirildi",
       "downloadError": "Faturalar indirilirken hata oluştu"
     },
     "reports": {

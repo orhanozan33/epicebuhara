@@ -429,6 +429,7 @@
       "deleteError": "Error deleting invoice",
       "popupBlocked": "Invoice could not be opened due to pop-up blocker",
       "downloading": "Opening {{count}} invoice(s) in new tab...",
+      "downloaded": "{{count}} invoice(s) downloaded successfully",
       "downloadError": "Error downloading invoices"
     },
     "reports": {
