@@ -243,48 +243,118 @@ export default function FaturaPage() {
 
   // Otomatik PDF indirme (download=true query parametresi varsa)
   useEffect(() => {
-    const shouldDownload = searchParams?.get('download') === 'true';
-    if (shouldDownload && !loading && sale && dealer && company && !hasDownloadedRef.current && invoiceContentRef.current) {
+    if (hasDownloadedRef.current) return; // Zaten indirme yapıldıysa tekrar yapma
+    if (!mounted) return; // Component henüz mount olmadı
+    
+    // window.location'dan query parametresini al (daha güvenilir)
+    let shouldDownload = false;
+    try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        shouldDownload = urlParams.get('download') === 'true';
+      }
+      if (!shouldDownload && searchParams) {
+        shouldDownload = searchParams.get('download') === 'true';
+      }
+    } catch (e) {
+      console.error('Error reading search params:', e);
+    }
+    
+    if (!shouldDownload) return;
+    
+    // Tüm veriler yüklendi mi kontrol et
+    if (loading || !sale || !dealer || !company) {
+      return; // Veriler henüz yüklenmedi, bekle
+    }
+
+    // Sayfa tamamen yüklensin ve render olsun diye bekleme
+    let retryCount = 0;
+    const maxRetries = 20; // 10 saniye max bekleme
+    
+    const checkAndDownload = () => {
+      retryCount++;
+      
+      const invoiceContent = invoiceContentRef.current;
+      if (!invoiceContent) {
+        if (retryCount < maxRetries) {
+          setTimeout(checkAndDownload, 500);
+        } else {
+          console.error('Invoice content element not found after', maxRetries, 'retries');
+        }
+        return;
+      }
+
+      // Element'in içeriğinin yüklendiğini kontrol et
+      const hasContent = invoiceContent.innerHTML.trim().length > 500;
+      if (!hasContent) {
+        if (retryCount < maxRetries) {
+          setTimeout(checkAndDownload, 500);
+        } else {
+          console.error('Invoice content not loaded after', maxRetries, 'retries');
+        }
+        return;
+      }
+
+      // DOM'un tamamen render olduğundan emin ol
+      if (document.readyState !== 'complete') {
+        if (retryCount < maxRetries) {
+          setTimeout(checkAndDownload, 500);
+          return;
+        }
+      }
+
       hasDownloadedRef.current = true;
       
-      // Sayfa tamamen render olsun diye kısa bir bekleme
-      setTimeout(() => {
-        try {
-          const invoiceContent = invoiceContentRef.current;
-          if (!invoiceContent) return;
+      try {
+        const opt = {
+          margin: [5, 5, 5, 5] as [number, number, number, number],
+          filename: `${sale.saleNumber}.pdf`,
+          image: { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            allowTaint: true,
+            letterRendering: true,
+          },
+          jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait' as const
+          }
+        };
 
-          const opt = {
-            margin: [5, 5, 5, 5] as [number, number, number, number],
-            filename: `${sale.saleNumber}.pdf`,
-            image: { type: 'jpeg' as const, quality: 0.98 },
-            html2canvas: { 
-              scale: 2,
-              useCORS: true,
-              logging: false,
-              backgroundColor: '#ffffff',
-            },
-            jsPDF: { 
-              unit: 'mm', 
-              format: 'a4', 
-              orientation: 'portrait' as const
+        html2pdf().set(opt).from(invoiceContent).save().then(() => {
+          // PDF indirildikten sonra pencereyi kapat
+          setTimeout(() => {
+            if (typeof window !== 'undefined' && window.close) {
+              try {
+                window.close();
+              } catch (e) {
+                // Pencere kapatılamazsa (bazı tarayıcılarda), sadece log
+                console.log('Window could not be closed');
+              }
             }
-          };
-
-          html2pdf().set(opt).from(invoiceContent).save().then(() => {
-            // PDF indirildikten sonra pencereyi kapat
-            setTimeout(() => {
-              window.close();
-            }, 500);
-          }).catch((err: any) => {
-            console.error('Error generating PDF:', err);
-            showToast(mounted ? t('admin.invoices.downloadError') : 'PDF oluşturulurken hata oluştu', 'error');
-          });
-        } catch (error) {
-          console.error('Error in PDF download:', error);
-          showToast(mounted ? t('admin.invoices.downloadError') : 'PDF oluşturulurken hata oluştu', 'error');
+          }, 1000);
+        }).catch((err: any) => {
+          console.error('Error generating PDF:', err);
+          hasDownloadedRef.current = false; // Hata durumunda tekrar deneme için
+          if (mounted && isMountedRef.current) {
+            showToast(t('admin.invoices.downloadError'), 'error');
+          }
+        });
+      } catch (error) {
+        console.error('Error in PDF download:', error);
+        hasDownloadedRef.current = false; // Hata durumunda tekrar deneme için
+        if (mounted && isMountedRef.current) {
+          showToast(t('admin.invoices.downloadError'), 'error');
         }
-      }, 1500); // 1.5 saniye bekle
-    }
+      }
+    };
+
+    // İlk kontrol için 3 saniye bekle (sayfa ve veriler tam yüklensin)
+    setTimeout(checkAndDownload, 3000);
   }, [loading, sale, dealer, company, searchParams, mounted, t]);
 
   const handlePrint = () => {
