@@ -26,7 +26,13 @@ export async function GET(request: Request) {
 
     console.log(`Categories API (Drizzle): Found ${result.length} categories`);
 
-    return NextResponse.json(result);
+    // Frontend'de 'order' olarak kullanılıyor, 'sortOrder' olarak map et
+    const mappedResult = result.map(category => ({
+      ...category,
+      order: category.sortOrder || 0,
+    }));
+
+    return NextResponse.json(mappedResult);
   } catch (error: any) {
     console.error('Error fetching categories (Drizzle):', error);
     console.error('Error stack:', error?.stack);
@@ -93,7 +99,13 @@ export async function POST(request: Request) {
       isActive: isActive ?? true,
     }).returning();
 
-    return NextResponse.json(newCategory[0], { status: 201 });
+    // Frontend'de 'order' olarak kullanılıyor, 'sortOrder' olarak map et
+    const mappedCategory = {
+      ...newCategory[0],
+      order: newCategory[0].sortOrder || 0,
+    };
+
+    return NextResponse.json(mappedCategory, { status: 201 });
   } catch (error: any) {
     console.error('Error creating category (Drizzle):', error);
     return NextResponse.json(

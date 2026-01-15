@@ -69,7 +69,13 @@ export async function PUT(
       .where(eq(categories.id, id))
       .returning();
 
-    return NextResponse.json(updatedCategory[0]);
+    // Frontend'de 'order' olarak kullanılıyor, 'sortOrder' olarak map et
+    const mappedCategory = {
+      ...updatedCategory[0],
+      order: updatedCategory[0].sortOrder || 0,
+    };
+
+    return NextResponse.json(mappedCategory);
   } catch (error: any) {
     console.error('Error updating category (Drizzle):', error);
     return NextResponse.json(

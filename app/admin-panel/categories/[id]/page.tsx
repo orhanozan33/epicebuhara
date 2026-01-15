@@ -151,7 +151,7 @@ export default function EditCategoryPage() {
         name: formData.name,
         slug: formData.slug,
         description: formData.description,
-        order: parseInt(formData.order) || 0,
+        sortOrder: parseInt(formData.order) || 0,
         isActive: formData.isActive,
       };
 
