@@ -414,7 +414,22 @@
       "tpsRegistrationNumber": "TPS Registration No",
       "tvqRegistrationNumber": "TVQ Registration No",
       "postalCode": "Postal Code",
-      "companyNameLabel": "Company Name"
+      "companyNameLabel": "Company Name",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "selectAll": "Select All",
+      "selected": "{{count}} invoice(s) selected",
+      "download": "Download",
+      "delete": "Delete",
+      "noSelection": "Please select at least one invoice",
+      "confirmDelete": "Are you sure you want to delete {{count}} invoice(s)?",
+      "confirmDeleteSingle": "Are you sure you want to delete this invoice?",
+      "deleted": "Invoice deleted successfully",
+      "bulkDeleted": "{{count}} invoice(s) deleted successfully",
+      "deleteError": "Error deleting invoice",
+      "popupBlocked": "Invoice could not be opened due to pop-up blocker",
+      "downloading": "Opening {{count}} invoice(s) in new tab...",
+      "downloadError": "Error downloading invoices"
     },
     "reports": {
       "title": "Reports",

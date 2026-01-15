@@ -408,7 +408,22 @@
       "openingInfo": "Fatura açılıyor, PDF olarak kaydedebilirsiniz",
       "tvqRegistrationNumber": "TVQ Kayıt No",
       "postalCode": "Posta Kodu",
-      "companyNameLabel": "Firma Adı"
+      "companyNameLabel": "Firma Adı",
+      "startDate": "Başlangıç Tarihi",
+      "endDate": "Bitiş Tarihi",
+      "selectAll": "Tümünü Seç",
+      "selected": "{{count}} fatura seçildi",
+      "download": "İndir",
+      "delete": "Sil",
+      "noSelection": "Lütfen en az bir fatura seçin",
+      "confirmDelete": "{{count}} faturayı silmek istediğinize emin misiniz?",
+      "confirmDeleteSingle": "Bu faturayı silmek istediğinize emin misiniz?",
+      "deleted": "Fatura başarıyla silindi",
+      "bulkDeleted": "{{count}} fatura başarıyla silindi",
+      "deleteError": "Fatura silinirken hata oluştu",
+      "popupBlocked": "Pop-up engelleyici nedeniyle fatura açılamadı",
+      "downloading": "{{count}} fatura yeni sekmede açılıyor...",
+      "downloadError": "Faturalar indirilirken hata oluştu"
     },
     "reports": {
       "title": "Raporlar",

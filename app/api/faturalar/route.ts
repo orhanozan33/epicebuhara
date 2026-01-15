@@ -1,17 +1,36 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { dealerSales, dealers } from '@/src/db/schema';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray, and, gte, lte } from 'drizzle-orm';
 
 // Force dynamic rendering to avoid build-time circular dependency issues
 export const dynamic = 'force-dynamic';
 
 // Tüm kaydedilmiş faturaları (dealer sales) getir
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
+    // Tarih filtresi için koşulları hazırla
+    const conditions = [eq(dealerSales.isSaved, true)];
+    
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      conditions.push(gte(dealerSales.createdAt, start));
+    }
+    
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      conditions.push(lte(dealerSales.createdAt, end));
+    }
+
     const sales = await db.select()
       .from(dealerSales)
-      .where(eq(dealerSales.isSaved, true))
+      .where(and(...conditions))
       .orderBy(desc(dealerSales.createdAt));
 
     // Dealers'ı ayrı query ile getir

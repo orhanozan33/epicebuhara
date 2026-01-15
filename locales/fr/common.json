@@ -414,7 +414,22 @@
       "tpsRegistrationNumber": "N° d'inscription à la TPS",
       "tvqRegistrationNumber": "N° d'enregistrement de la TVQ",
       "postalCode": "Code postal",
-      "companyNameLabel": "Nom de l'entreprise"
+      "companyNameLabel": "Nom de l'entreprise",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "selectAll": "Tout sélectionner",
+      "selected": "{{count}} facture(s) sélectionnée(s)",
+      "download": "Télécharger",
+      "delete": "Supprimer",
+      "noSelection": "Veuillez sélectionner au moins une facture",
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer {{count}} facture(s)?",
+      "confirmDeleteSingle": "Êtes-vous sûr de vouloir supprimer cette facture?",
+      "deleted": "Facture supprimée avec succès",
+      "bulkDeleted": "{{count}} facture(s) supprimée(s) avec succès",
+      "deleteError": "Erreur lors de la suppression de la facture",
+      "popupBlocked": "La facture n'a pas pu être ouverte en raison d'un bloqueur de pop-up",
+      "downloading": "Ouverture de {{count}} facture(s) dans un nouvel onglet...",
+      "downloadError": "Erreur lors du téléchargement des factures"
     },
     "reports": {
       "title": "Rapports",
