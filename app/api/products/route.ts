@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, nameFr, nameEn, baseName, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
+    const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
     if (!name || !price) {
       return NextResponse.json(
@@ -45,8 +45,8 @@ export async function POST(request: Request) {
     // nameFr ve nameEn kolonları varsa ekle, yoksa sadece diğer kolonları ekle
     try {
       const newProduct = await db.execute(
-        sql`INSERT INTO products (name, name_fr, name_en, base_name, slug, sku, price, compare_price, stock, weight, unit, product_group, category_id, is_active, description, images, track_stock) 
-            VALUES (${name}, ${nameFr || null}, ${nameEn || null}, ${baseName || null}, ${slug}, ${sku || null}, ${price.toString()}, ${comparePrice ? comparePrice.toString() : null}, ${stock || 0}, ${weight || null}, ${unit || 'Gr'}, ${productGroup || null}, ${categoryId ? parseInt(categoryId) : null}, ${isActive ?? true}, ${description || null}, ${images || null}, true) 
+        sql`INSERT INTO products (name, name_fr, name_en, base_name, base_name_fr, base_name_en, slug, sku, price, compare_price, stock, weight, unit, product_group, category_id, is_active, description, images, track_stock) 
+            VALUES (${name}, ${nameFr || null}, ${nameEn || null}, ${baseName || null}, ${baseNameFr || null}, ${baseNameEn || null}, ${slug}, ${sku || null}, ${price.toString()}, ${comparePrice ? comparePrice.toString() : null}, ${stock || 0}, ${weight || null}, ${unit || 'Gr'}, ${productGroup || null}, ${categoryId ? parseInt(categoryId) : null}, ${isActive ?? true}, ${description || null}, ${images || null}, true) 
             RETURNING *`
       ) as any;
       const product = Array.isArray(newProduct) ? newProduct[0] : (newProduct.rows ? newProduct.rows[0] : newProduct);
@@ -236,7 +236,7 @@ export async function GET(request: Request) {
     // Format response (category bilgilerini düzenle)
     const formattedProducts = productResults.map((product) => {
       const category = product.categoryId ? categoryMap.get(product.categoryId) : null;
-      const nameFrEn = nameFrEnMap.get(product.id) || { nameFr: null, nameEn: null };
+      const nameFrEn = nameFrEnMap.get(product.id) || { nameFr: null, nameEn: null, baseNameFr: null, baseNameEn: null };
       const categoryNameFrEn = category && product.categoryId ? categoryNameFrEnMap.get(product.categoryId) || { nameFr: null, nameEn: null } : { nameFr: null, nameEn: null };
       
       return {
@@ -245,6 +245,8 @@ export async function GET(request: Request) {
         nameFr: nameFrEn.nameFr,
         nameEn: nameFrEn.nameEn,
         baseName: product.baseName,
+        baseNameFr: (nameFrEn as any).baseNameFr || null,
+        baseNameEn: (nameFrEn as any).baseNameEn || null,
         slug: product.slug,
         sku: product.sku,
         description: product.description,

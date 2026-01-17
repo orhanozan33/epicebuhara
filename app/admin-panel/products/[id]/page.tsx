@@ -30,7 +30,7 @@ interface Product {
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [id, setId] = useState<string | null>(null);
 
@@ -45,6 +45,8 @@ export default function EditProductPage() {
     nameFr: '',
     nameEn: '',
     baseName: '',
+    baseNameFr: '',
+    baseNameEn: '',
     sku: '',
     price: '',
     comparePrice: '',
@@ -167,6 +169,8 @@ export default function EditProductPage() {
             nameFr: (product as any).nameFr || '',
             nameEn: (product as any).nameEn || '',
             baseName: product.baseName || '',
+            baseNameFr: (product as any).baseNameFr || '',
+            baseNameEn: (product as any).baseNameEn || '',
             sku: product.sku || '',
             price: product.price || '',
             comparePrice: product.comparePrice || '',
@@ -297,6 +301,8 @@ export default function EditProductPage() {
         nameFr: formData.nameFr || null,
         nameEn: formData.nameEn || null,
         baseName: formData.baseName || null,
+        baseNameFr: formData.baseNameFr || null,
+        baseNameEn: formData.baseNameEn || null,
         sku: formData.sku,
         price: formData.price,
         comparePrice: formData.comparePrice || null,

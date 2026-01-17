@@ -12,6 +12,8 @@ interface Product {
   nameFr?: string | null;
   nameEn?: string | null;
   baseName?: string | null;
+  baseNameFr?: string | null;
+  baseNameEn?: string | null;
   slug: string;
   sku?: string | null;
   price: string;
@@ -163,47 +165,42 @@ export default function ProductDetailPage() {
             return normalizeName(productGroup);
           };
           
-          // Ürünün grup adını belirle (önce productGroup'dan base name çıkar, sonra baseName, sonra name'den çıkar)
-          let groupKey: string | null = null;
+          // Ürünün grup adını belirle - dile göre baseName kullan
+          // Önce mevcut dili al
+          const currentLang = typeof window !== 'undefined' && i18n?.language ? i18n.language.split('-')[0] : 'tr';
           
-          if (foundProduct.productGroup) {
-            // productGroup varsa, ondan base name çıkar (örn: "Isot Pepper 50 Gr" -> "isot pepper")
-            groupKey = extractBaseFromProductGroup(foundProduct.productGroup);
-          } else if (foundProduct.baseName) {
-            groupKey = normalizeName(foundProduct.baseName);
-          } else if (foundProduct.name) {
-            groupKey = normalizeName(foundProduct.name);
-          }
+          // Dile göre baseName seç
+          const getBaseNameForGrouping = (p: Product): string | null => {
+            if (currentLang === 'fr' && p.baseNameFr) {
+              return p.baseNameFr;
+            } else if (currentLang === 'en' && p.baseNameEn) {
+              return p.baseNameEn;
+            } else if (p.baseName) {
+              return p.baseName;
+            } else if (p.productGroup) {
+              // productGroup'dan base name çıkar
+              return extractBaseFromProductGroup(p.productGroup);
+            } else if (p.name) {
+              return normalizeName(p.name);
+            }
+            return null;
+          };
           
-          // Aynı grup ürünlerini bul
+          const groupKey = getBaseNameForGrouping(foundProduct);
+          
+          // Aynı grup ürünlerini bul - dile göre baseName kullanarak
           let groupProducts: Product[] = [];
           
           if (groupKey && groupKey.length > 0) {
+            const normalizedGroupKey = normalizeName(groupKey);
             groupProducts = allProducts.filter((p: Product) => {
               if (p.isActive === false) return false;
+              if (p.id === foundProduct.id) return false; // Kendisini hariç tut
               
-              // productGroup varsa, ondan base name çıkar ve karşılaştır
-              if (p.productGroup) {
-                const pGroupBase = extractBaseFromProductGroup(p.productGroup);
-                if (pGroupBase === groupKey) {
-                  return true;
-                }
-              }
-              
-              // baseName varsa onu kullan
-              if (p.baseName) {
-                const normalizedBaseName = normalizeName(p.baseName);
-                if (normalizedBaseName === groupKey) {
-                  return true;
-                }
-              }
-              
-              // name'den normalize edilmiş isimle karşılaştır
-              if (p.name) {
-                const normalizedName = normalizeName(p.name);
-                if (normalizedName === groupKey && normalizedName.length > 0) {
-                  return true;
-                }
+              const pBaseName = getBaseNameForGrouping(p);
+              if (pBaseName) {
+                const normalizedPBaseName = normalizeName(pBaseName);
+                return normalizedPBaseName === normalizedGroupKey;
               }
               
               return false;

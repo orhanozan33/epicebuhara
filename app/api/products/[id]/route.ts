@@ -50,7 +50,7 @@ export async function PUT(
     }
 
     const product = existingProduct[0];
-    const { name, nameFr, nameEn, baseName, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
+    const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
     // Slug oluşturma fonksiyonu
     const generateSlug = (name: string, baseName: string | null | undefined, weight: string | null | undefined, unit: string | null | undefined) => {
@@ -95,6 +95,8 @@ export async function PUT(
     // nameFr ve nameEn kolonları varsa ekle, yoksa atla
     const hasNameFr = nameFr !== undefined;
     const hasNameEn = nameEn !== undefined;
+    const hasBaseNameFr = baseNameFr !== undefined;
+    const hasBaseNameEn = baseNameEn !== undefined;
     if (baseName !== undefined) updateData.baseName = baseName || null;
     if (sku !== undefined) updateData.sku = sku || null;
     if (price !== undefined) updateData.price = price.toString();
@@ -116,7 +118,7 @@ export async function PUT(
         const updateValues: any[] = [];
         
         Object.keys(updateData).forEach((key) => {
-          if (key !== 'nameFr' && key !== 'nameEn') {
+          if (key !== 'nameFr' && key !== 'nameEn' && key !== 'baseNameFr' && key !== 'baseNameEn') {
             updateFields.push(`${key} = $${updateFields.length + 1}`);
             updateValues.push(updateData[key as keyof typeof updateData]);
           }
@@ -129,6 +131,14 @@ export async function PUT(
         if (hasNameEn) {
           updateFields.push(`name_en = $${updateFields.length + 1}`);
           updateValues.push(nameEn || null);
+        }
+        if (hasBaseNameFr) {
+          updateFields.push(`base_name_fr = $${updateFields.length + 1}`);
+          updateValues.push(baseNameFr || null);
+        }
+        if (hasBaseNameEn) {
+          updateFields.push(`base_name_en = $${updateFields.length + 1}`);
+          updateValues.push(baseNameEn || null);
         }
         
         updateValues.push(id);
