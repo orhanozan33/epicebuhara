@@ -112,14 +112,25 @@ export async function PUT(
 
     // nameFr ve nameEn kolonları varsa güncelle, yoksa sadece diğer kolonları güncelle
     try {
-      // Önce nameFr ve nameEn ile birlikte güncellemeyi dene
-      if (hasNameFr || hasNameEn) {
+      // Önce nameFr, nameEn, baseNameFr, baseNameEn ile birlikte güncellemeyi dene
+      if (hasNameFr || hasNameEn || hasBaseNameFr || hasBaseNameEn) {
         const updateFields: string[] = [];
         const updateValues: any[] = [];
         
         Object.keys(updateData).forEach((key) => {
           if (key !== 'nameFr' && key !== 'nameEn' && key !== 'baseNameFr' && key !== 'baseNameEn') {
-            updateFields.push(`${key} = $${updateFields.length + 1}`);
+            const dbKey = key === 'updatedAt' ? 'updated_at' : 
+                         key === 'baseName' ? 'base_name' :
+                         key === 'productGroup' ? 'product_group' :
+                         key === 'categoryId' ? 'category_id' :
+                         key === 'isActive' ? 'is_active' :
+                         key === 'comparePrice' ? 'compare_price' :
+                         key === 'trackStock' ? 'track_stock' :
+                         key === 'shortDescription' ? 'short_description' :
+                         key === 'metaTitle' ? 'meta_title' :
+                         key === 'metaDescription' ? 'meta_description' :
+                         key === 'createdAt' ? 'created_at' : key;
+            updateFields.push(`${dbKey} = $${updateFields.length + 1}`);
             updateValues.push(updateData[key as keyof typeof updateData]);
           }
         });
@@ -152,10 +163,10 @@ export async function PUT(
           .where(eq(products.id, id));
       }
     } catch (updateError: any) {
-      // Eğer name_fr veya name_en kolonları yoksa, sadece diğer kolonları güncelle
-      if (updateError?.code === '42703' || updateError?.message?.includes('name_fr') || updateError?.message?.includes('name_en')) {
-        // nameFr ve nameEn'i updateData'dan çıkar
-        const { nameFr: _, nameEn: __, ...restUpdateData } = updateData as any;
+      // Eğer name_fr, name_en, base_name_fr veya base_name_en kolonları yoksa, sadece diğer kolonları güncelle
+      if (updateError?.code === '42703' || updateError?.message?.includes('name_fr') || updateError?.message?.includes('name_en') || updateError?.message?.includes('base_name_fr') || updateError?.message?.includes('base_name_en')) {
+        // nameFr, nameEn, baseNameFr, baseNameEn'i updateData'dan çıkar
+        const { nameFr: _, nameEn: __, baseNameFr: ___, baseNameEn: ____, ...restUpdateData } = updateData as any;
         await db.update(products)
           .set(restUpdateData)
           .where(eq(products.id, id));
