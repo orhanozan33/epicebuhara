@@ -33,10 +33,10 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
 
   // Dil değişikliğini dinle - component'i yeniden render et
   useEffect(() => {
-    if (!i18n) return;
+    if (!i18n || typeof i18n.on !== 'function') return;
     
     const updateLanguage = () => {
-      if (i18n.language) {
+      if (i18n?.language) {
         setCurrentLanguage(i18n.language.split('-')[0]);
       }
     };
@@ -45,10 +45,20 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
     updateLanguage();
     
     // Dil değişikliğini dinle
-    i18n.on('languageChanged', updateLanguage);
+    try {
+      i18n.on('languageChanged', updateLanguage);
+    } catch (error) {
+      console.error('Error setting up language change listener:', error);
+    }
     
     return () => {
-      i18n.off('languageChanged', updateLanguage);
+      try {
+        if (i18n && typeof i18n.off === 'function') {
+          i18n.off('languageChanged', updateLanguage);
+        }
+      } catch (error) {
+        console.error('Error removing language change listener:', error);
+      }
     };
   }, [i18n]);
 
