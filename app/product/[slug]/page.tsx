@@ -9,6 +9,8 @@ import { showToast } from '@/components/Toast';
 interface Product {
   id: number;
   name: string;
+  nameFr?: string | null;
+  nameEn?: string | null;
   baseName?: string | null;
   slug: string;
   sku?: string | null;
@@ -39,7 +41,7 @@ interface ProductVariant {
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const slug = params?.slug as string;
   const [mounted, setMounted] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
@@ -273,6 +275,23 @@ export default function ProductDetailPage() {
     ? selectedVariantProduct  // Seçilen varyantın tam ürün bilgilerini doğrudan kullan
     : product;
   
+  // Dil değişikliğine göre ürün ismini seç
+  const getProductName = () => {
+    if (!displayProduct) return '';
+    const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
+    
+    if (currentLang === 'fr' && displayProduct.nameFr) {
+      return displayProduct.nameFr;
+    }
+    if (currentLang === 'en' && displayProduct.nameEn) {
+      return displayProduct.nameEn;
+    }
+    // TR veya çeviri yoksa orijinal ismi kullan
+    return displayProduct.baseName || displayProduct.name;
+  };
+  
+  const productName = getProductName();
+  
   const images = displayProduct?.images ? displayProduct.images.split(',').map(img => {
     const trimmed = img.trim();
     if (!trimmed) return '';
@@ -327,7 +346,7 @@ export default function ProductDetailPage() {
                 <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
                   <img
                     src={images[0]}
-                    alt={displayProduct.name}
+                    alt={productName}
                     className="w-full h-full object-contain p-2 sm:p-4"
                     loading="eager"
                     onError={(e) => {

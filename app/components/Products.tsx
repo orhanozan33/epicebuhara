@@ -14,7 +14,7 @@ interface ProductsProps {
 
 export function Products({ categoryId, featured, newProducts, discounted }: ProductsProps) {
   const [mounted, setMounted] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [productsList, setProductsList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -253,12 +253,20 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
             ? Math.round(((parseFloat(product.comparePrice) - parseFloat(product.price)) / parseFloat(product.comparePrice)) * 100)
             : 0;
           
+          // Dil değişikliğine göre ürün ismini seç
+          const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
+          const productName = (currentLang === 'fr' && product.nameFr) 
+            ? product.nameFr 
+            : (currentLang === 'en' && product.nameEn) 
+              ? product.nameEn 
+              : (product.baseName || product.name);
+          
           return (
             <div
               key={product.id} 
               className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all hover:border-[#E91E63] flex flex-col"
             >
-              <Link href={`/product/${product.slug || product.id}`} className="block" title={product.name}>
+              <Link href={`/product/${product.slug || product.id}`} className="block" title={productName}>
                 <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
                   {/* İndirim Badge - Sol Üst Köşe */}
                   {hasDiscount && (
@@ -293,12 +301,12 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                         // Local dosya yolu - /uploads/products/ ekle
                         return `/uploads/products/${imgSrc}`;
                       })()}
-                      alt={product.name} 
+                      alt={productName} 
                       className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-300" 
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        console.error('Resim yükleme hatası:', target.src, product.name);
+                        console.error('Resim yükleme hatası:', target.src, productName);
                         target.style.display = 'none';
                         const parent = target.parentElement;
                         if (parent && !parent.querySelector('.error-placeholder')) {
@@ -316,9 +324,9 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
               </Link>
               
               <div className="p-2 sm:p-3 md:p-4 flex-1 flex flex-col">
-                <Link href={`/product/${product.slug || product.id}`} className="block flex-1" title={product.baseName || product.name}>
+                <Link href={`/product/${product.slug || product.id}`} className="block flex-1" title={productName}>
                   <div className="flex items-start justify-between gap-1 sm:gap-2 mb-1 sm:mb-2">
-                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm line-clamp-2 flex-1">{product.baseName || product.name}</h3>
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm line-clamp-2 flex-1">{productName}</h3>
                     {/* Gramaj/Kilo Bilgisi - Sağda */}
                     {product.weight && (
                       <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
