@@ -92,8 +92,8 @@ export async function PUT(
       updateData.slug = generateSlug(product.name, finalBaseName, finalWeight?.toString(), finalUnit);
     }
 
-    if (nameFr !== undefined) updateData.nameFr = nameFr || null;
-    if (nameEn !== undefined) updateData.nameEn = nameEn || null;
+    // if (nameFr !== undefined) updateData.nameFr = nameFr || null; // Migration çalıştırıldıktan sonra aktif edilecek
+    // if (nameEn !== undefined) updateData.nameEn = nameEn || null; // Migration çalıştırıldıktan sonra aktif edilecek
     if (baseName !== undefined) updateData.baseName = baseName || null;
     if (sku !== undefined) updateData.sku = sku || null;
     if (price !== undefined) updateData.price = price.toString();

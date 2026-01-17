@@ -93,8 +93,8 @@ export async function POST(request: Request) {
 
     const newCategory = await db.insert(categories).values({
       name,
-      nameFr: nameFr || null,
-      nameEn: nameEn || null,
+      // nameFr: nameFr || null, // Migration çalıştırıldıktan sonra aktif edilecek
+      // nameEn: nameEn || null, // Migration çalıştırıldıktan sonra aktif edilecek
       slug: categorySlug,
       description: description || null,
       sortOrder: sortOrder || 0,
