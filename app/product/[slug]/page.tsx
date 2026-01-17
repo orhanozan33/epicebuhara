@@ -369,7 +369,7 @@ export default function ProductDetailPage() {
                       <div key={index} className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
                         <img
                           src={img}
-                          alt={`${displayProduct.name} ${index + 2}`}
+                          alt={`${productName} ${index + 2}`}
                           className="w-full h-full object-contain p-1 sm:p-2"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;

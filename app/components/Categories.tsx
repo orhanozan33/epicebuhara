@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 export function Categories() {
   const [mounted, setMounted] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const pathname = usePathname();
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,21 +100,31 @@ export function Categories() {
                 {mounted ? t('categories.allCategories') : 'Tüm Kategoriler'}
               </Link>
             </li>
-            {categoriesList.map((category) => (
-              <li key={category.id}>
-                <Link
-                  href={`/category/${category.slug}`}
-                  onClick={handleCategoryClick}
-                  className={`block px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
-                    isActive(category.slug)
-                      ? 'bg-[#E91E63] text-white shadow-md'
-                      : 'text-gray-700 hover:bg-[#E91E63]/10 hover:text-[#E91E63]'
-                  }`}
-                >
-                  {category.name}
-                </Link>
-              </li>
-            ))}
+            {categoriesList.map((category) => {
+              // Dil değişikliğine göre kategori ismini seç
+              const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
+              const categoryName = (currentLang === 'fr' && category.nameFr) 
+                ? category.nameFr 
+                : (currentLang === 'en' && category.nameEn) 
+                  ? category.nameEn 
+                  : category.name;
+              
+              return (
+                <li key={category.id}>
+                  <Link
+                    href={`/category/${category.slug}`}
+                    onClick={handleCategoryClick}
+                    className={`block px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
+                      isActive(category.slug)
+                        ? 'bg-[#E91E63] text-white shadow-md'
+                        : 'text-gray-700 hover:bg-[#E91E63]/10 hover:text-[#E91E63]'
+                    }`}
+                  >
+                    {categoryName}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
