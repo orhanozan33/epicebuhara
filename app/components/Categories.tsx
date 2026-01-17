@@ -12,9 +12,13 @@ export function Categories() {
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false); // Mobilde accordion için
+  const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
 
   useEffect(() => {
     setMounted(true);
+    if (i18n?.language) {
+      setCurrentLanguage(i18n.language.split('-')[0]);
+    }
   }, []);
 
   useEffect(() => {
@@ -49,8 +53,24 @@ export function Categories() {
 
   // Dil değişikliğini dinle - component'i yeniden render et
   useEffect(() => {
-    // i18n.language değiştiğinde component yeniden render olacak
-  }, [i18n?.language]);
+    if (!i18n) return;
+    
+    const updateLanguage = () => {
+      if (i18n.language) {
+        setCurrentLanguage(i18n.language.split('-')[0]);
+      }
+    };
+    
+    // İlk yüklemede dil'i ayarla
+    updateLanguage();
+    
+    // Dil değişikliğini dinle
+    i18n.on('languageChanged', updateLanguage);
+    
+    return () => {
+      i18n.off('languageChanged', updateLanguage);
+    };
+  }, [i18n]);
 
   const isActive = (slug: string | null) => {
     if (slug === null) {
@@ -107,10 +127,9 @@ export function Categories() {
             </li>
             {categoriesList.map((category) => {
               // Dil değişikliğine göre kategori ismini seç
-              const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
-              const categoryName = (currentLang === 'fr' && category.nameFr) 
+              const categoryName = (currentLanguage === 'fr' && category.nameFr) 
                 ? category.nameFr 
-                : (currentLang === 'en' && category.nameEn) 
+                : (currentLanguage === 'en' && category.nameEn) 
                   ? category.nameEn 
                   : category.name;
               

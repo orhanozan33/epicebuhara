@@ -52,11 +52,36 @@ export default function ProductDetailPage() {
   const [variantProducts, setVariantProducts] = useState<Map<number, Product>>(new Map());
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
 
   useEffect(() => {
     setMounted(true);
+    if (i18n?.language) {
+      setCurrentLanguage(i18n.language.split('-')[0]);
+    }
     fetchProduct();
   }, [slug]);
+
+  // Dil değişikliğini dinle - component'i yeniden render et
+  useEffect(() => {
+    if (!i18n) return;
+    
+    const updateLanguage = () => {
+      if (i18n.language) {
+        setCurrentLanguage(i18n.language.split('-')[0]);
+      }
+    };
+    
+    // İlk yüklemede dil'i ayarla
+    updateLanguage();
+    
+    // Dil değişikliğini dinle
+    i18n.on('languageChanged', updateLanguage);
+    
+    return () => {
+      i18n.off('languageChanged', updateLanguage);
+    };
+  }, [i18n]);
 
   // Seçilen varyant değiştiğinde scroll to top (URL güncellemesi onClick'te yapılıyor)
   useEffect(() => {
@@ -280,12 +305,11 @@ export default function ProductDetailPage() {
   // Dil değişikliğine göre ürün ismini seç
   const getProductName = () => {
     if (!displayProduct) return '';
-    const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
     
-    if (currentLang === 'fr' && displayProduct.nameFr) {
+    if (currentLanguage === 'fr' && displayProduct.nameFr) {
       return displayProduct.nameFr;
     }
-    if (currentLang === 'en' && displayProduct.nameEn) {
+    if (currentLanguage === 'en' && displayProduct.nameEn) {
       return displayProduct.nameEn;
     }
     // TR veya çeviri yoksa orijinal ismi kullan
@@ -398,10 +422,9 @@ export default function ProductDetailPage() {
                 {displayProduct.baseName || displayProduct.name}
               </h1>
               {displayProduct.categoryName && (() => {
-                const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
-                const categoryName = (currentLang === 'fr' && displayProduct.categoryNameFr) 
+                const categoryName = (currentLanguage === 'fr' && displayProduct.categoryNameFr) 
                   ? displayProduct.categoryNameFr 
-                  : (currentLang === 'en' && displayProduct.categoryNameEn) 
+                  : (currentLanguage === 'en' && displayProduct.categoryNameEn) 
                     ? displayProduct.categoryNameEn 
                     : displayProduct.categoryName;
                 return (

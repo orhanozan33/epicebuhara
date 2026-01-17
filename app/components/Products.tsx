@@ -20,12 +20,37 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
+  const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    if (i18n?.language) {
+      setCurrentLanguage(i18n.language.split('-')[0]);
+    }
   }, []);
+
+  // Dil değişikliğini dinle - component'i yeniden render et
+  useEffect(() => {
+    if (!i18n) return;
+    
+    const updateLanguage = () => {
+      if (i18n.language) {
+        setCurrentLanguage(i18n.language.split('-')[0]);
+      }
+    };
+    
+    // İlk yüklemede dil'i ayarla
+    updateLanguage();
+    
+    // Dil değişikliğini dinle
+    i18n.on('languageChanged', updateLanguage);
+    
+    return () => {
+      i18n.off('languageChanged', updateLanguage);
+    };
+  }, [i18n]);
 
   // Debounce için: kullanıcı yazmayı bitirdikten 300ms sonra arama yap
   useEffect(() => {
@@ -254,10 +279,9 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
             : 0;
           
           // Dil değişikliğine göre ürün ismini seç
-          const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
-          const productName = (currentLang === 'fr' && product.nameFr) 
+          const productName = (currentLanguage === 'fr' && product.nameFr) 
             ? product.nameFr 
-            : (currentLang === 'en' && product.nameEn) 
+            : (currentLanguage === 'en' && product.nameEn) 
               ? product.nameEn 
               : (product.baseName || product.name);
           
