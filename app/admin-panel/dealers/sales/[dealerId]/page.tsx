@@ -1000,6 +1000,137 @@ export default function BayiSatisPage() {
               </>
             )}
           </div>
+
+          {/* Sol Taraf - Ürünler - Mobilde altta */}
+          <div className="lg:col-span-2 order-2 lg:order-1 bg-white rounded-lg shadow p-4 md:p-6 w-full min-w-0 overflow-x-hidden">
+            {/* Arama */}
+            <div className="mb-6 relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  try {
+                    setSearchTerm(e.target.value || '');
+                  } catch (err: any) {
+                    console.error('Error updating search term:', err);
+                  }
+                }}
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:shadow-md"
+              />
+            </div>
+
+            {/* Ürünler Listesi */}
+            {loading ? (
+              <div className="text-center py-12 text-gray-500">{mounted ? t('admin.common.loading') : 'Yükleniyor...'}</div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                {searchTerm ? (mounted ? t('admin.dealers.noSearchResults') : 'Arama sonucu bulunamadı') : (mounted ? t('admin.dealers.noProducts') : 'Ürün bulunamadı')}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 w-full min-w-0">
+                {filteredProducts.map((product) => {
+
+                  const weight = product.weight ? parseFloat(product.weight) : null;
+                  const unit = product.unit || '';
+                  const weightDisplay = weight && unit 
+                    ? (() => {
+                        const weightNum = parseFloat(product.weight || '0');
+                        if (unit === 'Gr' && weightNum >= 1000 && weightNum % 1000 === 0) {
+                          return `${(weightNum / 1000)} Kg`;
+                        }
+                        return weightNum % 1 === 0 ? weightNum.toString() + ' ' + unit : weightNum.toFixed(2) + ' ' + unit;
+                      })()
+                    : null;
+
+                  return (
+                    <div
+                      key={product.id}
+                      className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all hover:border-blue-500 flex flex-col cursor-pointer group"
+                      onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        try {
+                          addToCart(product);
+                        } catch (err: any) {
+                          console.error('Error adding product to cart:', err);
+                        }
+                      }}
+                    >
+                      {/* Resim Container - Ana sayfadaki gibi */}
+                      <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+                        {product.images ? (
+                          <img 
+                            src={(() => {
+                              const imgSrc = product.images.split(',')[0].trim();
+                              // Eğer src / ile başlamıyorsa ve http ile başlamıyorsa, path ekle
+                              if (imgSrc && !imgSrc.startsWith('/') && !imgSrc.startsWith('http')) {
+                                return `/uploads/products/${imgSrc}`;
+                              }
+                              return imgSrc;
+                            })()}
+                            alt={product.name || 'Ürün'} 
+                            className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-300" 
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              console.error('Resim yükleme hatası:', target.src, product.name);
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent && !parent.querySelector('.error-placeholder')) {
+                                const placeholder = document.createElement('span');
+                                placeholder.className = 'error-placeholder text-gray-400 text-xs';
+                                placeholder.textContent = mounted ? t('admin.products.imageUploadError') : 'Resim Yüklenemedi';
+                                parent.appendChild(placeholder);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span className="text-gray-400 text-xs">{mounted ? t('admin.common.noImage') : 'Resim Yok'}</span>
+                        )}
+                      </div>
+                      
+                      {/* Ürün Bilgileri - Daha kompakt */}
+                      <div className="p-2 flex-1 flex flex-col">
+                        <div className="flex items-start justify-between gap-1.5 mb-1">
+                          <h3 className="font-medium text-gray-900 text-[10px] leading-tight line-clamp-2 flex-1 group-hover:text-blue-600 transition-colors">
+                            {product.name}
+                          </h3>
+                          {/* Gramaj Bilgisi - Sağda */}
+                          {weightDisplay && (
+                            <span className="text-[10px] text-gray-500 whitespace-nowrap flex-shrink-0">
+                              {weightDisplay}
+                            </span>
+                          )}
+                        </div>
+                         
+                        {/* Fiyat ve Stok Bilgisi - Daha kompakt */}
+                        <div className="flex items-center justify-between mt-auto pt-1 gap-1">
+                          <span className="text-xs font-bold text-blue-600">
+                            ${parseFloat(product.price || '0').toFixed(2)}
+                          </span>
+                          {/* Stok Bilgisi */}
+                          <div className="flex items-center gap-0.5">
+                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <span className={`text-[10px] ${product.stock && product.stock > 0 ? 'text-green-600 font-medium' : 'text-red-500'}`}>
+                              {product.stock ?? 0}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
