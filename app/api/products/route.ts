@@ -178,7 +178,7 @@ export async function GET(request: Request) {
     
     if (productIds.length > 0) {
       try {
-        // Her ürün için ayrı sorgu yap (daha güvenli)
+        // Her ürün için ayrı sorgu yap (daha güvenli ve çalışır)
         for (const productId of productIds) {
           try {
             const nameFrEnResult = await db.execute(
@@ -194,7 +194,7 @@ export async function GET(request: Request) {
             }
           } catch (singleErr: any) {
             // Tek ürün için hata varsa, null kullan
-            console.log(`Error fetching nameFr/nameEn for product ${productId}:`, singleErr?.message);
+            // console.log(`Error fetching nameFr/nameEn for product ${productId}:`, singleErr?.message);
           }
         }
       } catch (err: any) {

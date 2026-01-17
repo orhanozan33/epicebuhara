@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     
     if (categoryIds.length > 0) {
       try {
-        // Her kategori için ayrı sorgu yap (daha güvenli)
+        // Her kategori için ayrı sorgu yap (daha güvenli ve çalışır)
         for (const categoryId of categoryIds) {
           try {
             const nameFrEnResult = await db.execute(
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
             }
           } catch (singleErr: any) {
             // Tek kategori için hata varsa, null kullan
-            console.log(`Error fetching nameFr/nameEn for category ${categoryId}:`, singleErr?.message);
+            // console.log(`Error fetching nameFr/nameEn for category ${categoryId}:`, singleErr?.message);
           }
         }
       } catch (err: any) {
