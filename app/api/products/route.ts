@@ -178,20 +178,28 @@ export async function GET(request: Request) {
     
     if (productIds.length > 0) {
       try {
-        const nameFrEnResults = await db.execute(
-          sql`SELECT id, name_fr, name_en FROM products WHERE id = ANY(${productIds})`
-        ) as any;
-        
-        const results = Array.isArray(nameFrEnResults) ? nameFrEnResults : (nameFrEnResults.rows || []);
-        results.forEach((row: any) => {
-          nameFrEnMap.set(row.id, {
-            nameFr: row.name_fr || null,
-            nameEn: row.name_en || null,
-          });
-        });
+        // Her ürün için ayrı sorgu yap (daha güvenli)
+        for (const productId of productIds) {
+          try {
+            const nameFrEnResult = await db.execute(
+              sql`SELECT name_fr, name_en FROM products WHERE id = ${productId}`
+            ) as any;
+            
+            const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
+            if (result) {
+              nameFrEnMap.set(productId, {
+                nameFr: result.name_fr || null,
+                nameEn: result.name_en || null,
+              });
+            }
+          } catch (singleErr: any) {
+            // Tek ürün için hata varsa, null kullan
+            console.log(`Error fetching nameFr/nameEn for product ${productId}:`, singleErr?.message);
+          }
+        }
       } catch (err: any) {
-        // Kolonlar yoksa, boş map kullan
-        console.log('name_fr and name_en columns not found, skipping multilingual names');
+        // Genel hata varsa, boş map kullan
+        console.log('name_fr and name_en columns not found or error:', err?.message);
       }
     }
 
