@@ -42,6 +42,8 @@ export default function EditProductPage() {
 
   const [formData, setFormData] = useState({
     name: '',
+    nameFr: '',
+    nameEn: '',
     baseName: '',
     sku: '',
     price: '',
@@ -55,6 +57,7 @@ export default function EditProductPage() {
     description: '',
     images: '',
   });
+  const [translating, setTranslating] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
 
@@ -162,6 +165,8 @@ export default function EditProductPage() {
           
           setFormData({
             name: product.name || '',
+            nameFr: (product as any).nameFr || '',
+            nameEn: (product as any).nameEn || '',
             baseName: product.baseName || '',
             sku: product.sku || '',
             price: product.price || '',
@@ -290,6 +295,8 @@ export default function EditProductPage() {
       
       const productData = {
         name: formData.name,
+        nameFr: formData.nameFr || null,
+        nameEn: formData.nameEn || null,
         baseName: formData.baseName || null,
         sku: formData.sku,
         price: formData.price,
@@ -391,51 +398,118 @@ export default function EditProductPage() {
               </p>
             </div>
 
-            <div>
+            <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {mounted ? t('admin.products.productName') : 'Ürün Adı'} *
               </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => {
-                  const newName = e.target.value;
-                  // Ürün adından baseName çıkarmaya çalış (gramaj bilgisini temizle)
-                  // Örn: "Isot Pepper 50 Gr" -> "Isot Pepper"
-                  const nameWithoutWeight = newName.replace(/\s*\d+(\.\d+)?\s*(gr|g|kg|lt|Gr|G|Kg|Kg)\s*$/i, '').trim();
-                  
-                  // Eğer baseName boşsa ve name'den baseName çıkarılabiliyorsa
-                  let newBaseName = formData.baseName;
-                  if (!formData.baseName && nameWithoutWeight && nameWithoutWeight !== newName) {
-                    // Name'den gramaj bilgisi çıkarıldı, baseName olarak kullan
-                    newBaseName = nameWithoutWeight;
-                  } else if (!formData.baseName && newName) {
-                    // Name'den gramaj bilgisi çıkarılamadı, name'i baseName olarak kullan
-                    newBaseName = newName;
-                  }
-                  
-                  // productGroup oluştur: baseName (veya newBaseName) + weight + unit
-                  const baseNameForGroup = newBaseName || formData.baseName;
-                  let newProductGroup = '';
-                  if (baseNameForGroup && formData.weight && formData.unit) {
-                    const weightNum = parseFloat(formData.weight);
-                    const weightStr = weightNum % 1 === 0 ? weightNum.toString() : weightNum.toFixed(2);
-                    newProductGroup = `${baseNameForGroup} ${weightStr} ${formData.unit}`;
-                  } else if (baseNameForGroup) {
-                    newProductGroup = baseNameForGroup;
-                  }
-                  
-                  setFormData({ 
-                    ...formData, 
-                    name: newName,
-                    baseName: newBaseName,
-                    productGroup: newProductGroup
-                  });
-                }}
-                required
-                placeholder="Örn: Isot Pepper"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
-              />
+              
+              {/* TR (Türkçe) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">TR (Türkçe) *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={async (e) => {
+                    const newName = e.target.value;
+                    
+                    // Ürün adından baseName çıkarmaya çalış (gramaj bilgisini temizle)
+                    const nameWithoutWeight = newName.replace(/\s*\d+(\.\d+)?\s*(gr|g|kg|lt|Gr|G|Kg|Kg)\s*$/i, '').trim();
+                    
+                    let newBaseName = formData.baseName;
+                    if (!formData.baseName && nameWithoutWeight && nameWithoutWeight !== newName) {
+                      newBaseName = nameWithoutWeight;
+                    } else if (!formData.baseName && newName) {
+                      newBaseName = newName;
+                    }
+                    
+                    // productGroup oluştur
+                    const baseNameForGroup = newBaseName || formData.baseName;
+                    let newProductGroup = '';
+                    if (baseNameForGroup && formData.weight && formData.unit) {
+                      const weightNum = parseFloat(formData.weight);
+                      const weightStr = weightNum % 1 === 0 ? weightNum.toString() : weightNum.toFixed(2);
+                      newProductGroup = `${baseNameForGroup} ${weightStr} ${formData.unit}`;
+                    } else if (baseNameForGroup) {
+                      newProductGroup = baseNameForGroup;
+                    }
+                    
+                    // Otomatik çeviri yap (TR -> FR ve EN)
+                    let nameFr = formData.nameFr;
+                    let nameEn = formData.nameEn;
+                    
+                    if (newName && newName.length > 0) {
+                      setTranslating(true);
+                      try {
+                        // FR çevirisi
+                        const frResponse = await fetch('/api/translate', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: newName, from: 'tr', to: 'fr' }),
+                        });
+                        if (frResponse.ok) {
+                          const frData = await frResponse.json();
+                          nameFr = frData.translatedText || '';
+                        }
+                        
+                        // EN çevirisi
+                        const enResponse = await fetch('/api/translate', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: newName, from: 'tr', to: 'en' }),
+                        });
+                        if (enResponse.ok) {
+                          const enData = await enResponse.json();
+                          nameEn = enData.translatedText || '';
+                        }
+                      } catch (error) {
+                        console.error('Translation error:', error);
+                      } finally {
+                        setTranslating(false);
+                      }
+                    }
+                    
+                    setFormData({ 
+                      ...formData, 
+                      name: newName,
+                      nameFr: nameFr,
+                      nameEn: nameEn,
+                      baseName: newBaseName,
+                      productGroup: newProductGroup
+                    });
+                  }}
+                  required
+                  placeholder="Örn: Isot Pepper"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                />
+              </div>
+              
+              {/* FR (Fransızca) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  FR (Fransızca) {translating && <span className="text-xs text-gray-500">(Çevriliyor...)</span>}
+                </label>
+                <input
+                  type="text"
+                  value={formData.nameFr}
+                  onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
+                  placeholder="Otomatik çevrilecek"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
+                />
+              </div>
+              
+              {/* EN (İngilizce) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  EN (İngilizce) {translating && <span className="text-xs text-gray-500">(Çevriliyor...)</span>}
+                </label>
+                <input
+                  type="text"
+                  value={formData.nameEn}
+                  onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                  placeholder="Otomatik çevrilecek"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
+                />
+              </div>
             </div>
 
             <div>

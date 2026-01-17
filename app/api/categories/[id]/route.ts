@@ -49,7 +49,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Kategori bulunamadı' }, { status: 404 });
     }
 
-    const { name, slug, description, sortOrder, isActive } = body;
+    const { name, nameFr, nameEn, slug, description, sortOrder, isActive } = body;
     
     const updateData: any = {};
     if (name !== undefined) {
@@ -58,6 +58,8 @@ export async function PUT(
         updateData.slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       }
     }
+    if (nameFr !== undefined) updateData.nameFr = nameFr || null;
+    if (nameEn !== undefined) updateData.nameEn = nameEn || null;
     if (slug !== undefined) updateData.slug = slug;
     if (description !== undefined) updateData.description = description || null;
     if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder) || 0;

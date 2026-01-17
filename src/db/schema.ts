@@ -3,6 +3,8 @@ import { pgTable, serial, varchar, text, integer, boolean, timestamp, numeric, u
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey().notNull(),
   name: varchar('name', { length: 255 }).notNull(),
+  nameFr: varchar('name_fr', { length: 255 }),
+  nameEn: varchar('name_en', { length: 255 }),
   slug: varchar('slug', { length: 255 }).notNull(),
   description: text('description'),
   image: varchar('image', { length: 500 }),
@@ -17,6 +19,8 @@ export const categories = pgTable('categories', {
 export const products = pgTable('products', {
   id: serial('id').primaryKey().notNull(),
   name: varchar('name', { length: 255 }).notNull(),
+  nameFr: varchar('name_fr', { length: 255 }),
+  nameEn: varchar('name_en', { length: 255 }),
   baseName: varchar('base_name', { length: 255 }),
   slug: varchar('slug', { length: 255 }),
   sku: varchar('sku', { length: 100 }),

@@ -50,7 +50,7 @@ export async function PUT(
     }
 
     const product = existingProduct[0];
-    const { name, baseName, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
+    const { name, nameFr, nameEn, baseName, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
     // Slug oluşturma fonksiyonu
     const generateSlug = (name: string, baseName: string | null | undefined, weight: string | null | undefined, unit: string | null | undefined) => {
@@ -92,6 +92,8 @@ export async function PUT(
       updateData.slug = generateSlug(product.name, finalBaseName, finalWeight?.toString(), finalUnit);
     }
 
+    if (nameFr !== undefined) updateData.nameFr = nameFr || null;
+    if (nameEn !== undefined) updateData.nameEn = nameEn || null;
     if (baseName !== undefined) updateData.baseName = baseName || null;
     if (sku !== undefined) updateData.sku = sku || null;
     if (price !== undefined) updateData.price = price.toString();

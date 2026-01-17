@@ -80,7 +80,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, slug, description, sortOrder, isActive } = body;
+    const { name, nameFr, nameEn, slug, description, sortOrder, isActive } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -93,6 +93,8 @@ export async function POST(request: Request) {
 
     const newCategory = await db.insert(categories).values({
       name,
+      nameFr: nameFr || null,
+      nameEn: nameEn || null,
       slug: categorySlug,
       description: description || null,
       sortOrder: sortOrder || 0,

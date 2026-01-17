@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, baseName, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
+    const { name, nameFr, nameEn, baseName, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
     if (!name || !price) {
       return NextResponse.json(
@@ -44,6 +44,8 @@ export async function POST(request: Request) {
 
     const newProduct = await db.insert(products).values({
       name,
+      nameFr: nameFr || null,
+      nameEn: nameEn || null,
       baseName: baseName || null,
       slug,
       sku: sku || null,

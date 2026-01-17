@@ -28,11 +28,14 @@ export default function EditCategoryPage() {
 
   const [formData, setFormData] = useState({
     name: '',
+    nameFr: '',
+    nameEn: '',
     slug: '',
     description: '',
     order: '',
     isActive: true,
   });
+  const [translating, setTranslating] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -125,6 +128,8 @@ export default function EditCategoryPage() {
         setCategory(foundCategory);
         setFormData({
           name: foundCategory.name || '',
+          nameFr: (foundCategory as any).nameFr || '',
+          nameEn: (foundCategory as any).nameEn || '',
           slug: foundCategory.slug || '',
           description: foundCategory.description || '',
           order: foundCategory.order?.toString() || '0',
@@ -149,6 +154,8 @@ export default function EditCategoryPage() {
     try {
       const categoryData = {
         name: formData.name,
+        nameFr: formData.nameFr || null,
+        nameEn: formData.nameEn || null,
         slug: formData.slug,
         description: formData.description,
         sortOrder: parseInt(formData.order) || 0,
@@ -211,17 +218,89 @@ export default function EditCategoryPage() {
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {mounted ? t('admin.categories.categoryName') : 'Kategori Adı'} *
               </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
-              />
+              
+              {/* TR (Türkçe) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">TR (Türkçe) *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={async (e) => {
+                    const newName = e.target.value;
+                    
+                    // Otomatik çeviri yap (TR -> FR ve EN)
+                    let nameFr = formData.nameFr;
+                    let nameEn = formData.nameEn;
+                    
+                    if (newName && newName.length > 0) {
+                      setTranslating(true);
+                      try {
+                        // FR çevirisi
+                        const frResponse = await fetch('/api/translate', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: newName, from: 'tr', to: 'fr' }),
+                        });
+                        if (frResponse.ok) {
+                          const frData = await frResponse.json();
+                          nameFr = frData.translatedText || '';
+                        }
+                        
+                        // EN çevirisi
+                        const enResponse = await fetch('/api/translate', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: newName, from: 'tr', to: 'en' }),
+                        });
+                        if (enResponse.ok) {
+                          const enData = await enResponse.json();
+                          nameEn = enData.translatedText || '';
+                        }
+                      } catch (error) {
+                        console.error('Translation error:', error);
+                      } finally {
+                        setTranslating(false);
+                      }
+                    }
+                    
+                    setFormData({ ...formData, name: newName, nameFr: nameFr, nameEn: nameEn });
+                  }}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                />
+              </div>
+              
+              {/* FR (Fransızca) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  FR (Fransızca) {translating && <span className="text-xs text-gray-500">(Çevriliyor...)</span>}
+                </label>
+                <input
+                  type="text"
+                  value={formData.nameFr}
+                  onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
+                  placeholder="Otomatik çevrilecek"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
+                />
+              </div>
+              
+              {/* EN (İngilizce) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  EN (İngilizce) {translating && <span className="text-xs text-gray-500">(Çevriliyor...)</span>}
+                </label>
+                <input
+                  type="text"
+                  value={formData.nameEn}
+                  onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                  placeholder="Otomatik çevrilecek"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
+                />
+              </div>
             </div>
 
             <div>
