@@ -47,6 +47,11 @@ export function Categories() {
     loadCategories();
   }, []);
 
+  // Dil değişikliğini dinle - component'i yeniden render et
+  useEffect(() => {
+    // i18n.language değiştiğinde component yeniden render olacak
+  }, [i18n?.language]);
+
   const isActive = (slug: string | null) => {
     if (slug === null) {
       return pathname === '/';

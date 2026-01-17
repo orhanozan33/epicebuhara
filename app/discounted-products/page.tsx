@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 // CategoriesFilter component'i önce tanımlanmalı
 function CategoriesFilter({ onCategorySelect, selectedCategory }: { onCategorySelect: (id: string | null) => void; selectedCategory: string | null }) {
   const [mounted, setMounted] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false); // Mobilde accordion için
@@ -31,6 +31,11 @@ function CategoriesFilter({ onCategorySelect, selectedCategory }: { onCategorySe
     }
     loadCategories();
   }, []);
+
+  // Dil değişikliğini dinle
+  useEffect(() => {
+    // i18n.language değiştiğinde component yeniden render olacak
+  }, [i18n?.language]);
 
   const handleCategorySelect = (categoryId: string | null) => {
     onCategorySelect(categoryId);
@@ -74,20 +79,30 @@ function CategoriesFilter({ onCategorySelect, selectedCategory }: { onCategorySe
                 {mounted ? t('categories.allCategories') : 'Tüm Kategoriler'}
               </button>
             </li>
-            {categoriesList.map((category) => (
-              <li key={category.id}>
-                <button
-                  onClick={() => handleCategorySelect(category.id.toString())}
-                  className={`w-full text-left px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                    selectedCategory === category.id.toString()
-                      ? 'bg-[#E91E63] text-white shadow-md'
-                      : 'text-gray-700 hover:bg-[#E91E63]/10 hover:text-[#E91E63]'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              </li>
-            ))}
+            {categoriesList.map((category) => {
+              // Dil değişikliğine göre kategori ismini seç
+              const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
+              const categoryName = (currentLang === 'fr' && category.nameFr) 
+                ? category.nameFr 
+                : (currentLang === 'en' && category.nameEn) 
+                  ? category.nameEn 
+                  : category.name;
+              
+              return (
+                <li key={category.id}>
+                  <button
+                    onClick={() => handleCategorySelect(category.id.toString())}
+                    className={`w-full text-left px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                      selectedCategory === category.id.toString()
+                        ? 'bg-[#E91E63] text-white shadow-md'
+                        : 'text-gray-700 hover:bg-[#E91E63]/10 hover:text-[#E91E63]'
+                    }`}
+                  >
+                    {categoryName}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

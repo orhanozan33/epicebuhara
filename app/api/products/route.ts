@@ -172,6 +172,36 @@ export async function GET(request: Request) {
     const allCategories = await db.select().from(categories);
     const categoryMap = new Map(allCategories.map((cat) => [cat.id, cat]));
 
+    // Kategoriler için name_fr ve name_en kolonlarını manuel olarak çek
+    const categoryIds = Array.from(new Set(productResults.filter(p => p.categoryId).map(p => p.categoryId!)));
+    let categoryNameFrEnMap = new Map<number, { nameFr: string | null, nameEn: string | null }>();
+    
+    if (categoryIds.length > 0) {
+      try {
+        // Her kategori için ayrı sorgu yap
+        for (const categoryId of categoryIds) {
+          try {
+            const categoryNameFrEnResult = await db.execute(
+              sql`SELECT name_fr, name_en FROM categories WHERE id = ${categoryId}`
+            ) as any;
+            
+            const result = Array.isArray(categoryNameFrEnResult) ? categoryNameFrEnResult[0] : (categoryNameFrEnResult.rows ? categoryNameFrEnResult.rows[0] : categoryNameFrEnResult);
+            if (result) {
+              categoryNameFrEnMap.set(categoryId, {
+                nameFr: result.name_fr || null,
+                nameEn: result.name_en || null,
+              });
+            }
+          } catch (singleErr: any) {
+            // Tek kategori için hata varsa, null kullan
+          }
+        }
+      } catch (err: any) {
+        // Genel hata varsa, boş map kullan
+        console.log('Category name_fr and name_en columns not found or error:', err?.message);
+      }
+    }
+
     // name_fr ve name_en kolonlarını manuel olarak çek
     const productIds = productResults.map(p => p.id);
     let nameFrEnMap = new Map<number, { nameFr: string | null, nameEn: string | null }>();
@@ -207,6 +237,7 @@ export async function GET(request: Request) {
     const formattedProducts = productResults.map((product) => {
       const category = product.categoryId ? categoryMap.get(product.categoryId) : null;
       const nameFrEn = nameFrEnMap.get(product.id) || { nameFr: null, nameEn: null };
+      const categoryNameFrEn = category && product.categoryId ? categoryNameFrEnMap.get(product.categoryId) || { nameFr: null, nameEn: null } : { nameFr: null, nameEn: null };
       
       return {
         id: product.id,
@@ -236,9 +267,13 @@ export async function GET(request: Request) {
         updatedAt: product.updatedAt,
         category: category ? {
           name: category.name,
+          nameFr: categoryNameFrEn.nameFr,
+          nameEn: categoryNameFrEn.nameEn,
           slug: category.slug,
         } : null,
         categoryName: category?.name || null,
+        categoryNameFr: categoryNameFrEn.nameFr,
+        categoryNameEn: categoryNameFrEn.nameEn,
         categorySlug: category?.slug || null,
       };
     });

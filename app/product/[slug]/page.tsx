@@ -24,6 +24,8 @@ interface Product {
   description?: string | null;
   images?: string | null;
   categoryName?: string | null;
+  categoryNameFr?: string | null;
+  categoryNameEn?: string | null;
   isActive?: boolean;
 }
 
@@ -395,9 +397,17 @@ export default function ProductDetailPage() {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
                 {displayProduct.baseName || displayProduct.name}
               </h1>
-              {displayProduct.categoryName && (
-                <p className="text-gray-500 text-xs sm:text-sm">{displayProduct.categoryName}</p>
-              )}
+              {displayProduct.categoryName && (() => {
+                const currentLang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'tr';
+                const categoryName = (currentLang === 'fr' && displayProduct.categoryNameFr) 
+                  ? displayProduct.categoryNameFr 
+                  : (currentLang === 'en' && displayProduct.categoryNameEn) 
+                    ? displayProduct.categoryNameEn 
+                    : displayProduct.categoryName;
+                return (
+                  <p className="text-gray-500 text-xs sm:text-sm">{categoryName}</p>
+                );
+              })()}
             </div>
 
             {displayProduct.description && (
