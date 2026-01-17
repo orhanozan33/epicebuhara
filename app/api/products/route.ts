@@ -42,27 +42,39 @@ export async function POST(request: Request) {
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
 
-    const newProduct = await db.insert(products).values({
-      name,
-      nameFr: nameFr || null,
-      nameEn: nameEn || null,
-      baseName: baseName || null,
-      slug,
-      sku: sku || null,
-      price: price.toString(),
-      comparePrice: comparePrice ? comparePrice.toString() : null,
-      stock: stock || 0,
-      weight: weight || null,
-      unit: unit || 'Gr',
-      productGroup: productGroup || null,
-      categoryId: categoryId ? parseInt(categoryId) : null,
-      isActive: isActive ?? true,
-      description: description || null,
-      images: images || null,
-      trackStock: true,
-    }).returning();
-
-    return NextResponse.json(newProduct[0], { status: 201 });
+    // nameFr ve nameEn kolonları varsa ekle, yoksa sadece diğer kolonları ekle
+    try {
+      const newProduct = await db.execute(
+        sql`INSERT INTO products (name, name_fr, name_en, base_name, slug, sku, price, compare_price, stock, weight, unit, product_group, category_id, is_active, description, images, track_stock) 
+            VALUES (${name}, ${nameFr || null}, ${nameEn || null}, ${baseName || null}, ${slug}, ${sku || null}, ${price.toString()}, ${comparePrice ? comparePrice.toString() : null}, ${stock || 0}, ${weight || null}, ${unit || 'Gr'}, ${productGroup || null}, ${categoryId ? parseInt(categoryId) : null}, ${isActive ?? true}, ${description || null}, ${images || null}, true) 
+            RETURNING *`
+      ) as any;
+      const product = Array.isArray(newProduct) ? newProduct[0] : (newProduct.rows ? newProduct.rows[0] : newProduct);
+      return NextResponse.json(product, { status: 201 });
+    } catch (insertError: any) {
+      // Eğer name_fr veya name_en kolonları yoksa, sadece diğer kolonları ekle
+      if (insertError?.code === '42703' || insertError?.message?.includes('name_fr') || insertError?.message?.includes('name_en')) {
+        const newProduct = await db.insert(products).values({
+          name,
+          baseName: baseName || null,
+          slug,
+          sku: sku || null,
+          price: price.toString(),
+          comparePrice: comparePrice ? comparePrice.toString() : null,
+          stock: stock || 0,
+          weight: weight || null,
+          unit: unit || 'Gr',
+          productGroup: productGroup || null,
+          categoryId: categoryId ? parseInt(categoryId) : null,
+          isActive: isActive ?? true,
+          description: description || null,
+          images: images || null,
+          trackStock: true,
+        }).returning();
+        return NextResponse.json(newProduct[0], { status: 201 });
+      }
+      throw insertError;
+    }
   } catch (error: any) {
     console.error('Error creating product (Drizzle):', error);
     console.error('Error stack:', error?.stack);

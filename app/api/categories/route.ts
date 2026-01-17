@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { categories } from '@/src/db/schema';
-import { eq, desc, asc } from 'drizzle-orm';
+import { eq, desc, asc, sql } from 'drizzle-orm';
 
 // Force dynamic rendering because we use request.url
 export const dynamic = 'force-dynamic';
@@ -91,23 +91,29 @@ export async function POST(request: Request) {
 
     const categorySlug = slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-    const newCategory = await db.insert(categories).values({
-      name,
-      nameFr: nameFr || null,
-      nameEn: nameEn || null,
-      slug: categorySlug,
-      description: description || null,
-      sortOrder: sortOrder || 0,
-      isActive: isActive ?? true,
-    }).returning();
-
-    // Frontend'de 'order' olarak kullanılıyor, 'sortOrder' olarak map et
-    const mappedCategory = {
-      ...newCategory[0],
-      order: newCategory[0].sortOrder || 0,
-    };
-
-    return NextResponse.json(mappedCategory, { status: 201 });
+    // nameFr ve nameEn kolonları varsa ekle, yoksa sadece diğer kolonları ekle
+    try {
+      const newCategory = await db.execute(
+        sql`INSERT INTO categories (name, name_fr, name_en, slug, description, sort_order, is_active) 
+            VALUES (${name}, ${nameFr || null}, ${nameEn || null}, ${categorySlug}, ${description || null}, ${sortOrder || 0}, ${isActive ?? true}) 
+            RETURNING *`
+      ) as any;
+      const category = Array.isArray(newCategory) ? newCategory[0] : (newCategory.rows ? newCategory.rows[0] : newCategory);
+      return NextResponse.json({ ...category, order: (category as any).sort_order || 0 }, { status: 201 });
+    } catch (insertError: any) {
+      // Eğer name_fr veya name_en kolonları yoksa, sadece diğer kolonları ekle
+      if (insertError?.code === '42703' || insertError?.message?.includes('name_fr') || insertError?.message?.includes('name_en')) {
+        const newCategory = await db.insert(categories).values({
+          name,
+          slug: categorySlug,
+          description: description || null,
+          sortOrder: sortOrder || 0,
+          isActive: isActive ?? true,
+        }).returning();
+        return NextResponse.json({ ...newCategory[0], order: newCategory[0].sortOrder || 0 }, { status: 201 });
+      }
+      throw insertError;
+    }
   } catch (error: any) {
     console.error('Error creating category (Drizzle):', error);
     return NextResponse.json(

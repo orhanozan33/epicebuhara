@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { products } from '@/src/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export async function DELETE(
   request: Request,
@@ -92,8 +92,9 @@ export async function PUT(
       updateData.slug = generateSlug(product.name, finalBaseName, finalWeight?.toString(), finalUnit);
     }
 
-    if (nameFr !== undefined) updateData.nameFr = nameFr || null;
-    if (nameEn !== undefined) updateData.nameEn = nameEn || null;
+    // nameFr ve nameEn kolonları varsa ekle, yoksa atla
+    const hasNameFr = nameFr !== undefined;
+    const hasNameEn = nameEn !== undefined;
     if (baseName !== undefined) updateData.baseName = baseName || null;
     if (sku !== undefined) updateData.sku = sku || null;
     if (price !== undefined) updateData.price = price.toString();
@@ -107,9 +108,51 @@ export async function PUT(
     if (description !== undefined) updateData.description = description || null;
     if (images !== undefined) updateData.images = images || null;
 
-    await db.update(products)
-      .set(updateData)
-      .where(eq(products.id, id));
+    // nameFr ve nameEn kolonları varsa güncelle, yoksa sadece diğer kolonları güncelle
+    try {
+      // Önce nameFr ve nameEn ile birlikte güncellemeyi dene
+      if (hasNameFr || hasNameEn) {
+        const updateFields: string[] = [];
+        const updateValues: any[] = [];
+        
+        Object.keys(updateData).forEach((key) => {
+          if (key !== 'nameFr' && key !== 'nameEn') {
+            updateFields.push(`${key} = $${updateFields.length + 1}`);
+            updateValues.push(updateData[key as keyof typeof updateData]);
+          }
+        });
+        
+        if (hasNameFr) {
+          updateFields.push(`name_fr = $${updateFields.length + 1}`);
+          updateValues.push(nameFr || null);
+        }
+        if (hasNameEn) {
+          updateFields.push(`name_en = $${updateFields.length + 1}`);
+          updateValues.push(nameEn || null);
+        }
+        
+        updateValues.push(id);
+        
+        await db.execute(
+          sql.raw(`UPDATE products SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = $${updateValues.length}`)
+        );
+      } else {
+        await db.update(products)
+          .set(updateData)
+          .where(eq(products.id, id));
+      }
+    } catch (updateError: any) {
+      // Eğer name_fr veya name_en kolonları yoksa, sadece diğer kolonları güncelle
+      if (updateError?.code === '42703' || updateError?.message?.includes('name_fr') || updateError?.message?.includes('name_en')) {
+        // nameFr ve nameEn'i updateData'dan çıkar
+        const { nameFr: _, nameEn: __, ...restUpdateData } = updateData as any;
+        await db.update(products)
+          .set(restUpdateData)
+          .where(eq(products.id, id));
+      } else {
+        throw updateError;
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
