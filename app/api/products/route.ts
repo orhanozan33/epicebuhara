@@ -172,12 +172,39 @@ export async function GET(request: Request) {
     const allCategories = await db.select().from(categories);
     const categoryMap = new Map(allCategories.map((cat) => [cat.id, cat]));
 
+    // name_fr ve name_en kolonlarını manuel olarak çek
+    const productIds = productResults.map(p => p.id);
+    let nameFrEnMap = new Map<number, { nameFr: string | null, nameEn: string | null }>();
+    
+    if (productIds.length > 0) {
+      try {
+        const nameFrEnResults = await db.execute(
+          sql`SELECT id, name_fr, name_en FROM products WHERE id = ANY(${productIds})`
+        ) as any;
+        
+        const results = Array.isArray(nameFrEnResults) ? nameFrEnResults : (nameFrEnResults.rows || []);
+        results.forEach((row: any) => {
+          nameFrEnMap.set(row.id, {
+            nameFr: row.name_fr || null,
+            nameEn: row.name_en || null,
+          });
+        });
+      } catch (err: any) {
+        // Kolonlar yoksa, boş map kullan
+        console.log('name_fr and name_en columns not found, skipping multilingual names');
+      }
+    }
+
     // Format response (category bilgilerini düzenle)
     const formattedProducts = productResults.map((product) => {
       const category = product.categoryId ? categoryMap.get(product.categoryId) : null;
+      const nameFrEn = nameFrEnMap.get(product.id) || { nameFr: null, nameEn: null };
+      
       return {
         id: product.id,
         name: product.name,
+        nameFr: nameFrEn.nameFr,
+        nameEn: nameFrEn.nameEn,
         baseName: product.baseName,
         slug: product.slug,
         sku: product.sku,

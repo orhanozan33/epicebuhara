@@ -98,15 +98,39 @@ export async function PUT(
         ) as any;
         
         const updatedCategory = Array.isArray(result) ? result[0] : (result.rows ? result.rows[0] : result);
-        return NextResponse.json({ ...updatedCategory, order: (updatedCategory as any).sort_order || 0 });
+        return NextResponse.json({ 
+          ...updatedCategory, 
+          nameFr: (updatedCategory as any).name_fr || null,
+          nameEn: (updatedCategory as any).name_en || null,
+          order: (updatedCategory as any).sort_order || 0 
+        });
       } else {
         const updatedCategory = await db.update(categories)
           .set(updateData)
           .where(eq(categories.id, id))
           .returning();
         
+        // nameFr ve nameEn'i manuel olarak çek
+        let nameFrEn = { nameFr: null as string | null, nameEn: null as string | null };
+        try {
+          const nameFrEnResult = await db.execute(
+            sql`SELECT name_fr, name_en FROM categories WHERE id = ${id}`
+          ) as any;
+          const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
+          if (result) {
+            nameFrEn = {
+              nameFr: result.name_fr || null,
+              nameEn: result.name_en || null,
+            };
+          }
+        } catch (err: any) {
+          // Kolonlar yoksa, null kullan
+        }
+        
         const mappedCategory = {
           ...updatedCategory[0],
+          nameFr: nameFrEn.nameFr,
+          nameEn: nameFrEn.nameEn,
           order: updatedCategory[0].sortOrder || 0,
         };
         return NextResponse.json(mappedCategory);
@@ -123,6 +147,8 @@ export async function PUT(
         
         const mappedCategory = {
           ...updatedCategory[0],
+          nameFr: null,
+          nameEn: null,
           order: updatedCategory[0].sortOrder || 0,
         };
         return NextResponse.json(mappedCategory);

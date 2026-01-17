@@ -154,7 +154,33 @@ export async function PUT(
       }
     }
 
-    return NextResponse.json({ success: true });
+    // Güncellenmiş ürünü getir (nameFr ve nameEn dahil)
+    const updatedProduct = await db.select()
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
+
+    let nameFrEn = { nameFr: null as string | null, nameEn: null as string | null };
+    try {
+      const nameFrEnResult = await db.execute(
+        sql`SELECT name_fr, name_en FROM products WHERE id = ${id}`
+      ) as any;
+      const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
+      if (result) {
+        nameFrEn = {
+          nameFr: result.name_fr || null,
+          nameEn: result.name_en || null,
+        };
+      }
+    } catch (err: any) {
+      // Kolonlar yoksa, null kullan
+    }
+
+    return NextResponse.json({
+      ...updatedProduct[0],
+      nameFr: nameFrEn.nameFr,
+      nameEn: nameFrEn.nameEn,
+    });
   } catch (error: any) {
     console.error('Error updating product (Drizzle):', error);
     return NextResponse.json(

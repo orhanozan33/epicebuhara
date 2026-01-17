@@ -26,11 +26,39 @@ export async function GET(request: Request) {
 
     console.log(`Categories API (Drizzle): Found ${result.length} categories`);
 
+    // name_fr ve name_en kolonlarını manuel olarak çek
+    const categoryIds = result.map(c => c.id);
+    let nameFrEnMap = new Map<number, { nameFr: string | null, nameEn: string | null }>();
+    
+    if (categoryIds.length > 0) {
+      try {
+        const nameFrEnResults = await db.execute(
+          sql`SELECT id, name_fr, name_en FROM categories WHERE id = ANY(${categoryIds})`
+        ) as any;
+        
+        const results = Array.isArray(nameFrEnResults) ? nameFrEnResults : (nameFrEnResults.rows || []);
+        results.forEach((row: any) => {
+          nameFrEnMap.set(row.id, {
+            nameFr: row.name_fr || null,
+            nameEn: row.name_en || null,
+          });
+        });
+      } catch (err: any) {
+        // Kolonlar yoksa, boş map kullan
+        console.log('name_fr and name_en columns not found, skipping multilingual names');
+      }
+    }
+
     // Frontend'de 'order' olarak kullanılıyor, 'sortOrder' olarak map et
-    const mappedResult = result.map(category => ({
-      ...category,
-      order: category.sortOrder || 0,
-    }));
+    const mappedResult = result.map(category => {
+      const nameFrEn = nameFrEnMap.get(category.id) || { nameFr: null, nameEn: null };
+      return {
+        ...category,
+        nameFr: nameFrEn.nameFr,
+        nameEn: nameFrEn.nameEn,
+        order: category.sortOrder || 0,
+      };
+    });
 
     return NextResponse.json(mappedResult);
   } catch (error: any) {
