@@ -35,7 +35,6 @@ export default function EditCategoryPage() {
     order: '',
     isActive: true,
   });
-  const [translating, setTranslating] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -229,45 +228,9 @@ export default function EditCategoryPage() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={async (e) => {
+                  onChange={(e) => {
                     const newName = e.target.value;
-                    
-                    // Otomatik çeviri yap (TR -> FR ve EN)
-                    let nameFr = formData.nameFr;
-                    let nameEn = formData.nameEn;
-                    
-                    if (newName && newName.length > 0) {
-                      setTranslating(true);
-                      try {
-                        // FR çevirisi
-                        const frResponse = await fetch('/api/translate', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ text: newName, from: 'tr', to: 'fr' }),
-                        });
-                        if (frResponse.ok) {
-                          const frData = await frResponse.json();
-                          nameFr = frData.translatedText || '';
-                        }
-                        
-                        // EN çevirisi
-                        const enResponse = await fetch('/api/translate', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ text: newName, from: 'tr', to: 'en' }),
-                        });
-                        if (enResponse.ok) {
-                          const enData = await enResponse.json();
-                          nameEn = enData.translatedText || '';
-                        }
-                      } catch (error) {
-                        console.error('Translation error:', error);
-                      } finally {
-                        setTranslating(false);
-                      }
-                    }
-                    
-                    setFormData({ ...formData, name: newName, nameFr: nameFr, nameEn: nameEn });
+                    setFormData({ ...formData, name: newName });
                   }}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
@@ -277,13 +240,13 @@ export default function EditCategoryPage() {
               {/* FR (Fransızca) */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  FR (Fransızca) {translating && <span className="text-xs text-gray-500">(Çevriliyor...)</span>}
+                  FR (Fransızca)
                 </label>
                 <input
                   type="text"
                   value={formData.nameFr}
                   onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
-                  placeholder="Otomatik çevrilecek"
+                  placeholder="Manuel olarak girin"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
                 />
               </div>
@@ -291,13 +254,13 @@ export default function EditCategoryPage() {
               {/* EN (İngilizce) */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  EN (İngilizce) {translating && <span className="text-xs text-gray-500">(Çevriliyor...)</span>}
+                  EN (İngilizce)
                 </label>
                 <input
                   type="text"
                   value={formData.nameEn}
                   onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
-                  placeholder="Otomatik çevrilecek"
+                  placeholder="Manuel olarak girin"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
                 />
               </div>

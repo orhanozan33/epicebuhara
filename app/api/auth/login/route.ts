@@ -37,7 +37,32 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ success: true });
+    // Süresiz session cookie oluştur (çıkış yapana kadar geçerli)
+    const response = NextResponse.json({ success: true });
+    
+    // Cookie'yi süresiz yapmak için maxAge'i çok büyük bir değer yapıyoruz (100 yıl)
+    // Ayrıca httpOnly ve secure flag'lerini ekliyoruz
+    response.cookies.set('admin-auth', 'true', {
+      maxAge: 60 * 60 * 24 * 365 * 100, // 100 yıl
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    
+    // Admin bilgilerini de cookie'de sakla (güvenlik için hash'lenmiş)
+    response.cookies.set('admin-session', JSON.stringify({ 
+      username: admin.username,
+      id: admin.id 
+    }), {
+      maxAge: 60 * 60 * 24 * 365 * 100, // 100 yıl
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    return response;
   } catch (error: any) {
     console.error('Login error (Drizzle):', error);
     return NextResponse.json(

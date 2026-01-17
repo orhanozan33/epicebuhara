@@ -126,6 +126,11 @@ export default function AdminLayout({
               onClick={async () => {
                 try {
                   setLogoutLoading(true);
+                  // localStorage'ı temizle
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('admin-auth');
+                    localStorage.removeItem('admin-login-time');
+                  }
                   const response = await fetch('/api/auth/logout', {
                     method: 'POST',
                   });

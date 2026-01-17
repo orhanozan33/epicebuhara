@@ -25,6 +25,12 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Login başarılı - cookie otomatik olarak set edildi
+        // localStorage'a da kaydet (client-side kontrol için)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('admin-auth', 'true');
+          localStorage.setItem('admin-login-time', Date.now().toString());
+        }
         router.push('/admin-panel/dashboard');
       } else {
         setError(data.error || 'Giriş başarısız');
