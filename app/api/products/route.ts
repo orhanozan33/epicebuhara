@@ -44,8 +44,8 @@ export async function POST(request: Request) {
 
     const newProduct = await db.insert(products).values({
       name,
-      // nameFr: nameFr || null, // Migration çalıştırıldıktan sonra aktif edilecek
-      // nameEn: nameEn || null, // Migration çalıştırıldıktan sonra aktif edilecek
+      nameFr: nameFr || null,
+      nameEn: nameEn || null,
       baseName: baseName || null,
       slug,
       sku: sku || null,
