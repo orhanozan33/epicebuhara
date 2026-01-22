@@ -380,12 +380,16 @@ export default function EditProductPage() {
         const savedProduct = await response.json();
         // Kaydedilen ürünü state'e güncelle (özellikle baseNameFr, baseNameEn için)
         if (savedProduct) {
+          // Debug: Kaydedilen değerleri logla
+          console.log('Saved product baseNameFr:', (savedProduct as any).baseNameFr);
+          console.log('Saved product baseNameEn:', (savedProduct as any).baseNameEn);
+          
           setFormData({
             ...formData,
             name: savedProduct.name || formData.name,
             baseName: savedProduct.baseName || formData.baseName,
-            baseNameFr: (savedProduct as any).baseNameFr || '',
-            baseNameEn: (savedProduct as any).baseNameEn || '',
+            baseNameFr: (savedProduct as any).baseNameFr ?? '', // nullish coalescing kullan
+            baseNameEn: (savedProduct as any).baseNameEn ?? '', // nullish coalescing kullan
           });
           // Product state'ini de güncelle
           setProduct({
