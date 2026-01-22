@@ -197,17 +197,35 @@ export async function PUT(
           .where(eq(products.id, id));
       }
       
-      // Sonra baseNameFr, baseNameEn'i güncelle (her zaman gönderiliyor)
+      // Sonra baseNameFr, baseNameEn'i güncelle (her zaman gönderiliyor, undefined değilse)
       // Her field için ayrı ayrı güncelleme yap (daha güvenli)
       if (hasBaseNameFr) {
-        await db.execute(
-          sql`UPDATE products SET base_name_fr = ${normalizedBaseNameFr}, updated_at = NOW() WHERE id = ${id}`
-        );
+        try {
+          await db.execute(
+            sql`UPDATE products SET base_name_fr = ${normalizedBaseNameFr}, updated_at = NOW() WHERE id = ${id}`
+          );
+          console.log(`Updated base_name_fr for product ${id}:`, normalizedBaseNameFr);
+        } catch (err: any) {
+          console.error('Error updating base_name_fr:', err);
+          // Kolon yoksa devam et
+          if (err?.code !== '42703' && !err?.message?.includes('base_name_fr')) {
+            throw err;
+          }
+        }
       }
       if (hasBaseNameEn) {
-        await db.execute(
-          sql`UPDATE products SET base_name_en = ${normalizedBaseNameEn}, updated_at = NOW() WHERE id = ${id}`
-        );
+        try {
+          await db.execute(
+            sql`UPDATE products SET base_name_en = ${normalizedBaseNameEn}, updated_at = NOW() WHERE id = ${id}`
+          );
+          console.log(`Updated base_name_en for product ${id}:`, normalizedBaseNameEn);
+        } catch (err: any) {
+          console.error('Error updating base_name_en:', err);
+          // Kolon yoksa devam et
+          if (err?.code !== '42703' && !err?.message?.includes('base_name_en')) {
+            throw err;
+          }
+        }
       }
     } catch (updateError: any) {
       // Eğer name_fr, name_en, base_name_fr veya base_name_en kolonları yoksa, sadece diğer kolonları güncelle
