@@ -202,7 +202,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // name_fr, name_en, base_name_fr, base_name_en kolonlarını manuel olarak çek
+    // base_name_fr, base_name_en kolonlarını manuel olarak çek
     const productIds = productResults.map(p => p.id);
     let nameFrEnMap = new Map<number, { nameFr: string | null, nameEn: string | null, baseNameFr: string | null, baseNameEn: string | null }>();
     
@@ -212,26 +212,26 @@ export async function GET(request: Request) {
         for (const productId of productIds) {
           try {
             const nameFrEnResult = await db.execute(
-              sql`SELECT name_fr, name_en, base_name_fr, base_name_en FROM products WHERE id = ${productId}`
+              sql`SELECT base_name_fr, base_name_en FROM products WHERE id = ${productId}`
             ) as any;
             
             const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
             if (result) {
               nameFrEnMap.set(productId, {
-                nameFr: result.name_fr || null,
-                nameEn: result.name_en || null,
-                baseNameFr: result.base_name_fr || null,
-                baseNameEn: result.base_name_en || null,
+                nameFr: null, // Artık kullanılmıyor
+                nameEn: null, // Artık kullanılmıyor
+                baseNameFr: result.base_name_fr ?? null,
+                baseNameEn: result.base_name_en ?? null,
               });
             }
           } catch (singleErr: any) {
             // Tek ürün için hata varsa, null kullan
-            // console.log(`Error fetching nameFr/nameEn/baseNameFr/baseNameEn for product ${productId}:`, singleErr?.message);
+            // console.log(`Error fetching baseNameFr/baseNameEn for product ${productId}:`, singleErr?.message);
           }
         }
       } catch (err: any) {
         // Genel hata varsa, boş map kullan
-        console.log('name_fr, name_en, base_name_fr, base_name_en columns not found or error:', err?.message);
+        console.log('base_name_fr, base_name_en columns not found or error:', err?.message);
       }
     }
 
