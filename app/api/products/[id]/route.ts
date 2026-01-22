@@ -52,10 +52,11 @@ export async function PUT(
     const product = existingProduct[0];
     const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
-    // nameFr, nameEn, baseNameFr, baseNameEn için normalizasyon: boş string ise null, undefined ise undefined (güncelleme yapma)
-    const normalizeMultilingualField = (value: any): string | null | undefined => {
-      if (value === undefined) return undefined; // Alan gönderilmemiş, güncelleme yapma
-      if (value === null || value === '') return null; // Boş değer, null olarak kaydet
+    // nameFr, nameEn, baseNameFr, baseNameEn için normalizasyon
+    // Frontend'den her zaman değer gönderiliyor (null veya string), bu yüzden undefined kontrolü yapmıyoruz
+    const normalizeMultilingualField = (value: any): string | null => {
+      if (value === undefined || value === null) return null; // Undefined veya null ise null
+      if (value === '') return null; // Boş string ise null
       const trimmed = String(value).trim();
       return trimmed === '' ? null : trimmed; // Trim edilmiş boş string ise null
     };
@@ -105,11 +106,12 @@ export async function PUT(
       updateData.slug = generateSlug(product.name, finalBaseName, finalWeight?.toString(), finalUnit);
     }
 
-    // nameFr ve nameEn kolonları varsa ekle, yoksa atla
-    const hasNameFr = normalizedNameFr !== undefined;
-    const hasNameEn = normalizedNameEn !== undefined;
-    const hasBaseNameFr = normalizedBaseNameFr !== undefined;
-    const hasBaseNameEn = normalizedBaseNameEn !== undefined;
+    // nameFr, nameEn, baseNameFr, baseNameEn her zaman gönderiliyor (null veya string)
+    // Bu yüzden her zaman güncelleme yapıyoruz
+    const hasNameFr = nameFr !== undefined;
+    const hasNameEn = nameEn !== undefined;
+    const hasBaseNameFr = baseNameFr !== undefined;
+    const hasBaseNameEn = baseNameEn !== undefined;
     if (baseName !== undefined) updateData.baseName = baseName || null;
     if (sku !== undefined) updateData.sku = sku || null;
     if (price !== undefined) updateData.price = price.toString();

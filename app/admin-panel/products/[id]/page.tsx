@@ -341,7 +341,7 @@ export default function EditProductPage() {
         return value.trim();
       };
 
-      const productData = {
+      const productData: any = {
         name: formData.name,
         nameFr: normalizeMultilingualField(formData.nameFr),
         nameEn: normalizeMultilingualField(formData.nameEn),
