@@ -524,8 +524,11 @@ export default function EditProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ürün İçin EN ve FR Ürün Adı
+                Aynı Ürün İçin EN ve FR Ürün Adı
               </label>
+              <p className="text-xs text-gray-500 mb-3">
+                Bu ürünün İngilizce ve Fransızca versiyonları için ürün adı (opsiyonel)
+              </p>
               <div className="space-y-3">
                 {/* FR (Fransızca) */}
                 <div>
