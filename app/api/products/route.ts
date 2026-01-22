@@ -202,9 +202,9 @@ export async function GET(request: Request) {
       }
     }
 
-    // name_fr ve name_en kolonlarını manuel olarak çek
+    // name_fr, name_en, base_name_fr, base_name_en kolonlarını manuel olarak çek
     const productIds = productResults.map(p => p.id);
-    let nameFrEnMap = new Map<number, { nameFr: string | null, nameEn: string | null }>();
+    let nameFrEnMap = new Map<number, { nameFr: string | null, nameEn: string | null, baseNameFr: string | null, baseNameEn: string | null }>();
     
     if (productIds.length > 0) {
       try {
@@ -212,7 +212,7 @@ export async function GET(request: Request) {
         for (const productId of productIds) {
           try {
             const nameFrEnResult = await db.execute(
-              sql`SELECT name_fr, name_en FROM products WHERE id = ${productId}`
+              sql`SELECT name_fr, name_en, base_name_fr, base_name_en FROM products WHERE id = ${productId}`
             ) as any;
             
             const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
@@ -220,16 +220,18 @@ export async function GET(request: Request) {
               nameFrEnMap.set(productId, {
                 nameFr: result.name_fr || null,
                 nameEn: result.name_en || null,
+                baseNameFr: result.base_name_fr || null,
+                baseNameEn: result.base_name_en || null,
               });
             }
           } catch (singleErr: any) {
             // Tek ürün için hata varsa, null kullan
-            // console.log(`Error fetching nameFr/nameEn for product ${productId}:`, singleErr?.message);
+            // console.log(`Error fetching nameFr/nameEn/baseNameFr/baseNameEn for product ${productId}:`, singleErr?.message);
           }
         }
       } catch (err: any) {
         // Genel hata varsa, boş map kullan
-        console.log('name_fr and name_en columns not found or error:', err?.message);
+        console.log('name_fr, name_en, base_name_fr, base_name_en columns not found or error:', err?.message);
       }
     }
 
@@ -245,8 +247,8 @@ export async function GET(request: Request) {
         nameFr: nameFrEn.nameFr,
         nameEn: nameFrEn.nameEn,
         baseName: product.baseName,
-        baseNameFr: 'baseNameFr' in nameFrEn ? nameFrEn.baseNameFr : null,
-        baseNameEn: 'baseNameEn' in nameFrEn ? nameFrEn.baseNameEn : null,
+        baseNameFr: nameFrEn.baseNameFr,
+        baseNameEn: nameFrEn.baseNameEn,
         slug: product.slug,
         sku: product.sku,
         description: product.description,

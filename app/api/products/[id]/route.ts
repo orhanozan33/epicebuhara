@@ -175,32 +175,42 @@ export async function PUT(
       }
     }
 
-    // Güncellenmiş ürünü getir (nameFr ve nameEn dahil)
+    // Güncellenmiş ürünü getir (nameFr, nameEn, baseNameFr, baseNameEn dahil)
     const updatedProduct = await db.select()
       .from(products)
       .where(eq(products.id, id))
       .limit(1);
 
-    let nameFrEn = { nameFr: null as string | null, nameEn: null as string | null };
+    let nameFrEn = { 
+      nameFr: null as string | null, 
+      nameEn: null as string | null,
+      baseNameFr: null as string | null,
+      baseNameEn: null as string | null
+    };
     try {
       const nameFrEnResult = await db.execute(
-        sql`SELECT name_fr, name_en FROM products WHERE id = ${id}`
+        sql`SELECT name_fr, name_en, base_name_fr, base_name_en FROM products WHERE id = ${id}`
       ) as any;
       const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
       if (result) {
         nameFrEn = {
           nameFr: result.name_fr || null,
           nameEn: result.name_en || null,
+          baseNameFr: result.base_name_fr || null,
+          baseNameEn: result.base_name_en || null,
         };
       }
     } catch (err: any) {
       // Kolonlar yoksa, null kullan
+      console.warn('Could not fetch nameFr/nameEn/baseNameFr/baseNameEn fields:', err?.message);
     }
 
     return NextResponse.json({
       ...updatedProduct[0],
       nameFr: nameFrEn.nameFr,
       nameEn: nameFrEn.nameEn,
+      baseNameFr: nameFrEn.baseNameFr,
+      baseNameEn: nameFrEn.baseNameEn,
     });
   } catch (error: any) {
     console.error('Error updating product (Drizzle):', error);
