@@ -209,7 +209,7 @@ export default function SepetPage() {
                     </div>
                     
                     {/* Fiyat Bilgisi - Gizlendi */}
-                    {false && (
+                    {false && item.product && (
                       <div className="flex items-center justify-between">
                         <p className="text-sm sm:text-base font-semibold text-[#E91E63]">
                           ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
