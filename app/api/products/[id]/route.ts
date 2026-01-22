@@ -52,11 +52,18 @@ export async function PUT(
     const product = existingProduct[0];
     const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
-    // nameFr, nameEn, baseNameFr, baseNameEn için null kontrolü - boş string'leri null'a çevir
-    const normalizedNameFr = nameFr === '' ? null : (nameFr !== undefined ? nameFr : undefined);
-    const normalizedNameEn = nameEn === '' ? null : (nameEn !== undefined ? nameEn : undefined);
-    const normalizedBaseNameFr = baseNameFr === '' ? null : (baseNameFr !== undefined ? baseNameFr : undefined);
-    const normalizedBaseNameEn = baseNameEn === '' ? null : (baseNameEn !== undefined ? baseNameEn : undefined);
+    // nameFr, nameEn, baseNameFr, baseNameEn için normalizasyon: boş string ise null, undefined ise undefined (güncelleme yapma)
+    const normalizeMultilingualField = (value: any): string | null | undefined => {
+      if (value === undefined) return undefined; // Alan gönderilmemiş, güncelleme yapma
+      if (value === null || value === '') return null; // Boş değer, null olarak kaydet
+      const trimmed = String(value).trim();
+      return trimmed === '' ? null : trimmed; // Trim edilmiş boş string ise null
+    };
+
+    const normalizedNameFr = normalizeMultilingualField(nameFr);
+    const normalizedNameEn = normalizeMultilingualField(nameEn);
+    const normalizedBaseNameFr = normalizeMultilingualField(baseNameFr);
+    const normalizedBaseNameEn = normalizeMultilingualField(baseNameEn);
 
     // Slug oluşturma fonksiyonu
     const generateSlug = (name: string, baseName: string | null | undefined, weight: string | null | undefined, unit: string | null | undefined) => {
