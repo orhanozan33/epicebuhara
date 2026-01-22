@@ -92,3 +92,52 @@ export async function PUT(
     );
   }
 }
+
+// Satış sil
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string; saleId: string }> }
+) {
+  try {
+    const { id, saleId } = await params;
+    const dealerId = parseInt(id);
+    const saleIdNum = parseInt(saleId);
+
+    if (isNaN(dealerId) || isNaN(saleIdNum)) {
+      return NextResponse.json(
+        { error: 'Geçersiz bayi veya satış ID' },
+        { status: 400 }
+      );
+    }
+
+    // Satışın bu bayie ait olduğunu kontrol et
+    const sale = await db.select()
+      .from(dealerSales)
+      .where(and(
+        eq(dealerSales.id, saleIdNum),
+        eq(dealerSales.dealerId, dealerId)
+      ))
+      .limit(1);
+
+    if (sale.length === 0) {
+      return NextResponse.json(
+        { error: 'Satış bulunamadı' },
+        { status: 404 }
+      );
+    }
+
+    // Önce satış öğelerini sil
+    await db.delete(dealerSaleItems).where(eq(dealerSaleItems.saleId, saleIdNum));
+
+    // Sonra satışı sil
+    await db.delete(dealerSales).where(eq(dealerSales.id, saleIdNum));
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error deleting sale (Drizzle):', error);
+    return NextResponse.json(
+      { error: 'Satış silinirken hata oluştu', details: error?.message || 'Bilinmeyen hata' },
+      { status: 500 }
+    );
+  }
+}
