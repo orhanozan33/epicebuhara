@@ -328,8 +328,38 @@ export async function PUT(
       baseNameEn: null as string | null
     };
     try {
+      // Önce kolonların var olup olmadığını kontrol et
+      const columnCheck = await db.execute(
+        sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'products' AND column_name IN ('base_name_fr', 'base_name_en')`
+      ) as any;
+      
+      const existingColumns = Array.isArray(columnCheck) 
+        ? columnCheck.map((row: any) => row.column_name || row.column_name)
+        : (columnCheck.rows ? columnCheck.rows.map((row: any) => row.column_name || row.column_name) : []);
+      
+      console.log('PUT - Existing multilingual columns:', existingColumns);
+      
+      // Eksik kolonları oluştur
+      if (!existingColumns.includes('base_name_fr')) {
+        try {
+          await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS base_name_fr VARCHAR(255)`);
+          console.log('PUT - Created base_name_fr column');
+        } catch (createErr: any) {
+          console.error('PUT - Error creating base_name_fr:', createErr?.message);
+        }
+      }
+      if (!existingColumns.includes('base_name_en')) {
+        try {
+          await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS base_name_en VARCHAR(255)`);
+          console.log('PUT - Created base_name_en column');
+        } catch (createErr: any) {
+          console.error('PUT - Error creating base_name_en:', createErr?.message);
+        }
+      }
+      
+      // Şimdi değerleri çek (kolonlar artık var olmalı)
       const nameFrEnResult = await db.execute(
-        sql`SELECT name_fr, name_en, base_name_fr, base_name_en FROM products WHERE id = ${id}`
+        sql`SELECT base_name_fr, base_name_en FROM products WHERE id = ${id}`
       ) as any;
       const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
       
@@ -340,8 +370,8 @@ export async function PUT(
       
       if (result) {
         nameFrEn = {
-          nameFr: result.name_fr ?? null,
-          nameEn: result.name_en ?? null,
+          nameFr: null, // Artık kullanılmıyor
+          nameEn: null, // Artık kullanılmıyor
           baseNameFr: result.base_name_fr ?? null, // nullish coalescing kullan
           baseNameEn: result.base_name_en ?? null, // nullish coalescing kullan
         };
