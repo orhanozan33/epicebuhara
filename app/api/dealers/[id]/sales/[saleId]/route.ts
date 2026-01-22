@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
-import { dealerSales } from '@/src/db/schema';
+import { dealerSales, dealerSaleItems } from '@/src/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Satış ödemesi al

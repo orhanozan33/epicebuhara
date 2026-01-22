@@ -436,7 +436,20 @@ export default function MusteriHesapDetayPage() {
         fetchSales(); // Listeyi yenile
         fetchDealer(); // Bakiye bilgilerini yenile
       } else {
-        const errorData = await response.json();
+        // Response body'sini güvenli bir şekilde parse et
+        let errorData: any = { error: 'Bilinmeyen hata' };
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const text = await response.text();
+            if (text && text.trim()) {
+              errorData = JSON.parse(text);
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
         showToast(errorData.error || (mounted ? t('admin.dealers.errorDeletingSale') : 'Satış silinirken hata oluştu'), 'error');
       }
     } catch (error: any) {
