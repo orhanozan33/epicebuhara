@@ -52,6 +52,12 @@ export async function PUT(
     const product = existingProduct[0];
     const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
 
+    // nameFr, nameEn, baseNameFr, baseNameEn için null kontrolü - boş string'leri null'a çevir
+    const normalizedNameFr = nameFr === '' ? null : (nameFr !== undefined ? nameFr : undefined);
+    const normalizedNameEn = nameEn === '' ? null : (nameEn !== undefined ? nameEn : undefined);
+    const normalizedBaseNameFr = baseNameFr === '' ? null : (baseNameFr !== undefined ? baseNameFr : undefined);
+    const normalizedBaseNameEn = baseNameEn === '' ? null : (baseNameEn !== undefined ? baseNameEn : undefined);
+
     // Slug oluşturma fonksiyonu
     const generateSlug = (name: string, baseName: string | null | undefined, weight: string | null | undefined, unit: string | null | undefined) => {
       let slugBase = (baseName || name).toLowerCase().trim();
@@ -93,10 +99,10 @@ export async function PUT(
     }
 
     // nameFr ve nameEn kolonları varsa ekle, yoksa atla
-    const hasNameFr = nameFr !== undefined;
-    const hasNameEn = nameEn !== undefined;
-    const hasBaseNameFr = baseNameFr !== undefined;
-    const hasBaseNameEn = baseNameEn !== undefined;
+    const hasNameFr = normalizedNameFr !== undefined;
+    const hasNameEn = normalizedNameEn !== undefined;
+    const hasBaseNameFr = normalizedBaseNameFr !== undefined;
+    const hasBaseNameEn = normalizedBaseNameEn !== undefined;
     if (baseName !== undefined) updateData.baseName = baseName || null;
     if (sku !== undefined) updateData.sku = sku || null;
     if (price !== undefined) updateData.price = price.toString();
@@ -137,19 +143,19 @@ export async function PUT(
         
         if (hasNameFr) {
           updateFields.push(`name_fr = $${updateFields.length + 1}`);
-          updateValues.push(nameFr || null);
+          updateValues.push(normalizedNameFr);
         }
         if (hasNameEn) {
           updateFields.push(`name_en = $${updateFields.length + 1}`);
-          updateValues.push(nameEn || null);
+          updateValues.push(normalizedNameEn);
         }
         if (hasBaseNameFr) {
           updateFields.push(`base_name_fr = $${updateFields.length + 1}`);
-          updateValues.push(baseNameFr || null);
+          updateValues.push(normalizedBaseNameFr);
         }
         if (hasBaseNameEn) {
           updateFields.push(`base_name_en = $${updateFields.length + 1}`);
-          updateValues.push(baseNameEn || null);
+          updateValues.push(normalizedBaseNameEn);
         }
         
         updateValues.push(id);

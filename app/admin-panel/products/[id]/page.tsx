@@ -337,11 +337,11 @@ export default function EditProductPage() {
       
       const productData = {
         name: formData.name,
-        nameFr: formData.nameFr?.trim() || null,
-        nameEn: formData.nameEn?.trim() || null,
+        nameFr: formData.nameFr?.trim() || (formData.nameFr === '' ? null : undefined),
+        nameEn: formData.nameEn?.trim() || (formData.nameEn === '' ? null : undefined),
         baseName: formData.baseName?.trim() || null,
-        baseNameFr: formData.baseNameFr?.trim() || null,
-        baseNameEn: formData.baseNameEn?.trim() || null,
+        baseNameFr: formData.baseNameFr?.trim() || (formData.baseNameFr === '' ? null : undefined),
+        baseNameEn: formData.baseNameEn?.trim() || (formData.baseNameEn === '' ? null : undefined),
         sku: formData.sku,
         price: formData.price,
         comparePrice: formData.comparePrice || null,
