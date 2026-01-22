@@ -478,80 +478,82 @@ export default function EditProductPage() {
               </p>
             </div>
 
-            <div className="space-y-3">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {mounted ? t('admin.products.productName') : 'Ürün Adı'} *
               </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={async (e) => {
+                  const newName = e.target.value;
+                  
+                  // Ürün adından baseName çıkarmaya çalış (gramaj bilgisini temizle)
+                  const nameWithoutWeight = newName.replace(/\s*\d+(\.\d+)?\s*(gr|g|kg|lt|Gr|G|Kg|Kg)\s*$/i, '').trim();
+                  
+                  let newBaseName = formData.baseName;
+                  if (!formData.baseName && nameWithoutWeight && nameWithoutWeight !== newName) {
+                    newBaseName = nameWithoutWeight;
+                  } else if (!formData.baseName && newName) {
+                    newBaseName = newName;
+                  }
+                  
+                  // productGroup oluştur
+                  const baseNameForGroup = newBaseName || formData.baseName;
+                  let newProductGroup = '';
+                  if (baseNameForGroup && formData.weight && formData.unit) {
+                    const weightNum = parseFloat(formData.weight);
+                    const weightStr = weightNum % 1 === 0 ? weightNum.toString() : weightNum.toFixed(2);
+                    newProductGroup = `${baseNameForGroup} ${weightStr} ${formData.unit}`;
+                  } else if (baseNameForGroup) {
+                    newProductGroup = baseNameForGroup;
+                  }
+                  
+                  setFormData({ 
+                    ...formData, 
+                    name: newName,
+                    baseName: newBaseName,
+                    productGroup: newProductGroup
+                  });
+                }}
+                required
+                placeholder="Örn: Isot Pepper"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ürün İçin EN ve FR Ürün Adı
+              </label>
+              <div className="space-y-3">
+                {/* FR (Fransızca) */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    FR (Fransızca)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.baseNameFr}
+                    onChange={(e) => setFormData({ ...formData, baseNameFr: e.target.value })}
+                    placeholder="Manuel olarak girin"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                  />
+                </div>
               
-              {/* TR (Türkçe) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">TR (Türkçe) *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={async (e) => {
-                    const newName = e.target.value;
-                    
-                    // Ürün adından baseName çıkarmaya çalış (gramaj bilgisini temizle)
-                    const nameWithoutWeight = newName.replace(/\s*\d+(\.\d+)?\s*(gr|g|kg|lt|Gr|G|Kg|Kg)\s*$/i, '').trim();
-                    
-                    let newBaseName = formData.baseName;
-                    if (!formData.baseName && nameWithoutWeight && nameWithoutWeight !== newName) {
-                      newBaseName = nameWithoutWeight;
-                    } else if (!formData.baseName && newName) {
-                      newBaseName = newName;
-                    }
-                    
-                    // productGroup oluştur
-                    const baseNameForGroup = newBaseName || formData.baseName;
-                    let newProductGroup = '';
-                    if (baseNameForGroup && formData.weight && formData.unit) {
-                      const weightNum = parseFloat(formData.weight);
-                      const weightStr = weightNum % 1 === 0 ? weightNum.toString() : weightNum.toFixed(2);
-                      newProductGroup = `${baseNameForGroup} ${weightStr} ${formData.unit}`;
-                    } else if (baseNameForGroup) {
-                      newProductGroup = baseNameForGroup;
-                    }
-                    
-                    setFormData({ 
-                      ...formData, 
-                      name: newName,
-                      baseName: newBaseName,
-                      productGroup: newProductGroup
-                    });
-                  }}
-                  required
-                  placeholder="Örn: Isot Pepper"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
-                />
-              </div>
-              
-              {/* FR (Fransızca) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  FR (Fransızca)
-                </label>
-                <input
-                  type="text"
-                  value={formData.nameFr}
-                  onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
-                  placeholder="Manuel olarak girin"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
-                />
-              </div>
-              
-              {/* EN (İngilizce) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  EN (İngilizce)
-                </label>
-                <input
-                  type="text"
-                  value={formData.nameEn}
-                  onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
-                  placeholder="Manuel olarak girin"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
-                />
+                {/* EN (İngilizce) */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    EN (İngilizce)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.baseNameEn}
+                    onChange={(e) => setFormData({ ...formData, baseNameEn: e.target.value })}
+                    placeholder="Manuel olarak girin"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                  />
+                </div>
               </div>
             </div>
 
