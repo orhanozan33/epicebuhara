@@ -39,17 +39,27 @@ export async function GET(
         sql`SELECT name_fr, name_en, base_name_fr, base_name_en FROM products WHERE id = ${id}`
       ) as any;
       const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
+      
+      // Debug: SQL sorgusunun sonucunu logla
+      console.log('GET - SQL query result for product', id, ':', result);
+      console.log('GET - base_name_fr value:', result?.base_name_fr, 'type:', typeof result?.base_name_fr);
+      console.log('GET - base_name_en value:', result?.base_name_en, 'type:', typeof result?.base_name_en);
+      
       if (result) {
         nameFrEn = {
-          nameFr: result.name_fr || null,
-          nameEn: result.name_en || null,
-          baseNameFr: result.base_name_fr || null,
-          baseNameEn: result.base_name_en || null,
+          nameFr: result.name_fr ?? null,
+          nameEn: result.name_en ?? null,
+          baseNameFr: result.base_name_fr ?? null, // nullish coalescing kullan
+          baseNameEn: result.base_name_en ?? null, // nullish coalescing kullan
         };
+        console.log('GET - Parsed nameFrEn:', nameFrEn);
+      } else {
+        console.log('GET - No result found for product', id);
       }
     } catch (err: any) {
       // Kolonlar yoksa, null kullan
-      console.warn('Could not fetch nameFr/nameEn/baseNameFr/baseNameEn fields:', err?.message);
+      console.error('GET - Could not fetch nameFr/nameEn/baseNameFr/baseNameEn fields:', err?.message);
+      console.error('GET - Error details:', err);
     }
 
     return NextResponse.json({
@@ -261,17 +271,27 @@ export async function PUT(
         sql`SELECT name_fr, name_en, base_name_fr, base_name_en FROM products WHERE id = ${id}`
       ) as any;
       const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
+      
+      // Debug: SQL sorgusunun sonucunu logla
+      console.log('PUT - SQL query result for product', id, ':', result);
+      console.log('PUT - base_name_fr value:', result?.base_name_fr, 'type:', typeof result?.base_name_fr);
+      console.log('PUT - base_name_en value:', result?.base_name_en, 'type:', typeof result?.base_name_en);
+      
       if (result) {
         nameFrEn = {
-          nameFr: result.name_fr || null,
-          nameEn: result.name_en || null,
-          baseNameFr: result.base_name_fr || null,
-          baseNameEn: result.base_name_en || null,
+          nameFr: result.name_fr ?? null,
+          nameEn: result.name_en ?? null,
+          baseNameFr: result.base_name_fr ?? null, // nullish coalescing kullan
+          baseNameEn: result.base_name_en ?? null, // nullish coalescing kullan
         };
+        console.log('PUT - Parsed nameFrEn:', nameFrEn);
+      } else {
+        console.log('PUT - No result found for product', id);
       }
     } catch (err: any) {
       // Kolonlar yoksa, null kullan
-      console.warn('Could not fetch nameFr/nameEn/baseNameFr/baseNameEn fields:', err?.message);
+      console.error('PUT - Could not fetch nameFr/nameEn/baseNameFr/baseNameEn fields:', err?.message);
+      console.error('PUT - Error details:', err);
     }
 
     return NextResponse.json({
