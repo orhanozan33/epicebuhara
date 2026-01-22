@@ -335,13 +335,19 @@ export default function EditProductPage() {
         weight = Math.floor(weightNum).toString();
       }
       
+      // nameFr, nameEn, baseNameFr, baseNameEn için: boş string ise null, değilse trim edilmiş değer
+      const normalizeMultilingualField = (value: string): string | null => {
+        if (!value || value.trim() === '') return null;
+        return value.trim();
+      };
+
       const productData = {
         name: formData.name,
-        nameFr: formData.nameFr?.trim() || (formData.nameFr === '' ? null : undefined),
-        nameEn: formData.nameEn?.trim() || (formData.nameEn === '' ? null : undefined),
+        nameFr: normalizeMultilingualField(formData.nameFr),
+        nameEn: normalizeMultilingualField(formData.nameEn),
         baseName: formData.baseName?.trim() || null,
-        baseNameFr: formData.baseNameFr?.trim() || (formData.baseNameFr === '' ? null : undefined),
-        baseNameEn: formData.baseNameEn?.trim() || (formData.baseNameEn === '' ? null : undefined),
+        baseNameFr: normalizeMultilingualField(formData.baseNameFr),
+        baseNameEn: normalizeMultilingualField(formData.baseNameEn),
         sku: formData.sku,
         price: formData.price,
         comparePrice: formData.comparePrice || null,
