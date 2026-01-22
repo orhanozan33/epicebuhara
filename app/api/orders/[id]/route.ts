@@ -1,10 +1,114 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
-import { orders, orderItems, products, dealers, dealerSales, dealerSaleItems } from '@/src/db/schema';
+import { orders, orderItems, products, dealers, dealerSales, dealerSaleItems, notifications } from '@/src/db/schema';
 import { eq, inArray, and, desc, sql } from 'drizzle-orm';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
+
+// Sipariş sil
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: idParam } = await params;
+    const orderId = parseInt(idParam);
+
+    if (isNaN(orderId)) {
+      return NextResponse.json(
+        { error: 'Geçersiz sipariş ID' },
+        { status: 400 }
+      );
+    }
+
+    // Mevcut siparişi kontrol et
+    const order = await db.select()
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+
+    if (order.length === 0) {
+      return NextResponse.json(
+        { error: 'Sipariş bulunamadı' },
+        { status: 404 }
+      );
+    }
+
+    const currentOrder = order[0];
+
+    // Eğer sipariş SHIPPED durumundaysa, stokları geri ekle
+    if (currentOrder.status === 'SHIPPED') {
+      const items = await db.select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, orderId));
+
+      if (items.length > 0) {
+        const productIds = items
+          .map(item => item.productId)
+          .filter((id): id is number => id !== null && id !== undefined);
+
+        if (productIds.length > 0) {
+          const productList = await db.select()
+            .from(products)
+            .where(inArray(products.id, productIds));
+
+          // Stokları geri ekle (trackStock true olan ürünler için)
+          for (const item of items) {
+            if (!item.productId) continue;
+            const product = productList.find(p => p.id === item.productId);
+            if (product && product.trackStock) {
+              const quantityToAdd = parseInt(item.quantity.toString());
+              const currentStock = product.stock ? parseInt(product.stock.toString()) : 0;
+              const newStock = currentStock + quantityToAdd;
+
+              await db.update(products)
+                .set({ stock: newStock })
+                .where(eq(products.id, product.id));
+            }
+          }
+        }
+      }
+    }
+
+    // İlgili dealerSales kayıtlarını bul ve sil
+    try {
+      const relatedSales = await db.select()
+        .from(dealerSales)
+        .where(eq(dealerSales.saleNumber, currentOrder.orderNumber));
+
+      for (const sale of relatedSales) {
+        // Önce satış öğelerini sil
+        await db.delete(dealerSaleItems).where(eq(dealerSaleItems.saleId, sale.id));
+        // Sonra satışı sil
+        await db.delete(dealerSales).where(eq(dealerSales.id, sale.id));
+      }
+    } catch (dealerSaleError: any) {
+      console.warn('Warning: Could not delete related dealer sales:', dealerSaleError?.message);
+    }
+
+    // Bildirimleri sil
+    try {
+      await db.delete(notifications).where(eq(notifications.orderId, orderId));
+    } catch (notificationError: any) {
+      console.warn('Warning: Could not delete notifications:', notificationError?.message);
+    }
+
+    // Önce sipariş öğelerini sil
+    await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
+
+    // Sonra siparişi sil
+    await db.delete(orders).where(eq(orders.id, orderId));
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error deleting order (Drizzle):', error);
+    return NextResponse.json(
+      { error: 'Sipariş silinirken hata oluştu', details: error?.message },
+      { status: 500 }
+    );
+  }
+}
 
 // Sipariş durumunu güncelle
 export async function PUT(

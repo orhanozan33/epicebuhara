@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import { showConfirm } from '@/components/ConfirmModal';
 
 interface Order {
   id: number;
@@ -125,6 +126,39 @@ export default function SiparislerPage() {
     }
   };
 
+  const handleDelete = async (orderId: number, orderNumber: string) => {
+    const confirmed = await showConfirm(
+      mounted ? t('admin.orders.deleteTitle') : 'Sipariş Sil',
+      mounted ? t('admin.orders.deleteConfirm') : `"${orderNumber}" siparişini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`,
+      {
+        confirmText: mounted ? t('admin.common.delete') : 'Sil',
+        cancelText: mounted ? t('admin.common.cancel') : 'İptal',
+        type: 'danger',
+      }
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        showToast(mounted ? t('admin.orders.deletedSuccess') : 'Sipariş başarıyla silindi', 'success');
+        await fetchOrders();
+      } else {
+        const errorData = await response.json();
+        showToast(errorData.error || (mounted ? t('admin.common.error') : 'Sipariş silinirken hata oluştu'), 'error');
+      }
+    } catch (error: any) {
+      console.error('Error deleting order:', error);
+      showToast(error?.message || (mounted ? t('admin.common.error') : 'Sipariş silinirken hata oluştu'), 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div>
@@ -205,12 +239,20 @@ export default function SiparislerPage() {
                     </div>
                   </div>
                 </div>
-                <Link
-                  href={`/admin-panel/orders/${order.id}`}
-                  className="block w-full mt-2 bg-[#E91E63] text-white text-xs font-medium px-2 py-1 lg:px-3 lg:py-2 rounded-lg hover:bg-[#C2185B] transition-colors text-center"
-                >
-                  {mounted ? t('admin.orders.viewDetails') : 'Detay Görüntüle'}
-                </Link>
+                <div className="flex gap-2 mt-2">
+                  <Link
+                    href={`/admin-panel/orders/${order.id}`}
+                    className="flex-1 bg-[#E91E63] text-white text-xs font-medium px-2 py-1 lg:px-3 lg:py-2 rounded-lg hover:bg-[#C2185B] transition-colors text-center"
+                  >
+                    {mounted ? t('admin.orders.viewDetails') : 'Detay Görüntüle'}
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(order.id, order.orderNumber)}
+                    className="bg-red-600 text-white text-xs font-medium px-2 py-1 lg:px-3 lg:py-2 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    {mounted ? t('admin.common.delete') : 'Sil'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -289,12 +331,23 @@ export default function SiparislerPage() {
                         })}
                       </td>
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link
-                          href={`/admin-panel/orders/${order.id}`}
-                          className="text-[#E91E63] hover:text-[#C2185B]"
-                        >
-                          {mounted ? t('admin.common.view') : 'Detay'}
-                        </Link>
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={`/admin-panel/orders/${order.id}`}
+                            className="text-[#E91E63] hover:text-[#C2185B]"
+                          >
+                            {mounted ? t('admin.common.view') : 'Detay'}
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(order.id, order.orderNumber)}
+                            className="text-red-600 hover:text-red-900"
+                            title={mounted ? t('admin.common.delete') : 'Sil'}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
