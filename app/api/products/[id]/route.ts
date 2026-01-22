@@ -3,6 +3,71 @@ import { db } from '@/src/db';
 import { products } from '@/src/db/schema';
 import { eq, sql } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
+// Tek ürün getir
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
+
+    if (isNaN(id)) {
+      return NextResponse.json({ error: 'Geçersiz ürün ID' }, { status: 400 });
+    }
+
+    const product = await db.select()
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
+
+    if (product.length === 0) {
+      return NextResponse.json({ error: 'Ürün bulunamadı' }, { status: 404 });
+    }
+
+    // nameFr, nameEn, baseNameFr, baseNameEn değerlerini çek
+    let nameFrEn = {
+      nameFr: null as string | null,
+      nameEn: null as string | null,
+      baseNameFr: null as string | null,
+      baseNameEn: null as string | null,
+    };
+    try {
+      const nameFrEnResult = await db.execute(
+        sql`SELECT name_fr, name_en, base_name_fr, base_name_en FROM products WHERE id = ${id}`
+      ) as any;
+      const result = Array.isArray(nameFrEnResult) ? nameFrEnResult[0] : (nameFrEnResult.rows ? nameFrEnResult.rows[0] : nameFrEnResult);
+      if (result) {
+        nameFrEn = {
+          nameFr: result.name_fr || null,
+          nameEn: result.name_en || null,
+          baseNameFr: result.base_name_fr || null,
+          baseNameEn: result.base_name_en || null,
+        };
+      }
+    } catch (err: any) {
+      // Kolonlar yoksa, null kullan
+      console.warn('Could not fetch nameFr/nameEn/baseNameFr/baseNameEn fields:', err?.message);
+    }
+
+    return NextResponse.json({
+      ...product[0],
+      nameFr: nameFrEn.nameFr,
+      nameEn: nameFrEn.nameEn,
+      baseNameFr: nameFrEn.baseNameFr,
+      baseNameEn: nameFrEn.baseNameEn,
+    });
+  } catch (error: any) {
+    console.error('Error fetching product (Drizzle):', error);
+    return NextResponse.json(
+      { error: 'Ürün getirilirken hata oluştu', details: error?.message },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

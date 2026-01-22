@@ -136,10 +136,10 @@ export default function EditProductPage() {
     }
 
     try {
-      const response = await fetch(`/api/products?admin=true`);
+      // Direkt ürün endpoint'ini kullan (nameFr ve nameEn değerlerini garantiler)
+      const response = await fetch(`/api/products/${productId}`);
       if (response.ok) {
-        const products = await response.json();
-        const product = products.find((p: Product) => p.id === productId);
+        const product = await response.json();
         if (product) {
           setProduct(product);
           const images = product.images ? product.images.split(',').map((img: string) => img.trim()).filter(Boolean) : [];
