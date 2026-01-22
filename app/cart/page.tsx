@@ -97,7 +97,7 @@ export default function SepetPage() {
 
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => {
-      if (item.product) {
+      if (item.product?.price) {
         return total + parseFloat(item.product.price) * item.quantity;
       }
       return total;
