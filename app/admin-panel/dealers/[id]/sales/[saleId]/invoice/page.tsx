@@ -743,9 +743,12 @@ export default function FaturaPage() {
       <style jsx global>{`
         @media print {
           @page {
-            size: A4;
-            margin: 10mm;
-            marks: none;
+            size: A4 !important;
+            size: 210mm 297mm !important; /* A4 boyutunu zorla */
+            margin: 10mm !important;
+            marks: none !important;
+            page-break-before: auto !important;
+            page-break-after: auto !important;
           }
           
           @page {
@@ -753,6 +756,17 @@ export default function FaturaPage() {
             @bottom-left { content: "" !important; }
             @top-right { content: "" !important; }
             @top-left { content: "" !important; }
+          }
+          
+          html, body {
+            width: 210mm !important; /* A4 genişliği */
+            height: 297mm !important; /* A4 yüksekliği */
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            -webkit-print-color-adjust: exact !important; /* Renkleri koru */
+            print-color-adjust: exact !important;
+            overflow: visible !important;
           }
           
           body {
