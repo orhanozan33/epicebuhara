@@ -362,7 +362,7 @@ export default function SiparisPage() {
                     disabled={submitting}
                     className="flex-1 px-4 py-3 bg-[#E91E63] text-white font-medium rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    {submitting ? (mounted ? t('checkout.creatingOrder') : 'Sipariş Oluşturuluyor...') : (mounted ? t('checkout.confirmOrder') : 'Siparişi Onayla')}
+                    {submitting ? (mounted ? t('checkout.creatingOrder') : 'Sipariş Oluşturuluyor...') : 'Fiyat Teklifi Al'}
                   </button>
                 </div>
               </form>
@@ -396,32 +396,39 @@ export default function SiparisPage() {
                         <p className="text-xs text-gray-500 mt-1">
                           {mounted ? t('cart.quantity') : 'Miktar'}: {item.quantity}
                         </p>
-                        <p className="text-sm font-semibold text-[#E91E63] mt-1">
-                          ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
-                        </p>
+                        {/* Fiyat Bilgisi - Gizlendi */}
                       </div>
                     </div>
                   );
                 })}
               </div>
               
-              <div className="space-y-3 pt-4 border-t border-gray-200">
-                <div className="flex justify-between text-gray-600">
-                  <span>{mounted ? t('cart.subtotal') : 'Ara Toplam'}</span>
-                  <span>${calculateSubtotal().toFixed(2)}</span>
+              {/* Fiyat Özeti - Gizlendi */}
+              {false && (
+                <div className="space-y-3 pt-4 border-t border-gray-200">
+                  <div className="flex justify-between text-gray-600">
+                    <span>{mounted ? t('cart.subtotal') : 'Ara Toplam'}</span>
+                    <span>${calculateSubtotal().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>TPS (5%)</span>
+                    <span>${calculateTPS(calculateSubtotal()).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>TVQ (9.975%)</span>
+                    <span>${calculateTVQ(calculateSubtotal()).toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-3 flex justify-between text-lg font-bold text-gray-900">
+                    <span>{mounted ? t('cart.total') : 'Toplam'}</span>
+                    <span>${calculateTotal().toFixed(2)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>TPS (5%)</span>
-                  <span>${calculateTPS(calculateSubtotal()).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>TVQ (9.975%)</span>
-                  <span>${calculateTVQ(calculateSubtotal()).toFixed(2)}</span>
-                </div>
-                <div className="border-t border-gray-200 pt-3 flex justify-between text-lg font-bold text-gray-900">
-                  <span>{mounted ? t('cart.total') : 'Toplam'}</span>
-                  <span>${calculateTotal().toFixed(2)}</span>
-                </div>
+              )}
+              
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600 text-center mb-3">
+                  {mounted ? 'Fiyat teklifi almak için siparişi onaylayın' : 'Fiyat teklifi almak için siparişi onaylayın'}
+                </p>
               </div>
             </div>
           </div>
