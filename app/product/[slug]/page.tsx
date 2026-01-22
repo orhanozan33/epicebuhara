@@ -447,23 +447,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Fiyat */}
-            <div>
-              {hasDiscount ? (
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <span className="text-2xl sm:text-3xl font-bold text-[#E91E63]">
-                    ${parseFloat(displayProduct.price).toFixed(2)}
-                  </span>
-                  <span className="text-lg sm:text-xl font-bold text-black line-through">
-                    ${parseFloat(displayProduct.comparePrice!).toFixed(2)}
-                  </span>
-                </div>
-              ) : (
-                <span className="text-2xl sm:text-3xl font-bold text-[#E91E63]">
-                  ${parseFloat(displayProduct.price).toFixed(2)}
-                </span>
-              )}
-            </div>
+            {/* Fiyat - Gizlendi */}
 
             {/* Stok Durumu */}
             <div>
@@ -533,22 +517,7 @@ export default function ProductDetailPage() {
                         <div className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-0.5 sm:mb-1">
                           {displayWeight} {displayUnit ? displayUnit : ''}
                         </div>
-                        <div className="space-y-0.5">
-                          {variantHasDiscount ? (
-                            <>
-                              <div className="text-xs sm:text-sm font-bold text-[#E91E63]">
-                                ${parseFloat(variant.price).toFixed(2)}
-                              </div>
-                              <div className="text-[10px] sm:text-xs font-bold text-black line-through">
-                                ${parseFloat(variant.comparePrice!).toFixed(2)}
-                              </div>
-                            </>
-                          ) : (
-                            <div className="text-xs sm:text-sm font-bold text-[#E91E63]">
-                              ${parseFloat(variant.price).toFixed(2)}
-                            </div>
-                          )}
-                        </div>
+                        {/* Fiyat Bilgisi - Gizlendi */}
                       </Link>
                     );
                   })}
