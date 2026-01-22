@@ -343,8 +343,8 @@ export default function EditProductPage() {
 
       const productData: any = {
         name: formData.name,
-        nameFr: normalizeMultilingualField(formData.nameFr),
-        nameEn: normalizeMultilingualField(formData.nameEn),
+        nameFr: null, // Artık kullanılmıyor, baseNameFr kullanılıyor
+        nameEn: null, // Artık kullanılmıyor, baseNameEn kullanılıyor
         baseName: formData.baseName?.trim() || null,
         baseNameFr: normalizeMultilingualField(formData.baseNameFr),
         baseNameEn: normalizeMultilingualField(formData.baseNameEn),
