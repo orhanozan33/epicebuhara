@@ -171,11 +171,8 @@ export async function PUT(
       updateData.slug = generateSlug(product.name, finalBaseName, finalWeight?.toString(), finalUnit);
     }
 
-    // nameFr, nameEn, baseNameFr, baseNameEn her zaman gönderiliyor (null veya string)
+    // baseNameFr ve baseNameEn her zaman gönderiliyor (null veya string)
     // Bu yüzden her zaman güncelleme yapıyoruz
-    // Ancak sadece baseNameFr ve baseNameEn kullanılıyor (nameFr ve nameEn artık kullanılmıyor)
-    const hasNameFr = false; // Artık kullanılmıyor
-    const hasNameEn = false; // Artık kullanılmıyor
     const hasBaseNameFr = baseNameFr !== undefined;
     const hasBaseNameEn = baseNameEn !== undefined;
     if (baseName !== undefined) updateData.baseName = baseName || null;
@@ -191,35 +188,26 @@ export async function PUT(
     if (description !== undefined) updateData.description = description || null;
     if (images !== undefined) updateData.images = images || null;
 
-    // nameFr ve nameEn kolonları varsa güncelle, yoksa sadece diğer kolonları güncelle
+    // baseNameFr ve baseNameEn her zaman gönderiliyor, bu yüzden her zaman güncelleme yapıyoruz
     try {
-      // Önce nameFr, nameEn, baseNameFr, baseNameEn ile birlikte güncellemeyi dene
-      if (hasNameFr || hasNameEn || hasBaseNameFr || hasBaseNameEn) {
-        // Önce normal field'ları güncelle
-        if (Object.keys(updateData).length > 1 || !updateData.updatedAt) {
-          await db.update(products)
-            .set(updateData)
-            .where(eq(products.id, id));
-        }
-        
-        // Sonra baseNameFr, baseNameEn'i güncelle (nameFr ve nameEn artık kullanılmıyor)
-        if (hasBaseNameFr || hasBaseNameEn) {
-          // Her field için ayrı ayrı güncelleme yap (daha güvenli)
-          if (hasBaseNameFr) {
-            await db.execute(
-              sql`UPDATE products SET base_name_fr = ${normalizedBaseNameFr}, updated_at = NOW() WHERE id = ${id}`
-            );
-          }
-          if (hasBaseNameEn) {
-            await db.execute(
-              sql`UPDATE products SET base_name_en = ${normalizedBaseNameEn}, updated_at = NOW() WHERE id = ${id}`
-            );
-          }
-        }
-      } else {
+      // Önce normal field'ları güncelle
+      if (Object.keys(updateData).length > 1 || !updateData.updatedAt) {
         await db.update(products)
           .set(updateData)
           .where(eq(products.id, id));
+      }
+      
+      // Sonra baseNameFr, baseNameEn'i güncelle (her zaman gönderiliyor)
+      // Her field için ayrı ayrı güncelleme yap (daha güvenli)
+      if (hasBaseNameFr) {
+        await db.execute(
+          sql`UPDATE products SET base_name_fr = ${normalizedBaseNameFr}, updated_at = NOW() WHERE id = ${id}`
+        );
+      }
+      if (hasBaseNameEn) {
+        await db.execute(
+          sql`UPDATE products SET base_name_en = ${normalizedBaseNameEn}, updated_at = NOW() WHERE id = ${id}`
+        );
       }
     } catch (updateError: any) {
       // Eğer name_fr, name_en, base_name_fr veya base_name_en kolonları yoksa, sadece diğer kolonları güncelle
