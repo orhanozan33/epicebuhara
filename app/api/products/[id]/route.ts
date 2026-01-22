@@ -220,9 +220,23 @@ export async function PUT(
           );
           console.log(`Updated base_name_fr for product ${id}:`, normalizedBaseNameFr);
         } catch (err: any) {
-          console.error('Error updating base_name_fr:', err);
-          // Kolon yoksa devam et
-          if (err?.code !== '42703' && !err?.message?.includes('base_name_fr')) {
+          // Kolon yoksa, önce kolonu oluştur, sonra güncelle
+          if (err?.code === '42703' || err?.message?.includes('base_name_fr')) {
+            console.log('Column base_name_fr does not exist, creating it...');
+            try {
+              await db.execute(
+                sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS base_name_fr VARCHAR(255)`
+              );
+              // Kolon oluşturulduktan sonra tekrar güncelle
+              await db.execute(
+                sql`UPDATE products SET base_name_fr = ${normalizedBaseNameFr}, updated_at = NOW() WHERE id = ${id}`
+              );
+              console.log(`Created and updated base_name_fr for product ${id}:`, normalizedBaseNameFr);
+            } catch (createErr: any) {
+              console.error('Error creating/updating base_name_fr:', createErr);
+            }
+          } else {
+            console.error('Error updating base_name_fr:', err);
             throw err;
           }
         }
@@ -234,9 +248,23 @@ export async function PUT(
           );
           console.log(`Updated base_name_en for product ${id}:`, normalizedBaseNameEn);
         } catch (err: any) {
-          console.error('Error updating base_name_en:', err);
-          // Kolon yoksa devam et
-          if (err?.code !== '42703' && !err?.message?.includes('base_name_en')) {
+          // Kolon yoksa, önce kolonu oluştur, sonra güncelle
+          if (err?.code === '42703' || err?.message?.includes('base_name_en')) {
+            console.log('Column base_name_en does not exist, creating it...');
+            try {
+              await db.execute(
+                sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS base_name_en VARCHAR(255)`
+              );
+              // Kolon oluşturulduktan sonra tekrar güncelle
+              await db.execute(
+                sql`UPDATE products SET base_name_en = ${normalizedBaseNameEn}, updated_at = NOW() WHERE id = ${id}`
+              );
+              console.log(`Created and updated base_name_en for product ${id}:`, normalizedBaseNameEn);
+            } catch (createErr: any) {
+              console.error('Error creating/updating base_name_en:', createErr);
+            }
+          } else {
+            console.error('Error updating base_name_en:', err);
             throw err;
           }
         }
