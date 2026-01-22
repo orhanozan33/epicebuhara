@@ -7,52 +7,45 @@ import tr from '../../locales/tr/common.json';
 import en from '../../locales/en/common.json';
 import fr from '../../locales/fr/common.json';
 
-// i18n'i sadece client-side'da initialize et
-if (typeof window !== 'undefined' && !i18n.isInitialized) {
-  i18n
-    .use(LanguageDetector)
-    .use(initReactI18next)
-    .init({
-      resources: {
-        tr: { common: tr },
-        en: { common: en },
-        fr: { common: fr },
-      },
-      fallbackLng: 'fr',
-      defaultNS: 'common',
-      interpolation: {
-        escapeValue: false,
-      },
-      react: {
-        useSuspense: false,
-      },
-      detection: {
-        order: ['localStorage', 'navigator'],
-        caches: ['localStorage'],
-        lookupLocalStorage: 'i18nextLng',
-      },
-    });
-}
+// i18n'i her zaman initialize et (hem client hem server için)
+if (!i18n.isInitialized) {
+  const isClient = typeof window !== 'undefined';
+  
+  const config = {
+    resources: {
+      tr: { common: tr },
+      en: { common: en },
+      fr: { common: fr },
+    },
+    fallbackLng: 'fr',
+    defaultNS: 'common',
+    interpolation: {
+      escapeValue: false,
+    },
+    react: {
+      useSuspense: false,
+    },
+  };
 
-// Server-side için minimal initialization (sadece hook'ların çalışması için)
-if (typeof window === 'undefined' && !i18n.isInitialized) {
-  i18n
-    .use(initReactI18next)
-    .init({
-      resources: {
-        tr: { common: tr },
-        en: { common: en },
-        fr: { common: fr },
-      },
-      fallbackLng: 'fr',
-      defaultNS: 'common',
-      interpolation: {
-        escapeValue: false,
-      },
-      react: {
-        useSuspense: false,
-      },
-    });
+  if (isClient) {
+    // Client-side: LanguageDetector ekle
+    i18n
+      .use(LanguageDetector)
+      .use(initReactI18next)
+      .init({
+        ...config,
+        detection: {
+          order: ['localStorage', 'navigator'],
+          caches: ['localStorage'],
+          lookupLocalStorage: 'i18nextLng',
+        },
+      });
+  } else {
+    // Server-side: sadece initReactI18next ekle
+    i18n
+      .use(initReactI18next)
+      .init(config);
+  }
 }
 
 export default i18n;

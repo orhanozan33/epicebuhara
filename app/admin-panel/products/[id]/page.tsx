@@ -383,6 +383,11 @@ export default function EditProductPage() {
             baseNameFr: (savedProduct as any).baseNameFr || '',
             baseNameEn: (savedProduct as any).baseNameEn || '',
           });
+          // Product state'ini de güncelle
+          setProduct({
+            ...product,
+            ...savedProduct,
+          } as Product);
         }
         showToast(mounted ? t('admin.common.success') : 'Ürün başarıyla kaydedildi', 'success');
         // Yeni ürün oluşturulduysa listeye yönlendir, değilse aynı sayfada kal
@@ -390,6 +395,11 @@ export default function EditProductPage() {
           setTimeout(() => {
             router.push('/admin-panel/products');
           }, 1000);
+        } else {
+          // Mevcut ürün güncellendiyse, verileri yeniden yükle (güvence için)
+          setTimeout(() => {
+            fetchProduct();
+          }, 500);
         }
       } else {
         const data = await response.json();
