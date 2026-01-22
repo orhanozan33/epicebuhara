@@ -194,49 +194,40 @@ export async function PUT(
     try {
       // Önce nameFr, nameEn, baseNameFr, baseNameEn ile birlikte güncellemeyi dene
       if (hasNameFr || hasNameEn || hasBaseNameFr || hasBaseNameEn) {
-        const updateFields: string[] = [];
-        const updateValues: any[] = [];
+        // Önce normal field'ları güncelle
+        if (Object.keys(updateData).length > 1 || !updateData.updatedAt) {
+          await db.update(products)
+            .set(updateData)
+            .where(eq(products.id, id));
+        }
         
-        Object.keys(updateData).forEach((key) => {
-          if (key !== 'nameFr' && key !== 'nameEn' && key !== 'baseNameFr' && key !== 'baseNameEn') {
-            const dbKey = key === 'updatedAt' ? 'updated_at' : 
-                         key === 'baseName' ? 'base_name' :
-                         key === 'productGroup' ? 'product_group' :
-                         key === 'categoryId' ? 'category_id' :
-                         key === 'isActive' ? 'is_active' :
-                         key === 'comparePrice' ? 'compare_price' :
-                         key === 'trackStock' ? 'track_stock' :
-                         key === 'shortDescription' ? 'short_description' :
-                         key === 'metaTitle' ? 'meta_title' :
-                         key === 'metaDescription' ? 'meta_description' :
-                         key === 'createdAt' ? 'created_at' : key;
-            updateFields.push(`${dbKey} = $${updateFields.length + 1}`);
-            updateValues.push(updateData[key as keyof typeof updateData]);
-          }
-        });
+        // Sonra nameFr, nameEn, baseNameFr, baseNameEn'i güncelle
+        const translationUpdates: string[] = [];
+        const translationValues: any[] = [];
         
         if (hasNameFr) {
-          updateFields.push(`name_fr = $${updateFields.length + 1}`);
-          updateValues.push(normalizedNameFr);
+          translationUpdates.push(`name_fr = $${translationValues.length + 1}`);
+          translationValues.push(normalizedNameFr);
         }
         if (hasNameEn) {
-          updateFields.push(`name_en = $${updateFields.length + 1}`);
-          updateValues.push(normalizedNameEn);
+          translationUpdates.push(`name_en = $${translationValues.length + 1}`);
+          translationValues.push(normalizedNameEn);
         }
         if (hasBaseNameFr) {
-          updateFields.push(`base_name_fr = $${updateFields.length + 1}`);
-          updateValues.push(normalizedBaseNameFr);
+          translationUpdates.push(`base_name_fr = $${translationValues.length + 1}`);
+          translationValues.push(normalizedBaseNameFr);
         }
         if (hasBaseNameEn) {
-          updateFields.push(`base_name_en = $${updateFields.length + 1}`);
-          updateValues.push(normalizedBaseNameEn);
+          translationUpdates.push(`base_name_en = $${translationValues.length + 1}`);
+          translationValues.push(normalizedBaseNameEn);
         }
         
-        updateValues.push(id);
-        
-        await db.execute(
-          sql.raw(`UPDATE products SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = $${updateValues.length}`)
-        );
+        if (translationUpdates.length > 0) {
+          translationValues.push(id);
+          await db.execute(
+            sql.raw(`UPDATE products SET ${translationUpdates.join(', ')}, updated_at = NOW() WHERE id = $${translationValues.length}`)
+          );
+        }
       } else {
         await db.update(products)
           .set(updateData)
