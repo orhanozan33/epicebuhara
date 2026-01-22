@@ -406,6 +406,46 @@ export default function MusteriHesapDetayPage() {
     }
   };
 
+  const handleDeleteSale = useCallback(async (e: React.MouseEvent, saleId: number) => {
+    e.stopPropagation(); // Satır tıklamasını engelle
+    if (!dealerId || !isMountedRef.current) return;
+
+    const confirmed = await showConfirm(
+      mounted ? t('admin.dealers.confirmDeleteSaleTitle') : 'Satışı Silmeyi Onayla',
+      mounted ? t('admin.dealers.confirmDeleteSaleMessage') : 'Bu satışı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+      {
+        confirmText: mounted ? t('admin.common.delete') : 'Sil',
+        cancelText: mounted ? t('admin.common.cancel') : 'İptal',
+        type: 'danger',
+      }
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/dealers/${dealerId}/sales/${saleId}`, {
+        method: 'DELETE',
+      });
+
+      if (!isMountedRef.current) return;
+
+      if (response.ok) {
+        showToast(mounted ? t('admin.dealers.saleDeletedSuccess') : 'Satış başarıyla silindi', 'success');
+        fetchSales(); // Listeyi yenile
+        fetchDealer(); // Bakiye bilgilerini yenile
+      } else {
+        const errorData = await response.json();
+        showToast(errorData.error || (mounted ? t('admin.dealers.errorDeletingSale') : 'Satış silinirken hata oluştu'), 'error');
+      }
+    } catch (error: any) {
+      if (!isMountedRef.current) return;
+      console.error('Error deleting sale:', error);
+      showToast(error?.message || (mounted ? t('admin.dealers.errorDeletingSale') : 'Satış silinirken hata oluştu'), 'error');
+    }
+  }, [dealerId, fetchSales, fetchDealer, mounted, t]);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -852,6 +892,7 @@ export default function MusteriHesapDetayPage() {
                         <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">{mounted ? t('admin.dealers.productCount') : 'Ürün Sayısı'}</th>
                         <th className="text-right py-3 px-4 text-xs font-semibold text-gray-600 uppercase">{mounted ? t('admin.dealers.total') : 'Toplam'}</th>
                         <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">{mounted ? t('admin.dealers.status') : 'Durum'}</th>
+                        <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">{mounted ? t('admin.common.actions') : 'İşlemler'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -891,6 +932,18 @@ export default function MusteriHesapDetayPage() {
                                 {mounted ? t('admin.dealers.unpaid') : 'Borçlu'}
                               </span>
                             )}
+                          </td>
+                          <td className="py-4 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteSale(e, sale.id)}
+                              className="text-red-500 hover:text-red-700 p-1 rounded-md transition-colors"
+                              title={mounted ? t('admin.common.delete') : 'Sil'}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           </td>
                         </tr>
                       ))}
