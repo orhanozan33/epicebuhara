@@ -376,25 +376,27 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                     )}
                   </div>
                    
-                  {/* Fiyat Bilgisi */}
-                  <div className="flex items-center justify-between mt-1 sm:mt-2 mb-2 sm:mb-3">
-                    {hasDiscount ? (
-                      <>
-                        {/* Yeni Fiyat - Solda */}
+                  {/* Fiyat Bilgisi - Gizlendi */}
+                  {false && (
+                    <div className="flex items-center justify-between mt-1 sm:mt-2 mb-2 sm:mb-3">
+                      {hasDiscount ? (
+                        <>
+                          {/* Yeni Fiyat - Solda */}
+                          <span className="text-base sm:text-lg font-bold text-[#E91E63]">
+                            ${parseFloat(product.price).toFixed(2)}
+                          </span>
+                          {/* Eski Fiyat - Sağda - Kalın Siyah */}
+                          <span className="text-xs sm:text-sm font-bold text-black line-through">
+                            ${parseFloat(product.comparePrice).toFixed(2)}
+                          </span>
+                        </>
+                      ) : (
                         <span className="text-base sm:text-lg font-bold text-[#E91E63]">
                           ${parseFloat(product.price).toFixed(2)}
                         </span>
-                        {/* Eski Fiyat - Sağda - Kalın Siyah */}
-                        <span className="text-xs sm:text-sm font-bold text-black line-through">
-                          ${parseFloat(product.comparePrice).toFixed(2)}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-base sm:text-lg font-bold text-[#E91E63]">
-                        ${parseFloat(product.price).toFixed(2)}
-                      </span>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </Link>
 
                 {/* Sepete Ekle Butonu */}
