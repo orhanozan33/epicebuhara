@@ -145,6 +145,10 @@ export default function EditProductPage() {
       if (response.ok) {
         const product = await response.json();
         if (product) {
+          // Debug: Yüklenen değerleri logla
+          console.log('Fetched product baseNameFr:', (product as any).baseNameFr);
+          console.log('Fetched product baseNameEn:', (product as any).baseNameEn);
+          
           setProduct(product);
           const images = product.images ? product.images.split(',').map((img: string) => img.trim()).filter(Boolean) : [];
           setImageUrls(images);
