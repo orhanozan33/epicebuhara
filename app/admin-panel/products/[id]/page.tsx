@@ -346,8 +346,8 @@ export default function EditProductPage() {
         nameFr: null, // Artık kullanılmıyor, baseNameFr kullanılıyor
         nameEn: null, // Artık kullanılmıyor, baseNameEn kullanılıyor
         baseName: formData.baseName?.trim() || null,
-        baseNameFr: normalizeMultilingualField(formData.baseNameFr),
-        baseNameEn: normalizeMultilingualField(formData.baseNameEn),
+        baseNameFr: normalizeMultilingualField(formData.baseNameFr) ?? null, // Her zaman gönder (null olsa bile)
+        baseNameEn: normalizeMultilingualField(formData.baseNameEn) ?? null, // Her zaman gönder (null olsa bile)
         sku: formData.sku,
         price: formData.price,
         comparePrice: formData.comparePrice || null,
