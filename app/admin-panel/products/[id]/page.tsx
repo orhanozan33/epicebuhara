@@ -373,14 +373,34 @@ export default function EditProductPage() {
       });
 
       if (response.ok) {
-        router.push('/admin-panel/products');
+        const savedProduct = await response.json();
+        // Kaydedilen ürünü state'e güncelle (özellikle nameFr, nameEn için)
+        if (savedProduct) {
+          setFormData({
+            ...formData,
+            nameFr: (savedProduct as any).nameFr || '',
+            nameEn: (savedProduct as any).nameEn || '',
+            baseNameFr: (savedProduct as any).baseNameFr || '',
+            baseNameEn: (savedProduct as any).baseNameEn || '',
+          });
+        }
+        showToast(mounted ? t('admin.common.success') : 'Ürün başarıyla kaydedildi', 'success');
+        // Yeni ürün oluşturulduysa listeye yönlendir, değilse aynı sayfada kal
+        if (isNew) {
+          setTimeout(() => {
+            router.push('/admin-panel/products');
+          }, 1000);
+        }
       } else {
         const data = await response.json();
         setError(data.error || (mounted ? t('admin.common.error') : 'Ürün kaydedilemedi'));
+        showToast(data.error || (mounted ? t('admin.common.error') : 'Ürün kaydedilemedi'), 'error');
       }
     } catch (error) {
       console.error('Error saving product:', error);
-      setError(mounted ? t('admin.common.error') : 'Ürün kaydedilirken hata oluştu');
+      const errorMessage = mounted ? t('admin.common.error') : 'Ürün kaydedilirken hata oluştu';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setSaving(false);
     }
