@@ -116,6 +116,10 @@ export async function PUT(
 
     const product = existingProduct[0];
     const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
+    
+    // Debug: Gönderilen değerleri logla
+    console.log('Received baseNameFr:', baseNameFr, 'type:', typeof baseNameFr);
+    console.log('Received baseNameEn:', baseNameEn, 'type:', typeof baseNameEn);
 
     // nameFr, nameEn, baseNameFr, baseNameEn için normalizasyon
     // Frontend'den her zaman değer gönderiliyor (null veya string), bu yüzden undefined kontrolü yapmıyoruz
