@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { showToast } from '@/components/Toast';
+import { showConfirm } from '@/components/ConfirmModal';
 
 interface Category {
   id: number;
@@ -272,6 +274,43 @@ export default function EditProductPage() {
     const updatedUrls = imageUrls.filter((_, i) => i !== index);
     setImageUrls(updatedUrls);
     setFormData({ ...formData, images: updatedUrls.join(',') });
+  };
+
+  const handleDelete = async () => {
+    if (!id || id === 'yeni' || id === 'new') {
+      return;
+    }
+
+    const confirmed = await showConfirm(
+      mounted ? t('admin.products.deleteTitle') : 'Ürün Sil',
+      mounted ? t('admin.common.deleteConfirm') : 'Bu ürünü silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      {
+        confirmText: mounted ? t('admin.common.delete') : 'Sil',
+        cancelText: mounted ? t('admin.common.cancel') : 'İptal',
+        type: 'danger',
+      }
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        showToast(mounted ? t('admin.common.success') : 'Ürün başarıyla silindi', 'success');
+        router.push('/admin-panel/products');
+      } else {
+        const errorData = await response.json();
+        showToast(errorData.error || (mounted ? t('admin.common.error') : 'Ürün silinirken hata oluştu'), 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      showToast(mounted ? t('admin.common.error') : 'Ürün silinirken hata oluştu', 'error');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -776,6 +815,15 @@ export default function EditProductPage() {
             >
               {mounted ? t('admin.common.cancel') : 'İptal'}
             </Link>
+            {id && id !== 'yeni' && id !== 'new' && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                {mounted ? t('admin.common.delete') : 'Sil'}
+              </button>
+            )}
           </div>
         </form>
       </div>
