@@ -348,7 +348,7 @@ function SiparisTakibiContent() {
                         day: 'numeric',
                       })}
                     </p>
-                    <p className="text-sm sm:text-base font-bold text-[#E91E63]">${parseFloat(orderItem.total).toFixed(2)}</p>
+                    {/* Fiyat - Gizlendi */}
                   </div>
                 ))}
               </div>
@@ -395,7 +395,7 @@ function SiparisTakibiContent() {
                   </div>
                   <div>
                     <p className="text-xs sm:text-sm text-white/70 uppercase tracking-wide font-medium">{mounted ? t('cart.total') : 'Toplam'}</p>
-                    <p className="text-lg sm:text-xl font-bold text-white mt-1">${parseFloat(order.total).toFixed(2)}</p>
+                    {/* Fiyat - Gizlendi */}
                   </div>
                 </div>
               </div>
@@ -489,9 +489,7 @@ function SiparisTakibiContent() {
                         <p className="text-xs sm:text-sm text-gray-500 mb-1">
                           {mounted ? t('cart.quantity') : 'Miktar'}: {item.quantity}
                         </p>
-                        <p className="text-sm sm:text-base font-semibold text-[#E91E63]">
-                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-                        </p>
+                        {/* Fiyat - Gizlendi */}
                       </div>
                     </div>
                   ))}
@@ -499,38 +497,7 @@ function SiparisTakibiContent() {
               </div>
             )}
 
-            {/* Sipariş Özeti */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">{mounted ? t('orderTracking.orderSummary') : 'Sipariş Özeti'}</h3>
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                  <span>{mounted ? t('cart.subtotal') : 'Ara Toplam'}</span>
-                  <span>${parseFloat(order.subtotal).toFixed(2)}</span>
-                </div>
-                {parseFloat(order.tax) > 0 && (
-                  <>
-                    <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                      <span>TPS (5%)</span>
-                      <span>${(parseFloat(order.subtotal) * 0.05).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                      <span>TVQ (9.975%)</span>
-                      <span>${(parseFloat(order.subtotal) * 0.09975).toFixed(2)}</span>
-                    </div>
-                  </>
-                )}
-                {parseFloat(order.shipping) > 0 && (
-                  <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                    <span>Kargo</span>
-                    <span>${parseFloat(order.shipping).toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="border-t border-gray-200 pt-3 flex justify-between text-base sm:text-lg font-bold text-gray-900">
-                  <span>{mounted ? t('cart.total') : 'Toplam'}</span>
-                  <span>${parseFloat(order.total).toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+            {/* Sipariş Özeti - Fiyat Bilgileri Gizlendi */}
           </div>
         )}
 
