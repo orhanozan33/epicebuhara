@@ -102,8 +102,9 @@ export default function SiparisPage() {
   };
 
   const calculateSubtotal = () => {
+    // Fiyat hesaplaması gizlendi - sadece backend için gerekli
     return cartItems.reduce((total, item) => {
-      if (item.product) {
+      if (item.product?.price) {
         return total + parseFloat(item.product.price) * item.quantity;
       }
       return total;
@@ -403,27 +404,7 @@ export default function SiparisPage() {
                 })}
               </div>
               
-              {/* Fiyat Özeti - Gizlendi */}
-              {false && (
-                <div className="space-y-3 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between text-gray-600">
-                    <span>{mounted ? t('cart.subtotal') : 'Ara Toplam'}</span>
-                    <span>${calculateSubtotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>TPS (5%)</span>
-                    <span>${calculateTPS(calculateSubtotal()).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>TVQ (9.975%)</span>
-                    <span>${calculateTVQ(calculateSubtotal()).toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3 flex justify-between text-lg font-bold text-gray-900">
-                    <span>{mounted ? t('cart.total') : 'Toplam'}</span>
-                    <span>${calculateTotal().toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
+              {/* Fiyat Özeti - Tamamen Kaldırıldı */}
               
               <div className="pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600 text-center mb-3">
