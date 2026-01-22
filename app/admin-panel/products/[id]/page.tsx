@@ -137,7 +137,11 @@ export default function EditProductPage() {
 
     try {
       // Direkt ürün endpoint'ini kullan (nameFr ve nameEn değerlerini garantiler)
-      const response = await fetch(`/api/products/${productId}`);
+      // Cache bypass için timestamp ekle
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/products/${productId}?t=${timestamp}`, {
+        cache: 'no-store',
+      });
       if (response.ok) {
         const product = await response.json();
         if (product) {
@@ -171,8 +175,8 @@ export default function EditProductPage() {
             nameFr: (product as any).nameFr || '',
             nameEn: (product as any).nameEn || '',
             baseName: product.baseName || '',
-            baseNameFr: (product as any).baseNameFr || '',
-            baseNameEn: (product as any).baseNameEn || '',
+            baseNameFr: (product as any).baseNameFr ?? '', // null ise boş string
+            baseNameEn: (product as any).baseNameEn ?? '', // null ise boş string
             sku: product.sku || '',
             price: product.price || '',
             comparePrice: product.comparePrice || '',
@@ -397,9 +401,10 @@ export default function EditProductPage() {
           }, 1000);
         } else {
           // Mevcut ürün güncellendiyse, verileri yeniden yükle (güvence için)
+          // Biraz daha uzun bekle ki veritabanı güncellemesi tamamlansın
           setTimeout(() => {
             fetchProduct();
-          }, 500);
+          }, 1000);
         }
       } else {
         const data = await response.json();
