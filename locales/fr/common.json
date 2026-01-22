@@ -58,7 +58,9 @@
     "unitPrice": "Prix Unitaire",
     "discount": "Remise",
     "shipping": "Expédition",
-    "addToCartError": "Erreur lors de l'ajout du produit au panier"
+    "addToCartError": "Erreur lors de l'ajout du produit au panier",
+    "getPriceQuote": "Obtenir un Devis",
+    "priceQuoteInfo": "Finalisez la commande pour obtenir un devis"
   },
   "orderTracking": {
     "title": "Suivi de Commande",
@@ -104,7 +106,9 @@
     "orderSummary": "Résumé de la Commande",
     "fillAllFields": "Veuillez remplir tous les champs",
     "orderCreated": "Votre commande a été créée avec succès!",
-    "orderError": "Erreur lors de la création de la commande"
+    "orderError": "Erreur lors de la création de la commande",
+    "getPriceQuote": "Obtenir un Devis",
+    "priceQuoteInfo": "Confirmez la commande pour obtenir un devis"
   },
   "footer": {
     "contact": "Contact",
@@ -263,7 +267,10 @@
       "cash": "Espèces",
       "creditCard": "Carte de Crédit",
       "check": "Chèque",
-      "unpaid": "Impayé (Dette)"
+      "unpaid": "Impayé (Dette)",
+      "deleteTitle": "Supprimer la Commande",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer définitivement la commande \"{{orderNumber}}\"? Cette action ne peut pas être annulée.",
+      "deletedSuccess": "Commande supprimée avec succès"
     },
     "dealers": {
       "title": "Distributeurs",
@@ -308,6 +315,10 @@
       "errorLoadingDealer": "Erreur lors du chargement des informations du distributeur",
       "errorLoadingSales": "Erreur lors du chargement des ventes",
       "errorNavigatingSaleDetail": "Erreur lors de la navigation vers les détails de la vente",
+      "confirmDeleteSaleTitle": "Confirmer la Suppression de la Vente",
+      "confirmDeleteSaleMessage": "Êtes-vous sûr de vouloir supprimer définitivement cette vente? Cette action ne peut pas être annulée.",
+      "saleDeletedSuccess": "Vente supprimée avec succès",
+      "errorDeletingSale": "Erreur lors de la suppression de la vente",
       "products": "produits",
       "salesTitle": "Vente Distributeur",
       "searchProducts": "Rechercher des produits...",

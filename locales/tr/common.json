@@ -51,7 +51,9 @@
     "removeFromCart": "Ürün sepetten kaldırıldı",
     "removeError": "Ürün kaldırılırken hata oluştu",
     "quantityUpdateError": "Miktar güncellenirken hata oluştu",
-    "quantity": "Miktar"
+    "quantity": "Miktar",
+    "getPriceQuote": "Fiyat Teklifi Al",
+    "priceQuoteInfo": "Fiyat teklifi almak için siparişi tamamlayın"
   },
   "orderTracking": {
     "title": "Sipariş Takibi",
@@ -97,7 +99,9 @@
     "orderSummary": "Sipariş Özeti",
     "fillAllFields": "Lütfen tüm alanları doldurun",
     "orderCreated": "Siparişiniz başarıyla oluşturuldu!",
-    "orderError": "Sipariş oluşturulurken hata oluştu"
+    "orderError": "Sipariş oluşturulurken hata oluştu",
+    "getPriceQuote": "Fiyat Teklifi Al",
+    "priceQuoteInfo": "Fiyat teklifi almak için siparişi onaylayın"
   },
   "footer": {
     "contact": "İletişim",
@@ -256,7 +260,10 @@
       "cash": "Nakit",
       "creditCard": "Kredi Kartı",
       "check": "Çek",
-      "unpaid": "Ödenmedi (Borç)"
+      "unpaid": "Ödenmedi (Borç)",
+      "deleteTitle": "Sipariş Sil",
+      "deleteConfirm": "\"{{orderNumber}}\" siparişini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "deletedSuccess": "Sipariş başarıyla silindi"
     },
     "dealers": {
       "title": "Bayi",
@@ -301,6 +308,10 @@
       "errorLoadingDealer": "Bayi bilgileri yüklenirken hata oluştu",
       "errorLoadingSales": "Satışlar yüklenirken hata oluştu",
       "errorNavigatingSaleDetail": "Satış detayına gidilirken hata oluştu",
+      "confirmDeleteSaleTitle": "Satışı Silmeyi Onayla",
+      "confirmDeleteSaleMessage": "Bu satışı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "saleDeletedSuccess": "Satış başarıyla silindi",
+      "errorDeletingSale": "Satış silinirken hata oluştu",
       "products": "ürün",
       "salesTitle": "Bayi Satışı",
       "searchProducts": "Ürün ara...",

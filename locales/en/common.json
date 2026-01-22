@@ -58,7 +58,9 @@
     "unitPrice": "Unit Price",
     "discount": "Discount",
     "shipping": "Shipping",
-    "addToCartError": "Error adding product to cart"
+    "addToCartError": "Error adding product to cart",
+    "getPriceQuote": "Get Price Quote",
+    "priceQuoteInfo": "Complete the order to get a price quote"
   },
   "orderTracking": {
     "title": "Order Tracking",
@@ -104,7 +106,9 @@
     "orderSummary": "Order Summary",
     "fillAllFields": "Please fill all fields",
     "orderCreated": "Your order has been created successfully!",
-    "orderError": "Error creating order"
+    "orderError": "Error creating order",
+    "getPriceQuote": "Get Price Quote",
+    "priceQuoteInfo": "Confirm the order to get a price quote"
   },
   "footer": {
     "contact": "Contact",
@@ -263,7 +267,10 @@
       "cash": "Cash",
       "creditCard": "Credit Card",
       "check": "Check",
-      "unpaid": "Unpaid (Debt)"
+      "unpaid": "Unpaid (Debt)",
+      "deleteTitle": "Delete Order",
+      "deleteConfirm": "Are you sure you want to permanently delete order \"{{orderNumber}}\"? This action cannot be undone.",
+      "deletedSuccess": "Order deleted successfully"
     },
     "dealers": {
       "title": "Dealers",
@@ -308,6 +315,10 @@
       "errorLoadingDealer": "Error loading dealer information",
       "errorLoadingSales": "Error loading sales",
       "errorNavigatingSaleDetail": "Error navigating to sale detail",
+      "confirmDeleteSaleTitle": "Confirm Delete Sale",
+      "confirmDeleteSaleMessage": "Are you sure you want to permanently delete this sale? This action cannot be undone.",
+      "saleDeletedSuccess": "Sale deleted successfully",
+      "errorDeletingSale": "Error deleting sale",
       "products": "products",
       "salesTitle": "Dealer Sale",
       "searchProducts": "Search products...",

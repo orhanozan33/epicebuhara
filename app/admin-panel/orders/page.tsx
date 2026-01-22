@@ -129,7 +129,7 @@ export default function SiparislerPage() {
   const handleDelete = async (orderId: number, orderNumber: string) => {
     const confirmed = await showConfirm(
       mounted ? t('admin.orders.deleteTitle') : 'Sipariş Sil',
-      mounted ? t('admin.orders.deleteConfirm') : `"${orderNumber}" siparişini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`,
+      mounted ? t('admin.orders.deleteConfirm', { orderNumber }) : `"${orderNumber}" siparişini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`,
       {
         confirmText: mounted ? t('admin.common.delete') : 'Sil',
         cancelText: mounted ? t('admin.common.cancel') : 'İptal',
