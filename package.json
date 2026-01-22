@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "vercel-build": "next build",
     "clean": "rm -rf .next && echo 'Cache temizlendi'",
     "clean:win": "if exist .next rmdir /s /q .next && echo Cache temizlendi",
     "db:generate": "drizzle-kit generate",
