@@ -208,11 +208,14 @@ export default function SepetPage() {
                       </button>
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm sm:text-base font-semibold text-[#E91E63]">
-                        ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
+                    {/* Fiyat Bilgisi - Gizlendi */}
+                    {false && (
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm sm:text-base font-semibold text-[#E91E63]">
+                          ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -224,30 +227,39 @@ export default function SepetPage() {
             <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 sticky top-4">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">{mounted ? t('cart.orderSummary') : 'Sipariş Özeti'}</h2>
                 
-                <div className="space-y-2 sm:space-y-3 mb-4">
-                  <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                    <span>{mounted ? t('cart.subtotal') : 'Ara Toplam'}</span>
-                    <span>${calculateSubtotal().toFixed(2)}</span>
+                {/* Fiyat Bilgileri - Gizlendi */}
+                {false && (
+                  <div className="space-y-2 sm:space-y-3 mb-4">
+                    <div className="flex justify-between text-gray-600 text-sm sm:text-base">
+                      <span>{mounted ? t('cart.subtotal') : 'Ara Toplam'}</span>
+                      <span>${calculateSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600 text-sm sm:text-base">
+                      <span>TPS (5%)</span>
+                      <span>${calculateTPS(calculateSubtotal()).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600 text-sm sm:text-base">
+                      <span>TVQ (9.975%)</span>
+                      <span>${calculateTVQ(calculateSubtotal()).toFixed(2)}</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-3 flex justify-between text-base sm:text-lg font-bold text-gray-900">
+                      <span>{mounted ? t('cart.total') : 'Toplam'}</span>
+                      <span>${calculateTotal().toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                    <span>TPS (5%)</span>
-                    <span>${calculateTPS(calculateSubtotal()).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                    <span>TVQ (9.975%)</span>
-                    <span>${calculateTVQ(calculateSubtotal()).toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3 flex justify-between text-base sm:text-lg font-bold text-gray-900">
-                    <span>{mounted ? t('cart.total') : 'Toplam'}</span>
-                    <span>${calculateTotal().toFixed(2)}</span>
-                  </div>
+                )}
+                
+                <div className="mb-4">
+                  <p className="text-sm sm:text-base text-gray-600 text-center mb-3">
+                    {mounted ? 'Fiyat teklifi almak için siparişi tamamlayın' : 'Fiyat teklifi almak için siparişi tamamlayın'}
+                  </p>
                 </div>
                 
                 <Link
                   href="/order"
                   className="block w-full px-4 py-2.5 sm:py-3 bg-[#E91E63] text-white font-medium rounded-lg hover:bg-[#C2185B] transition-colors text-center text-sm sm:text-base"
                 >
-                  {mounted ? t('cart.completeOrder') : 'Siparişi Tamamla'}
+                  {mounted ? 'Fiyat Teklifi Al' : 'Fiyat Teklifi Al'}
                 </Link>
               </div>
             </div>
