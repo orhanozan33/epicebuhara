@@ -313,11 +313,11 @@ export default function ProductDetailPage() {
   const getProductName = () => {
     if (!displayProduct) return '';
     
-    if (currentLanguage === 'fr' && displayProduct.nameFr) {
-      return displayProduct.nameFr;
+    if (currentLanguage === 'fr' && displayProduct.baseNameFr) {
+      return displayProduct.baseNameFr;
     }
-    if (currentLanguage === 'en' && displayProduct.nameEn) {
-      return displayProduct.nameEn;
+    if (currentLanguage === 'en' && displayProduct.baseNameEn) {
+      return displayProduct.baseNameEn;
     }
     // TR veya çeviri yoksa orijinal ismi kullan
     return displayProduct.baseName || displayProduct.name;

@@ -289,10 +289,10 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
             : 0;
           
           // Dil değişikliğine göre ürün ismini seç
-          const productName = (currentLanguage === 'fr' && product.nameFr) 
-            ? product.nameFr 
-            : (currentLanguage === 'en' && product.nameEn) 
-              ? product.nameEn 
+          const productName = (currentLanguage === 'fr' && product.baseNameFr) 
+            ? product.baseNameFr 
+            : (currentLanguage === 'en' && product.baseNameEn) 
+              ? product.baseNameEn 
               : (product.baseName || product.name);
           
           return (
