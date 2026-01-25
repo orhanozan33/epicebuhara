@@ -13,6 +13,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
+dotenv.config({ path: '.env.production' });
 
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 if (!connectionString) {
@@ -127,8 +128,8 @@ async function run() {
         const slugBase = slugify(baseNameEn);
         const slug = `${slugBase}-${v.weight}-gr`;
         await sql`
-          INSERT INTO products (name, name_fr, name_en, base_name, base_name_fr, base_name_en, slug, sku, price, stock, weight, unit, is_active, track_stock)
-          VALUES (${nameTr}, NULL, NULL, ${baseNameTr}, ${baseNameFr}, ${baseNameEn}, ${slug}, ${v.sku}, ${String(v.price)}, 0, ${String(v.weight)}, 'Gr', true, true)
+          INSERT INTO products (name, base_name, base_name_fr, base_name_en, slug, sku, price, stock, weight, unit, is_active, track_stock)
+          VALUES (${nameTr}, ${baseNameTr}, ${baseNameFr}, ${baseNameEn}, ${slug}, ${v.sku}, ${String(v.price)}, 0, ${String(v.weight)}, 'Gr', true, true)
         `;
         inserted++;
       }
