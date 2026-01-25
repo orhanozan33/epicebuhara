@@ -49,6 +49,8 @@ interface CompanySettings {
   postalCode: string;
   tpsNumber: string;
   tvqNumber: string;
+  tpsRate?: number | string | null;
+  tvqRate?: number | string | null;
 }
 
 export default function FaturaPage() {
@@ -272,8 +274,12 @@ export default function FaturaPage() {
   const subtotal = parseFloat(sale.subtotal || '0');
   const discount = parseFloat(sale.discount || '0');
   const afterDiscount = Math.max(0, subtotal - discount);
-  const tps = Math.round(afterDiscount * 0.05 * 100) / 100;
-  const tvq = Math.round((afterDiscount + tps) * 0.09975 * 100) / 100; // Quebec: TVQ, TPS dahil fiyat üzerinden
+  const tpsRatePct = company?.tpsRate != null && company.tpsRate !== '' ? parseFloat(String(company.tpsRate)) : 5;
+  const tvqRatePct = company?.tvqRate != null && company.tvqRate !== '' ? parseFloat(String(company.tvqRate)) : 9.975;
+  const tpsRate = tpsRatePct / 100;
+  const tvqRate = tvqRatePct / 100;
+  const tps = Math.round(afterDiscount * tpsRate * 100) / 100;
+  const tvq = Math.round((afterDiscount + tps) * tvqRate * 100) / 100; // Quebec: TVQ, TPS dahil fiyat üzerinden
   const total = parseFloat(sale.total || '0');
 
   const paymentMethodText: Record<string, string> = {
@@ -416,11 +422,11 @@ export default function FaturaPage() {
                   </>
                 )}
                 <div className="flex justify-between text-[10px] lg:text-sm">
-                  <span className="text-gray-700">{mounted ? t('admin.invoices.tps') : 'TPS (5%)'}:</span>
+                  <span className="text-gray-700">{mounted ? t('admin.invoices.tps') : 'TPS'} ({tpsRatePct}%):</span>
                   <span className="font-semibold text-gray-900">${tps.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[10px] lg:text-sm">
-                  <span className="text-gray-700">{mounted ? t('admin.invoices.tvq') : 'TVQ (9.975%)'}:</span>
+                  <span className="text-gray-700">{mounted ? t('admin.invoices.tvq') : 'TVQ'} ({tvqRatePct}%):</span>
                   <span className="font-semibold text-gray-900">${tvq.toFixed(2)}</span>
                 </div>
               </div>

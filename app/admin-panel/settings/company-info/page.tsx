@@ -15,6 +15,8 @@ interface CompanySettings {
   postalCode: string;
   tpsNumber: string;
   tvqNumber: string;
+  tpsRate: string;
+  tvqRate: string;
 }
 
 export default function FirmaBilgileriPage() {
@@ -31,6 +33,8 @@ export default function FirmaBilgileriPage() {
     postalCode: '',
     tpsNumber: '',
     tvqNumber: '',
+    tpsRate: '5',
+    tvqRate: '9.975',
   });
 
   useEffect(() => {
@@ -51,6 +55,8 @@ export default function FirmaBilgileriPage() {
           postalCode: data.postalCode || '',
           tpsNumber: data.tpsNumber || '',
           tvqNumber: data.tvqNumber || '',
+          tpsRate: data.tpsRate != null && data.tpsRate !== '' ? String(data.tpsRate) : '5',
+          tvqRate: data.tvqRate != null && data.tvqRate !== '' ? String(data.tvqRate) : '9.975',
         });
       } else {
         showToast(mounted ? t('admin.common.error') : 'Firma bilgileri getirilirken hata oluştu', 'error');
@@ -231,6 +237,41 @@ export default function FirmaBilgileriPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                   placeholder={mounted ? 'TVQ numarası' : 'TVQ numarası'}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Faturalarda TPS oranı (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={formData.tpsRate}
+                    onChange={(e) => handleChange('tpsRate', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                    placeholder="5"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Örn: 5</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Faturalarda TVQ oranı (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.001"
+                    value={formData.tvqRate}
+                    onChange={(e) => handleChange('tvqRate', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                    placeholder="9.975"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Örn: 9.975</p>
+                </div>
               </div>
             </div>
           </div>
