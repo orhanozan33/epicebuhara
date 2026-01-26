@@ -264,6 +264,9 @@ export default function UrunlerPage() {
   </style>
 </head>
 <body>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 12px; color: #666;">
+    <div>${new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</div>
+  </div>
   <div class="header">
     <div class="company-name">${company?.companyName || 'Epicê Buhara'}</div>
     <div class="company-info">
