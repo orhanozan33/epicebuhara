@@ -15,7 +15,26 @@ interface Product {
   weight?: string | null;
   unit?: string | null;
   categoryName?: string | null;
+  categoryId?: number | null;
   isActive?: boolean;
+  baseName?: string | null;
+  baseNameFr?: string | null;
+  baseNameEn?: string | null;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  nameFr?: string | null;
+  nameEn?: string | null;
+}
+
+interface CompanySettings {
+  companyName: string;
+  address: string;
+  phone: string;
+  email: string;
+  postalCode: string;
 }
 
 export default function UrunlerPage() {
@@ -25,11 +44,47 @@ export default function UrunlerPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [company, setCompany] = useState<CompanySettings | null>(null);
 
   useEffect(() => {
     setMounted(true);
     fetchProducts();
+    fetchCategories();
+    fetchCompany();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchCompany = async () => {
+    try {
+      const response = await fetch('/api/settings/company');
+      if (response.ok) {
+        const data = await response.json();
+        setCompany({
+          companyName: data.companyName || '',
+          address: data.address || '',
+          phone: data.phone || '',
+          email: data.email || '',
+          postalCode: data.postalCode || '',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching company:', error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -113,7 +168,158 @@ export default function UrunlerPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set(products.map((p) => p.categoryName).filter((cat): cat is string => !!cat)));
+  const categoryNames = Array.from(new Set(products.map((p) => p.categoryName).filter((cat): cat is string => !!cat)));
+
+  const handlePrintPriceList = () => {
+    if (selectedCategories.length === 0) {
+      showToast('Lütfen en az bir kategori seçin', 'error');
+      return;
+    }
+    setShowPrintModal(true);
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const selectedCategoryIds = categories
+      .filter(cat => selectedCategories.includes(cat.id))
+      .map(cat => cat.id);
+    
+    // Kategori ID'lerine göre filtrele
+    const productsToPrint = products.filter(p => {
+      return p.categoryId && selectedCategoryIds.includes(p.categoryId) && p.isActive !== false;
+    }).sort((a, b) => {
+      // Kategoriye göre sırala, sonra ürün adına göre
+      const catA = a.categoryName || '';
+      const catB = b.categoryName || '';
+      if (catA !== catB) return catA.localeCompare(catB);
+      return (a.baseNameFr || a.baseNameEn || a.name).localeCompare(b.baseNameFr || b.baseNameEn || b.name);
+    });
+
+    const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Liste de Prix</title>
+  <style>
+    @media print {
+      @page { margin: 1cm; }
+      body { margin: 0; }
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      color: #000;
+    }
+    .header {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 15px;
+    }
+    .company-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .company-info {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #333;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      margin: 30px 0;
+      text-transform: uppercase;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: left;
+      font-size: 12px;
+    }
+    th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .product-name {
+      font-weight: 500;
+    }
+    .price {
+      text-align: right;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="company-name">${company?.companyName || 'Epicê Buhara'}</div>
+    <div class="company-info">
+      ${company?.address ? `<div>${company.address}</div>` : ''}
+      ${company?.postalCode ? `<div>${company.postalCode}</div>` : ''}
+      ${company?.phone ? `<div>Tél: ${company.phone}</div>` : ''}
+      ${company?.email ? `<div>Email: ${company.email}</div>` : ''}
+    </div>
+  </div>
+  
+  <div class="title">Liste de Prix</div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 5%;">#</th>
+        <th style="width: 40%;">Produit</th>
+        <th style="width: 15%;">Poids</th>
+        <th style="width: 15%;">SKU</th>
+        <th style="width: 15%;">Stock</th>
+        <th style="width: 10%;" class="price">Prix</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${productsToPrint.map((product, index) => {
+        const weight = product.weight ? `${product.weight} ${product.unit || 'Gr'}` : '-';
+        const productName = product.baseNameFr || product.baseNameEn || product.name;
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td class="product-name">${productName}</td>
+            <td>${weight}</td>
+            <td>${product.sku || '-'}</td>
+            <td>${product.stock || 0}</td>
+            <td class="price">$${parseFloat(product.price || '0').toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('')}
+    </tbody>
+  </table>
+  
+  <div style="margin-top: 30px; font-size: 11px; text-align: center; color: #666;">
+    Total: ${productsToPrint.length} produits
+  </div>
+</body>
+</html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+    setShowPrintModal(false);
+  };
 
   if (loading) {
     return (
@@ -136,12 +342,20 @@ export default function UrunlerPage() {
             </div>
           </div>
         </div>
-        <Link
-          href="/admin-panel/products/new"
-          className="bg-[#E91E63] text-white px-2 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-[#C2185B] transition-colors text-xs lg:text-sm whitespace-nowrap"
-        >
-          + {mounted ? t('admin.products.addNew') : 'Yeni Ürün Ekle'}
-        </Link>
+        <div className="flex gap-2">
+          <button
+            onClick={handlePrintPriceList}
+            className="bg-blue-600 text-white px-2 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-blue-700 transition-colors text-xs lg:text-sm whitespace-nowrap"
+          >
+            🖨️ Ürün Listesi Yazdır
+          </button>
+          <Link
+            href="/admin-panel/products/new"
+            className="bg-[#E91E63] text-white px-2 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-[#C2185B] transition-colors text-xs lg:text-sm whitespace-nowrap"
+          >
+            + {mounted ? t('admin.products.addNew') : 'Yeni Ürün Ekle'}
+          </Link>
+        </div>
       </div>
 
       {/* Filtreler */}
@@ -169,7 +383,7 @@ export default function UrunlerPage() {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
             >
               <option value="all">{mounted ? t('admin.products.allCategories') : 'Tüm Kategoriler'}</option>
-              {categories.filter(cat => cat).map((cat) => (
+              {categoryNames.filter(cat => cat).map((cat) => (
                 <option key={cat} value={cat || ''}>
                   {cat || '-'}
                 </option>
@@ -378,6 +592,52 @@ export default function UrunlerPage() {
       <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
         {mounted ? t('admin.products.showingProducts', { count: filteredProducts.length }) : `Toplam ${filteredProducts.length} ürün gösteriliyor`}
       </div>
+
+      {/* Print Modal */}
+      {showPrintModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Kategori Seçin</h3>
+            <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">
+              {categories.map((category) => (
+                <label key={category.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(category.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedCategories([...selectedCategories, category.id]);
+                      } else {
+                        setSelectedCategories(selectedCategories.filter(id => id !== category.id));
+                      }
+                    }}
+                    className="w-4 h-4 text-[#E91E63] focus:ring-[#E91E63] border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-900">{category.name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowPrintModal(false);
+                  setSelectedCategories([]);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handlePrint}
+                disabled={selectedCategories.length === 0}
+                className="px-4 py-2 bg-[#E91E63] text-white rounded-lg hover:bg-[#C2185B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Yazdır
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
