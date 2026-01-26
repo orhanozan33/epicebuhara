@@ -276,12 +276,11 @@ export default function FaturaPage() {
   const subtotal = parseFloat(sale.subtotal || '0');
   const discount = parseFloat(sale.discount || '0');
   const afterDiscount = Math.max(0, subtotal - discount);
-  const tpsRatePct = company?.tpsRate != null && company.tpsRate !== '' ? parseFloat(String(company.tpsRate)) : 5;
-  const tvqRatePct = company?.tvqRate != null && company.tvqRate !== '' ? parseFloat(String(company.tvqRate)) : 9.975;
-  const tpsRate = tpsRatePct / 100;
-  const tvqRate = tvqRatePct / 100;
-  const tps = Math.round(afterDiscount * tpsRate * 100) / 100;
-  const tvq = Math.round((afterDiscount + tps) * tvqRate * 100) / 100; // Quebec: TVQ, TPS dahil fiyat üzerinden
+  // Vergi yok - TPS ve TVQ 0
+  const tpsRatePct = 0;
+  const tvqRatePct = 0;
+  const tps = 0;
+  const tvq = 0;
   const total = parseFloat(sale.total || '0');
 
   const paymentMethodText: Record<string, string> = {

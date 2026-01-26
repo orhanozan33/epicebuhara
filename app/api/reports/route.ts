@@ -42,8 +42,8 @@ export async function GET(request: Request) {
     const totalOrders = ordersResult[0]?.totalOrders || 0;
     const orderRevenue = parseFloat(ordersResult[0]?.orderRevenue?.toString() || '0');
     const orderSubtotal = parseFloat(ordersResult[0]?.orderSubtotal?.toString() || '0');
-    const orderTPS = orderSubtotal * 0.05;
-    const orderTVQ = orderSubtotal * 0.09975;
+    const orderTPS = 0; // Vergi yok
+    const orderTVQ = 0; // Vergi yok
 
     // Toplam bayi satışları
     const dealerSalesQuery = db
@@ -68,8 +68,8 @@ export async function GET(request: Request) {
     const dealerSubtotalRaw = parseFloat(dealerSalesResult[0]?.dealerSubtotal?.toString() || '0');
     const dealerDiscountTotal = parseFloat(dealerSalesResult[0]?.dealerDiscount?.toString() || '0');
     const dealerAfterDiscount = dealerSubtotalRaw - dealerDiscountTotal;
-    const dealerTPS = dealerAfterDiscount * 0.05;
-    const dealerTVQ = (dealerAfterDiscount + dealerTPS) * 0.09975; // Quebec: TVQ, TPS dahil fiyat üzerinden
+    const dealerTPS = 0; // Vergi yok
+    const dealerTVQ = 0; // Vergi yok
 
     // Toplam alacak (borçlu satışlar)
     const alacakQuery = db

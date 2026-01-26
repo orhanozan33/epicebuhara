@@ -252,10 +252,10 @@ export async function POST(
     const discountAmount = (subtotal * dealerDiscount) / 100;
     const afterDiscount = subtotal - discountAmount;
 
-    // TPS ve TVQ hesapla (Quebec sistemi: Önce TPS, sonra TVQ TPS dahil fiyat üzerinden)
-    const tpsAmount = afterDiscount * 0.05;
-    const tvqAmount = (afterDiscount + tpsAmount) * 0.09975;
-    const total = afterDiscount + tpsAmount + tvqAmount;
+    // TPS ve TVQ hesapla - Vergi yok, 0
+    const tpsAmount = 0;
+    const tvqAmount = 0;
+    const total = afterDiscount;
 
     // Satış numarası oluştur - Benzersiz olmalı
     // Tüm SAL- ile başlayan satış numaralarını al ve en yüksek numarayı bul

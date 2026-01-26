@@ -491,21 +491,20 @@ export default function BayiSatisPage() {
     return Math.max(0, subtotal - discountAmount);
   }, [subtotal, discountAmount]);
   
-  // TPS (Quebec Sales Tax) %5
+  // TPS - Vergi yok, 0
   const tpsAmount = useMemo(() => {
-    return Math.round((afterDiscount * 0.05) * 100) / 100;
-  }, [afterDiscount]);
+    return 0;
+  }, []);
   
-  // TVQ (Quebec Goods and Services Tax) %9.975
-  // Quebec sistemi: TVQ, TPS eklenmiş fiyat üzerinden hesaplanır
+  // TVQ - Vergi yok, 0
   const tvqAmount = useMemo(() => {
-    return Math.round((afterDiscount + tpsAmount) * 0.09975 * 100) / 100;
-  }, [afterDiscount, tpsAmount]);
+    return 0;
+  }, []);
   
-  // Toplam (İskonto + TPS + TVQ)
+  // Toplam (İskonto sonrası, vergi yok)
   const total = useMemo(() => {
-    return Math.round((afterDiscount + tpsAmount + tvqAmount) * 100) / 100;
-  }, [afterDiscount, tpsAmount, tvqAmount]);
+    return Math.round(afterDiscount * 100) / 100;
+  }, [afterDiscount]);
 
   const handleSubmit = useCallback(async () => {
     if (!isMountedRef.current) return;
