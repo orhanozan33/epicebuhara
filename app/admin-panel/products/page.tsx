@@ -272,8 +272,6 @@ export default function UrunlerPage() {
     </div>
   </div>
   
-  <div class="title">Liste de Prix</div>
-  
   <table>
     <thead>
       <tr>
@@ -285,7 +283,12 @@ export default function UrunlerPage() {
     </thead>
     <tbody>
       ${productsToPrint.map((product, index) => {
-        const weight = product.weight ? `${product.weight} ${product.unit || 'Gr'}` : '-';
+        let weight = '-';
+        if (product.weight) {
+          const weightNum = parseFloat(product.weight);
+          const weightStr = weightNum % 1 === 0 ? Math.floor(weightNum).toString() : weightNum.toString();
+          weight = `${weightStr} ${product.unit || 'Gr'}`;
+        }
         const productName = product.baseNameFr || product.baseNameEn || product.name;
         return `
           <tr>
