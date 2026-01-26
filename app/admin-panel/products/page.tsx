@@ -267,7 +267,6 @@ export default function UrunlerPage() {
   <div class="header">
     <div class="company-name">${company?.companyName || 'Epicê Buhara'}</div>
     <div class="company-info">
-      ${company?.postalCode ? `<div>${company.postalCode}</div>` : ''}
       ${company?.phone ? `<div>Tél: ${company.phone}</div>` : ''}
       ${company?.email ? `<div>Email: ${company.email}</div>` : ''}
     </div>
