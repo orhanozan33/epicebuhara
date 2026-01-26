@@ -203,7 +203,7 @@ export default function UrunlerPage() {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Liste de Prix</title>
+  <title>Price List</title>
   <style>
     @media print {
       @page { margin: 1cm; }
