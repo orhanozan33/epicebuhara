@@ -171,14 +171,15 @@ export default function UrunlerPage() {
   const categoryNames = Array.from(new Set(products.map((p) => p.categoryName).filter((cat): cat is string => !!cat)));
 
   const handlePrintPriceList = () => {
-    if (selectedCategories.length === 0) {
-      showToast('Lütfen en az bir kategori seçin', 'error');
-      return;
-    }
     setShowPrintModal(true);
   };
 
   const handlePrint = () => {
+    if (selectedCategories.length === 0) {
+      showToast('Lütfen en az bir kategori seçin', 'error');
+      return;
+    }
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
