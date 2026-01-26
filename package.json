@@ -18,6 +18,7 @@
     "create-admin": "tsx scripts/create-admin.ts",
     "seed": "tsx scripts/seed-products-pricelist.ts",
     "seed-products": "tsx scripts/seed-products-pricelist.ts",
+    "seed-all": "tsx scripts/seed-all-products.ts",
     "migrate-to-supabase": "tsx scripts/migrate-to-supabase.ts",
     "update-products": "tsx scripts/update-products.ts",
     "check-data": "tsx scripts/check-data.ts",
