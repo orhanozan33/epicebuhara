@@ -109,6 +109,40 @@ const trToFr: Record<string, string> = {
   'BEYAZ SİRKE 1000 ml': 'Vinaigre blanc 1000 ml',
   'ELMA SİRKESİ 1000 ml': 'Vinaigre de pomme 1000 ml',
   'ÜZÜM SİRKESİ 1000 ml': 'Vinaigre de raisin 1000 ml',
+  // Bitki Çayları
+  'Dağ Kekiği': 'Thym sauvage',
+  'Mor Reyhan': 'Basilic pourpre',
+  'Anason Tane': 'Graines d\'anis',
+  'Bamya Tohumu': 'Graines de gombo',
+  'Rezene Tane': 'Graines de fenouil',
+  'Zencefil Tane': 'Gingembre entier',
+  'Zerdeçal Tane': 'Curcuma entier',
+  'Açlık Otu': 'Séné',
+  'Adaçayı': 'Thé à la sauge',
+  'Avakado Yaprağı': 'Feuille d\'avocat',
+  'Civan Perçemi': 'Achillée millefeuille',
+  'Ebegümeci': 'Thé de mauve',
+  'Ekinezya': 'Échinacée',
+  'Form Çayı': 'Thé Form',
+  'Funda Yaprağı': 'Fleurs de bruyère',
+  'Hatmi Çiçeği': 'Fleurs de guimauve',
+  'Ihlamur': 'Tilleul',
+  'Isırgan Otu': 'Feuilles d\'ortie',
+  'Karabaş Otu': 'Lavande stoechas',
+  'Kış Çayı': 'Thé d\'hiver',
+  'Kiraz Sapı': 'Tige de cerise',
+  'Lavanta': 'Lavande',
+  'Mate Çayı': 'Thé Yerba Mate',
+  'Melisa': 'Mélisse',
+  'Mersin Yaprağı': 'Feuille de myrte',
+  'Nar Çiçeği': 'Hibiscus',
+  'Papatya': 'Camomille',
+  'Sarı Kantaron': 'Millepertuis',
+  'Sinameki': 'Thé de séné',
+  'Tomurcuk Gül': 'Boutons de rose',
+  'Top Yasemin Çayı': 'Thé de jasmin',
+  'Yeşil Çay': 'Thé vert',
+  'Zeytin Yaprağı': 'Feuille d\'olivier',
 };
 
 function getFrName(trName: string): string {
@@ -285,6 +319,45 @@ const PRODUCT_ROWS: Array<{ tr: string; en: string; weight: number; stock: numbe
   { tr: 'Yaprak Kekik', en: 'Oregano', weight: 1500, stock: 50, price: 24.99 },
   { tr: 'Karabiber Toz', en: 'Black Pepper Ground', weight: 5000, stock: 20, price: 74.99 },
   { tr: 'Maydonoz kurusu', en: 'Dried Parsley', weight: 2000, stock: 50, price: 24.99 },
+  // Bitki Çayları
+  { tr: 'Dağ Kekiği', en: 'Wild Thyme', weight: 50, stock: 180, price: 1.99 },
+  { tr: 'Defne Yaprağı', en: 'Bay Leaf', weight: 15, stock: 360, price: 1.99 },
+  { tr: 'Mor Reyhan', en: 'Purple Basil Leaves', weight: 30, stock: 180, price: 1.99 },
+  { tr: 'Anason Tane', en: 'Anise Seeds', weight: 180, stock: 180, price: 1.99 },
+  { tr: 'Bamya Tohumu', en: 'Okra Seed', weight: 200, stock: 180, price: 1.99 },
+  { tr: 'Chia Tohumu', en: 'Chia Seeds', weight: 200, stock: 240, price: 1.99 },
+  { tr: 'Keten Tohumu', en: 'Flaxseed', weight: 250, stock: 240, price: 1.99 },
+  { tr: 'Rezene Tane', en: 'Fennel Seeds', weight: 150, stock: 240, price: 1.99 },
+  { tr: 'Çubuk Tarçın', en: 'Cinnamon Sticks', weight: 80, stock: 360, price: 1.99 },
+  { tr: 'Zencefil Tane', en: 'Ginger Whole', weight: 200, stock: 180, price: 1.99 },
+  { tr: 'Zerdeçal Tane', en: 'Turmeric Finger', weight: 200, stock: 180, price: 1.99 },
+  { tr: 'Açlık Otu', en: 'Senna', weight: 30, stock: 240, price: 1.99 },
+  { tr: 'Adaçayı', en: 'Sage Tea', weight: 30, stock: 240, price: 1.99 },
+  { tr: 'Avakado Yaprağı', en: 'Avocado Leaf', weight: 10, stock: 0, price: 1.99 },
+  { tr: 'Civan Perçemi', en: 'Yarrow', weight: 30, stock: 120, price: 1.99 },
+  { tr: 'Ebegümeci', en: 'Malva Tea', weight: 60, stock: 120, price: 1.99 },
+  { tr: 'Ekinezya', en: 'Echinacea', weight: 50, stock: 120, price: 1.99 },
+  { tr: 'Form Çayı', en: 'Form Tea', weight: 80, stock: 240, price: 1.99 },
+  { tr: 'Funda Yaprağı', en: 'Heather Flowers', weight: 100, stock: 120, price: 1.99 },
+  { tr: 'Hatmi Çiçeği', en: 'Mallow Blossom', weight: 30, stock: 120, price: 1.99 },
+  { tr: 'Ihlamur', en: 'Linden Tea', weight: 30, stock: 240, price: 1.99 },
+  { tr: 'Isırgan Otu', en: 'Nettle Leaves', weight: 30, stock: 120, price: 1.99 },
+  { tr: 'Karabaş Otu', en: 'Lavandula Stoechas', weight: 30, stock: 120, price: 1.99 },
+  { tr: 'Kış Çayı', en: 'Winter Tea', weight: 100, stock: 240, price: 1.99 },
+  { tr: 'Kiraz Sapı', en: 'Cherry Stem', weight: 40, stock: 240, price: 1.99 },
+  { tr: 'Kuşburnu Çayı', en: 'Rosehip Tea', weight: 150, stock: 180, price: 1.99 },
+  { tr: 'Lavanta', en: 'Lavender', weight: 60, stock: 240, price: 1.99 },
+  { tr: 'Mate Çayı', en: 'YERBA MATE TEA', weight: 80, stock: 0, price: 1.99 },
+  { tr: 'Melisa', en: 'Melissa(lemon balm)', weight: 30, stock: 240, price: 1.99 },
+  { tr: 'Mersin Yaprağı', en: 'Myrtle Leaf', weight: 60, stock: 0, price: 1.99 },
+  { tr: 'Nar Çiçeği', en: 'Hibiscus', weight: 70, stock: 300, price: 1.99 },
+  { tr: 'Papatya', en: 'Chamomile', weight: 40, stock: 120, price: 1.99 },
+  { tr: 'Sarı Kantaron', en: 'St. John\'s Wort', weight: 30, stock: 120, price: 1.99 },
+  { tr: 'Sinameki', en: 'Senna Tea', weight: 70, stock: 0, price: 1.99 },
+  { tr: 'Tomurcuk Gül', en: 'Rose Buds', weight: 30, stock: 120, price: 1.99 },
+  { tr: 'Top Yasemin Çayı', en: 'Jasmine Tea', weight: 62, stock: 0, price: 3.49 },
+  { tr: 'Yeşil Çay', en: 'Green tea', weight: 100, stock: 180, price: 1.99 },
+  { tr: 'Zeytin Yaprağı', en: 'Olive Leaf', weight: 70, stock: 0, price: 1.99 },
 ];
 
 function slugify(s: string): string {
@@ -322,7 +395,47 @@ async function run() {
     `);
     console.log('✅ base_name_fr / base_name_en kolonları kontrol edildi');
 
-    // 3. Ürünleri ekle
+    // 3. categories tablosuna name_fr, name_en ekle
+    await sql.unsafe(`
+      ALTER TABLE categories ADD COLUMN IF NOT EXISTS name_fr VARCHAR(255);
+      ALTER TABLE categories ADD COLUMN IF NOT EXISTS name_en VARCHAR(255);
+    `);
+    console.log('✅ categories name_fr / name_en kolonları kontrol edildi');
+
+    // 4. BİTKİ ÇAYLARI kategorisini oluştur veya bul
+    let bitkiCaylariCategoryId: number | null = null;
+    const existingCategory = await sql`
+      SELECT id FROM categories WHERE LOWER(name) = LOWER('BİTKİ ÇAYLARI') OR LOWER(slug) = 'bitki-caylari'
+    `;
+    if (existingCategory.length > 0) {
+      bitkiCaylariCategoryId = existingCategory[0].id;
+      // Kategori varsa name_fr ve name_en'i güncelle
+      await sql`
+        UPDATE categories SET name_fr = 'Thés aux herbes', name_en = 'Herbal Teas' WHERE id = ${bitkiCaylariCategoryId}
+      `;
+      console.log(`✅ BİTKİ ÇAYLARI kategorisi bulundu ve güncellendi (ID: ${bitkiCaylariCategoryId})`);
+    } else {
+      const newCategory = await sql`
+        INSERT INTO categories (name, name_fr, name_en, slug, sort_order, is_active)
+        VALUES ('BİTKİ ÇAYLARI', 'Thés aux herbes', 'Herbal Teas', 'bitki-caylari', 0, true)
+        RETURNING id
+      `;
+      bitkiCaylariCategoryId = newCategory[0].id;
+      console.log(`✅ BİTKİ ÇAYLARI kategorisi oluşturuldu (ID: ${bitkiCaylariCategoryId})`);
+    }
+
+    // 4. Bitki çayı ürünlerini belirle
+    const bitkiCaylariProducts = [
+      'Dağ Kekiği', 'Defne Yaprağı', 'Mor Reyhan', 'Anason Tane', 'Bamya Tohumu', 'Chia Tohumu',
+      'Keten Tohumu', 'Rezene Tane', 'Çubuk Tarçın', 'Zencefil Tane', 'Zerdeçal Tane', 'Açlık Otu',
+      'Adaçayı', 'Avakado Yaprağı', 'Civan Perçemi', 'Ebegümeci', 'Ekinezya', 'Form Çayı',
+      'Funda Yaprağı', 'Hatmi Çiçeği', 'Ihlamur', 'Isırgan Otu', 'Karabaş Otu', 'Kış Çayı',
+      'Kiraz Sapı', 'Kuşburnu Çayı', 'Lavanta', 'Mate Çayı', 'Melisa', 'Mersin Yaprağı',
+      'Nar Çiçeği', 'Papatya', 'Sarı Kantaron', 'Sinameki', 'Tomurcuk Gül', 'Top Yasemin Çayı',
+      'Yeşil Çay', 'Zeytin Yaprağı'
+    ];
+
+    // 5. Bitki çayı ürünlerini belirle
     let inserted = 0;
     for (const row of PRODUCT_ROWS) {
       const baseTr = row.tr;
@@ -333,10 +446,11 @@ async function run() {
       const slug = `${slugBase}-${row.weight}-${row.weight >= 1000 ? 'ml' : 'gr'}`;
       const sku = generateSku(baseEn, row.weight);
       const unit = row.weight >= 1000 ? 'ml' : 'Gr';
+      const categoryId = bitkiCaylariProducts.includes(baseTr) ? bitkiCaylariCategoryId : null;
 
       await sql`
-        INSERT INTO products (name, base_name, base_name_fr, base_name_en, slug, sku, price, stock, weight, unit, is_active, track_stock)
-        VALUES (${nameTr}, ${baseTr}, ${baseFr}, ${baseEn}, ${slug}, ${sku}, ${String(row.price)}, ${row.stock}, ${String(row.weight)}, ${unit}, true, true)
+        INSERT INTO products (name, base_name, base_name_fr, base_name_en, slug, sku, price, stock, weight, unit, category_id, is_active, track_stock)
+        VALUES (${nameTr}, ${baseTr}, ${baseFr}, ${baseEn}, ${slug}, ${sku}, ${String(row.price)}, ${row.stock}, ${String(row.weight)}, ${unit}, ${categoryId}, true, true)
       `;
       inserted++;
     }
