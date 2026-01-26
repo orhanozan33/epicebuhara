@@ -272,6 +272,8 @@ export default function UrunlerPage() {
     </div>
   </div>
   
+  <div class="title">Liste de Prix</div>
+  
   <table>
     <thead>
       <tr>
