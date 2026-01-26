@@ -71,6 +71,8 @@ export default function FaturaPage() {
 
   useEffect(() => {
     setMounted(true);
+    // Yazdırma sırasında sayfa başlığını değiştir
+    document.title = 'Fatura';
   }, []);
 
   useEffect(() => {
@@ -508,6 +510,25 @@ export default function FaturaPage() {
           @page {
             @bottom-right { content: "" !important; }
             @bottom-left { content: "" !important; }
+            @top-right { content: "" !important; }
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @bottom-center { content: "" !important; }
+          }
+          
+          /* Tarayıcı header/footer'ları gizle */
+          @page :first {
+            @top-right { content: "" !important; }
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+          }
+          
+          @page :left {
+            @top-right { content: "" !important; }
+            @top-left { content: "" !important; }
+          }
+          
+          @page :right {
             @top-right { content: "" !important; }
             @top-left { content: "" !important; }
           }
