@@ -61,6 +61,9 @@ interface Product {
   id: number;
   name: string;
   baseName: string | null;
+  baseNameFr: string | null;
+  baseNameEn: string | null;
+  sku: string | null;
   slug: string | null;
   price: string;
   stock: number | null;
@@ -290,9 +293,23 @@ export default function BayiSatisPage() {
     return safeProducts.filter((product) => {
       try {
         if (!product || !product.name) return false;
+        
+        // TR isim (name) ile arama
         const nameMatch = product.name.toLowerCase().includes(searchLower);
+        
+        // Base name (TR) ile arama
         const baseNameMatch = product.baseName && product.baseName.toLowerCase().includes(searchLower);
-        return nameMatch || baseNameMatch;
+        
+        // EN isim ile arama
+        const baseNameEnMatch = product.baseNameEn && product.baseNameEn.toLowerCase().includes(searchLower);
+        
+        // FR isim ile arama
+        const baseNameFrMatch = product.baseNameFr && product.baseNameFr.toLowerCase().includes(searchLower);
+        
+        // SKU ile arama
+        const skuMatch = product.sku && product.sku.toLowerCase().includes(searchLower);
+        
+        return nameMatch || baseNameMatch || baseNameEnMatch || baseNameFrMatch || skuMatch;
       } catch (err: any) {
         console.warn('Error filtering product:', err?.message || err);
         return false;
