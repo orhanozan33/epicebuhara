@@ -281,9 +281,10 @@ export default function UrunlerPage() {
     <thead>
       <tr>
         <th style="width: 5%;">#</th>
-        <th style="width: 60%;">Produit</th>
-        <th style="width: 15%;">Poids</th>
-        <th style="width: 20%;" class="price">Prix</th>
+        <th style="width: 50%;">Produit</th>
+        <th style="width: 12%;">Poids</th>
+        <th style="width: 18%;">SKU</th>
+        <th style="width: 15%;" class="price">Prix</th>
       </tr>
     </thead>
     <tbody>
@@ -295,11 +296,13 @@ export default function UrunlerPage() {
           weight = `${weightStr} ${product.unit || 'Gr'}`;
         }
         const productName = product.baseNameFr || product.baseNameEn || product.name;
+        const sku = product.sku || '-';
         return `
           <tr>
             <td>${index + 1}</td>
             <td class="product-name">${productName}</td>
             <td>${weight}</td>
+            <td>${sku}</td>
             <td class="price">$${parseFloat(product.price || '0').toFixed(2)}</td>
           </tr>
         `;
