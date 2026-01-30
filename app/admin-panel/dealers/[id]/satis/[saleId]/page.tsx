@@ -59,6 +59,13 @@ export default function SatisDetayPage() {
   const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK'>('NAKIT');
   const [processingPayment, setProcessingPayment] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+  const [showAddToInvoiceModal, setShowAddToInvoiceModal] = useState(false);
+  const [addToInvoiceProducts, setAddToInvoiceProducts] = useState<{ id: number; name: string; baseName?: string | null; baseNameFr?: string | null; baseNameEn?: string | null; price: string; stock: number | null; packSize?: number | null; packLabelTr?: string | null; images?: string | null }[]>([]);
+  const [addToInvoiceSearch, setAddToInvoiceSearch] = useState('');
+  const [addToInvoiceProduct, setAddToInvoiceProduct] = useState<typeof addToInvoiceProducts[0] | null>(null);
+  const [addToInvoiceSellUnit, setAddToInvoiceSellUnit] = useState<'adet' | 'kutu'>('kutu');
+  const [addToInvoiceQuantity, setAddToInvoiceQuantity] = useState<number | ''>(0);
+  const [addingToInvoice, setAddingToInvoice] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -184,6 +191,51 @@ export default function SatisDetayPage() {
       if (isMountedRef.current) setRemovingItemId(null);
     }
   }, [dealerId, saleId, removingItemId, fetchSale, mounted, t]);
+
+  const fetchProductsForInvoice = useCallback(async () => {
+    try {
+      const res = await fetch('/api/products', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (data?.products ?? []);
+      const active = list.filter((p: any) => p.isActive !== false);
+      if (isMountedRef.current) setAddToInvoiceProducts(active);
+    } catch (e) {
+      console.error('Error fetching products:', e);
+    }
+  }, []);
+
+  const handleAddProductToInvoice = useCallback(async () => {
+    if (!dealerId || !saleId || !addToInvoiceProduct || addingToInvoice) return;
+    const qty = addToInvoiceQuantity === '' ? 0 : addToInvoiceQuantity;
+    if (qty <= 0) {
+      showToast(mounted ? t('admin.dealers.invalidQuantity') : 'Lütfen miktar girin', 'error');
+      return;
+    }
+    const ps = addToInvoiceProduct.packSize ?? 1;
+    const quantityAdet = addToInvoiceSellUnit === 'kutu' ? qty * ps : qty;
+    setAddingToInvoice(true);
+    try {
+      const res = await fetch(`/api/dealers/${dealerId}/sales/${saleId}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [{ productId: addToInvoiceProduct.id, quantity: quantityAdet }] }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast(data?.error || (mounted ? t('admin.common.error') : 'İşlem başarısız'), 'error');
+        return;
+      }
+      showToast(mounted ? t('admin.dealers.itemsAddedToInvoice') : 'Ürün faturaya eklendi.', 'success');
+      setAddToInvoiceProduct(null);
+      setAddToInvoiceQuantity(0);
+      await fetchSale();
+    } catch (err: any) {
+      showToast(err?.message || (mounted ? t('admin.common.error') : 'İşlem başarısız'), 'error');
+    } finally {
+      if (isMountedRef.current) setAddingToInvoice(false);
+    }
+  }, [dealerId, saleId, addToInvoiceProduct, addToInvoiceSellUnit, addToInvoiceQuantity, addingToInvoice, fetchSale, mounted, t]);
 
   useEffect(() => {
     if (!paramsLoaded) return;
@@ -492,20 +544,20 @@ export default function SatisDetayPage() {
                           {mounted ? t('admin.dealers.quantity') : 'Miktar'}: {item.quantity} × ${parseFloat(item.price || '0').toFixed(2)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+                        <p className="font-bold text-blue-600 text-base sm:text-lg order-1 sm:order-2">
+                          ${parseFloat(item.total || '0').toFixed(2)}
+                        </p>
                         {sale.saleNumber.startsWith('SAL-') && (
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handleRemoveItem(item.id); }}
                             disabled={removingItemId === item.id}
-                            className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-2 py-1 text-[10px] sm:text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed order-2 sm:order-1"
                           >
                             {removingItemId === item.id ? (mounted ? t('admin.common.loading') : '...') : (mounted ? t('admin.dealers.removeFromInvoice') : 'Faturadan çıkar')}
                           </button>
                         )}
-                        <p className="font-bold text-blue-600 text-lg">
-                          ${parseFloat(item.total || '0').toFixed(2)}
-                        </p>
                       </div>
                     </div>
                   );
@@ -688,6 +740,23 @@ export default function SatisDetayPage() {
                 </svg>
                 {mounted ? t('admin.dealers.invoicePrint') : 'Fatura Yazdır'}
               </button>
+              {sale.saleNumber.startsWith('SAL-') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddToInvoiceModal(true);
+                    setAddToInvoiceProduct(null);
+                    setAddToInvoiceQuantity(0);
+                    fetchProductsForInvoice();
+                  }}
+                  className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  {mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ürün ekle'}
+                </button>
+              )}
               {!sale.isPaid && (
                 <button
                   type="button"
@@ -870,6 +939,93 @@ export default function SatisDetayPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Faturaya ürün ekle modal */}
+      {showAddToInvoiceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900">{mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ürün ekle'}</h2>
+              <button type="button" onClick={() => { setShowAddToInvoiceModal(false); setAddToInvoiceProduct(null); }} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-4 border-b border-gray-100">
+              <input
+                type="text"
+                value={addToInvoiceSearch}
+                onChange={(e) => setAddToInvoiceSearch(e.target.value)}
+                placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {addToInvoiceProduct ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-700">{addToInvoiceProduct.baseName || addToInvoiceProduct.baseNameFr || addToInvoiceProduct.baseNameEn || addToInvoiceProduct.name}</p>
+                  <p className="text-xs text-gray-500">${parseFloat(addToInvoiceProduct.price || '0').toFixed(2)} / adet</p>
+                  <div className="flex gap-2">
+                    {(addToInvoiceProduct.packSize ?? 1) > 1 ? (
+                      <>
+                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('adet'); setAddToInvoiceQuantity(0); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>Adet</button>
+                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('kutu'); setAddToInvoiceQuantity(0); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{addToInvoiceProduct.packSize}&apos;li {addToInvoiceProduct.packLabelTr || 'Kutu'}</button>
+                      </>
+                    ) : (
+                      <span className="text-sm text-gray-600">Adet</span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">{addToInvoiceSellUnit === 'kutu' && (addToInvoiceProduct.packSize ?? 1) > 1 ? (mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?') : (mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?')}</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={addToInvoiceQuantity === '' ? '' : addToInvoiceQuantity}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === '') { setAddToInvoiceQuantity(''); return; }
+                        const n = parseInt(v, 10);
+                        if (!isNaN(n)) setAddToInvoiceQuantity(Math.max(0, n));
+                      }}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button type="button" onClick={() => setAddToInvoiceProduct(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Geri</button>
+                    <button type="button" onClick={handleAddProductToInvoice} disabled={addingToInvoice || (addToInvoiceQuantity === '' ? 0 : addToInvoiceQuantity) <= 0} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">
+                      {addingToInvoice ? (mounted ? t('admin.common.loading') : '...') : (mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ekle')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {addToInvoiceProducts
+                    .filter((p) => {
+                      const q = addToInvoiceSearch.trim().toLowerCase();
+                      if (!q) return true;
+                      const name = (p.baseName || p.baseNameFr || p.baseNameEn || p.name || '').toLowerCase();
+                      return name.includes(q);
+                    })
+                    .map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setAddToInvoiceProduct(p);
+                          setAddToInvoiceSellUnit((p.packSize ?? 1) > 1 ? 'kutu' : 'adet');
+                          setAddToInvoiceQuantity(0);
+                        }}
+                        className="p-3 text-left border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors"
+                      >
+                        <p className="font-medium text-gray-900 text-sm truncate">{p.baseName || p.baseNameFr || p.baseNameEn || p.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">${parseFloat(p.price || '0').toFixed(2)} · Stok: {p.stock ?? 0}</p>
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
