@@ -1151,34 +1151,32 @@ export default function BayiSatisPage() {
         </div>
       </div>
 
-      {/* Sepete Ekle Modal – Adet / Kutu seçimi */}
+      {/* Sepete Ekle Modal – Adet / Kutu seçimi (kompakt, modern) */}
       {productToAdd && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setProductToAdd(null)}>
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-semibold text-gray-900 text-sm">{getProductDisplayName(productToAdd)}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setProductToAdd(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-[280px] md:max-w-[300px] p-3.5 space-y-2.5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-gray-900 text-xs leading-tight line-clamp-2 pr-1">{getProductDisplayName(productToAdd)}</h3>
             {((productToAdd as Product & { packSize?: number }).packSize ?? 1) > 1 ? (
               <>
-                <p className="text-xs text-gray-600">Satış birimi</p>
-                <div className="flex gap-2">
+                <p className="text-[11px] text-gray-500 font-medium">Satış birimi</p>
+                <div className="flex gap-1.5">
                   <button
                     type="button"
                     onClick={() => { setAddModalSellUnit('adet'); setAddModalQuantity(1); }}
-                    className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium ${addModalSellUnit === 'adet' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${addModalSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
                   >
                     Adet
                   </button>
                   <button
                     type="button"
                     onClick={() => { setAddModalSellUnit('kutu'); setAddModalQuantity(1); }}
-                    className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium ${addModalSellUnit === 'kutu' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                    className={`flex-1 py-1.5 rounded-lg border text-xs font-medium transition-colors ${addModalSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
                   >
                     {(productToAdd as Product & { packSize?: number }).packSize}&apos;li {(productToAdd as Product & { packLabelTr?: string }).packLabelTr || 'Kutu'}
                   </button>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    {addModalSellUnit === 'kutu' ? 'Kaç kutu?' : 'Kaç adet?'}
-                  </label>
+                  <label className="block text-[11px] text-gray-500 mb-0.5">{addModalSellUnit === 'kutu' ? 'Kaç kutu?' : 'Kaç adet?'}</label>
                   <input
                     type="number"
                     min={1}
@@ -1187,28 +1185,28 @@ export default function BayiSatisPage() {
                       : Math.max(1, productToAdd.stock ?? 99)}
                     value={addModalQuantity}
                     onChange={(e) => setAddModalQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none transition-shadow"
                   />
                 </div>
               </>
             ) : (
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Kaç adet?</label>
+                <label className="block text-[11px] text-gray-500 mb-0.5">Kaç adet?</label>
                 <input
                   type="number"
                   min={1}
                   max={Math.max(1, productToAdd.stock ?? 99)}
                   value={addModalQuantity}
                   onChange={(e) => setAddModalQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none transition-shadow"
                 />
               </div>
             )}
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-1.5 pt-1">
               <button
                 type="button"
                 onClick={() => setProductToAdd(null)}
-                className="flex-1 py-2 border border-gray-300 rounded-lg text-sm font-medium"
+                className="flex-1 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50 transition-colors"
               >
                 İptal
               </button>
@@ -1221,7 +1219,7 @@ export default function BayiSatisPage() {
                   addToCart(productToAdd, qtyAdet);
                   setProductToAdd(null);
                 }}
-                className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                className="flex-1 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors shadow-sm"
               >
                 Sepete Ekle
               </button>
