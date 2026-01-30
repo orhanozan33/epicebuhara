@@ -308,18 +308,19 @@ export default function UrunlerPage() {
 </html>
     `;
 
-    const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(printContent);
-    const printWindow = window.open(dataUrl, '_blank');
+    const printWindow = window.open('', '_blank');
     if (!printWindow) {
       setShowPrintModal(false);
       return;
     }
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 250);
-    };
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.document.title = 'Fiyat Listesi';
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 350);
     setShowPrintModal(false);
   };
 
