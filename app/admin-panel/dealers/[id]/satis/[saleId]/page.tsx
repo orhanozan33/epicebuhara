@@ -58,6 +58,7 @@ export default function SatisDetayPage() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK'>('NAKIT');
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -164,6 +165,25 @@ export default function SatisDetayPage() {
       }
     }
   }, [dealerId, saleId, mounted, t]);
+
+  const handleRemoveItem = useCallback(async (itemId: number) => {
+    if (!dealerId || !saleId || removingItemId != null) return;
+    setRemovingItemId(itemId);
+    try {
+      const response = await fetch(`/api/dealers/${dealerId}/sales/${saleId}/items/${itemId}`, { method: 'DELETE' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        showToast(data?.error || (mounted ? t('admin.common.error') : 'İşlem başarısız'), 'error');
+        return;
+      }
+      showToast(mounted ? t('admin.dealers.itemRemoved') : 'Ürün faturadan çıkarıldı, stok güncellendi.', 'success');
+      await fetchSale();
+    } catch (err: any) {
+      showToast(err?.message || (mounted ? t('admin.common.error') : 'İşlem başarısız'), 'error');
+    } finally {
+      if (isMountedRef.current) setRemovingItemId(null);
+    }
+  }, [dealerId, saleId, removingItemId, fetchSale, mounted, t]);
 
   useEffect(() => {
     if (!paramsLoaded) return;
@@ -472,7 +492,17 @@ export default function SatisDetayPage() {
                           {mounted ? t('admin.dealers.quantity') : 'Miktar'}: {item.quantity} × ${parseFloat(item.price || '0').toFixed(2)}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="flex items-center gap-3">
+                        {sale.saleNumber.startsWith('SAL-') && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleRemoveItem(item.id); }}
+                            disabled={removingItemId === item.id}
+                            className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {removingItemId === item.id ? (mounted ? t('admin.common.loading') : '...') : (mounted ? t('admin.dealers.removeFromInvoice') : 'Faturadan çıkar')}
+                          </button>
+                        )}
                         <p className="font-bold text-blue-600 text-lg">
                           ${parseFloat(item.total || '0').toFixed(2)}
                         </p>

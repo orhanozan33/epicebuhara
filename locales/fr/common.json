@@ -380,7 +380,9 @@
       "paymentProcessingError": "Le paiement n'a pas pu être traité",
       "updateFailed": "Échec de la mise à jour",
       "deleteFailed": "Échec de la suppression",
-      "createFailed": "Échec de la création"
+      "createFailed": "Échec de la création",
+      "removeFromInvoice": "Retirer de la facture",
+      "itemRemoved": "Article retiré de la facture, stock mis à jour."
     },
     "invoices": {
       "title": "Factures",

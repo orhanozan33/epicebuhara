@@ -380,7 +380,9 @@
       "paymentProcessingError": "Payment could not be processed",
       "updateFailed": "Update failed",
       "deleteFailed": "Delete failed",
-      "createFailed": "Create failed"
+      "createFailed": "Create failed",
+      "removeFromInvoice": "Remove from invoice",
+      "itemRemoved": "Item removed from invoice, stock updated."
     },
     "invoices": {
       "title": "Invoices",

@@ -373,7 +373,9 @@
       "paymentProcessingError": "Ödeme işlenemedi",
       "updateFailed": "Güncelleme başarısız",
       "deleteFailed": "Silme başarısız",
-      "createFailed": "Oluşturma başarısız"
+      "createFailed": "Oluşturma başarısız",
+      "removeFromInvoice": "Faturadan çıkar",
+      "itemRemoved": "Ürün faturadan çıkarıldı, stok güncellendi."
     },
     "invoices": {
       "title": "Faturalar",

@@ -346,11 +346,11 @@ export default function ProductDetailPage() {
     return p.packLabelTr || 'Kutu';
   };
 
-  // Paket gösterim metni: TR "20'li Kutu", EN "20 Box", FR "20' Boîte de" (Fransızca'da "li" yok)
+  // Paket gösterim metni: TR "20'li Kutu", EN "20 Box", FR "Boîte de 20"
   const getPackDisplayText = (packSize: number) => {
     const label = getPackLabel(displayProduct as any);
     const isFr = currentLanguage === 'fr' || String(currentLanguage).startsWith('fr');
-    if (isFr) return `${packSize}' ${label} de`;
+    if (isFr) return `${label} de ${packSize}`;
     if (currentLanguage === 'en' || String(currentLanguage).startsWith('en')) return `${packSize} ${label}`;
     return `${packSize}'li ${label}`;
   };
