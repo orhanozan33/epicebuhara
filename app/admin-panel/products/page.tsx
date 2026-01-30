@@ -229,7 +229,7 @@ export default function UrunlerPage() {
       return `
   <table class="category-table" style="margin-top: ${catIndex === 0 ? 20 : 0}px;${pageBreak}">
     <thead>
-      <tr><th colspan="5" class="category-title">Fiyat Listesi – ${catName} Kategorisi</th></tr>
+      <tr><th colspan="5" class="category-title">${catName}</th></tr>
       <tr>
         <th style="width: 5%;">#</th>
         <th style="width: 50%;">Ürün</th>
