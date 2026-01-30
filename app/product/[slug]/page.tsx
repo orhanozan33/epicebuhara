@@ -346,7 +346,16 @@ export default function ProductDetailPage() {
     return p.packLabelTr || 'Kutu';
   };
 
-  // Başlık: "İsot Biber 50 Gr - 20'li Kutu" formatı (packSize > 1 ise)
+  // Paket gösterim metni: TR "20'li Kutu", EN "20 Box", FR "20' Boîte de" (Fransızca'da "li" yok)
+  const getPackDisplayText = (packSize: number) => {
+    const label = getPackLabel(displayProduct as any);
+    const isFr = currentLanguage === 'fr' || String(currentLanguage).startsWith('fr');
+    if (isFr) return `${packSize}' ${label} de`;
+    if (currentLanguage === 'en' || String(currentLanguage).startsWith('en')) return `${packSize} ${label}`;
+    return `${packSize}'li ${label}`;
+  };
+
+  // Başlık: "İsot Biber 50 Gr - 20'li Kutu" / FR "Piment Isot 50 Gr - 20' Boîte de"
   const getDisplayTitle = () => {
     const base = getProductName();
     const packSize = (displayProduct as any)?.packSize;
@@ -354,8 +363,7 @@ export default function ProductDetailPage() {
     const weight = displayProduct?.weight;
     const unit = displayProduct?.unit || 'Gr';
     const weightPart = weight && unit ? ` ${weight} ${unit}` : '';
-    const label = getPackLabel(displayProduct as any);
-    return `${base}${weightPart} - ${packSize}'li ${label}`;
+    return `${base}${weightPart} - ${getPackDisplayText(packSize)}`;
   };
   
   const productName = getProductName();
@@ -539,7 +547,7 @@ export default function ProductDetailPage() {
                       sellUnit === 'kutu' ? 'border-green-300 bg-green-50 text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
                     }`}
                   >
-                    {((displayProduct as any)?.packSize ?? 1)}&apos;li {getPackLabel(displayProduct as any)}
+                    {getPackDisplayText((displayProduct as any)?.packSize ?? 1)}
                   </button>
                 </div>
                 <div>
