@@ -187,27 +187,76 @@ export default function UrunlerPage() {
       .filter(cat => selectedCategories.includes(cat.id))
       .map(cat => cat.id);
     
-    // Kategori ID'lerine göre filtrele
-    const productsToPrint = products.filter(p => {
+    // Kategori ID'lerine göre filtrele ve kategoriye göre grupla
+    const filtered = products.filter(p => {
       return p.categoryId && selectedCategoryIds.includes(p.categoryId) && p.isActive !== false;
     }).sort((a, b) => {
-      // Kategoriye göre sırala, sonra ürün adına göre
       const catA = a.categoryName || '';
       const catB = b.categoryName || '';
       if (catA !== catB) return catA.localeCompare(catB);
       return (a.baseNameFr || a.baseNameEn || a.name).localeCompare(b.baseNameFr || b.baseNameEn || b.name);
     });
 
+    const byCategory = new Map<string, Product[]>();
+    filtered.forEach(p => {
+      const cat = p.categoryName || 'Diğer';
+      if (!byCategory.has(cat)) byCategory.set(cat, []);
+      byCategory.get(cat)!.push(p);
+    });
+    const categoryNames = Array.from(byCategory.keys());
+
+    const renderProductRow = (product: Product, index: number) => {
+      let weight = '-';
+      if (product.weight) {
+        const weightNum = parseFloat(product.weight);
+        const weightStr = weightNum % 1 === 0 ? Math.floor(weightNum).toString() : weightNum.toString();
+        weight = `${weightStr} ${product.unit || 'Gr'}`;
+      }
+      const productName = product.baseNameFr || product.baseNameEn || product.name;
+      const sku = product.sku || '-';
+      return `<tr>
+        <td>${index + 1}</td>
+        <td class="product-name">${productName}</td>
+        <td>${weight}</td>
+        <td>${sku}</td>
+        <td class="price">$${parseFloat(product.price || '0').toFixed(2)}</td>
+      </tr>`;
+    };
+
+    const tablesHtml = categoryNames.map((catName, catIndex) => {
+      const list = byCategory.get(catName) || [];
+      const pageBreak = catIndex === 0 ? '' : ' page-break-before: always;';
+      return `
+  <table class="category-table" style="margin-top: ${catIndex === 0 ? 20 : 0}px;${pageBreak}">
+    <thead>
+      <tr><th colspan="5" class="category-title">Fiyat Listesi – ${catName} Kategorisi</th></tr>
+      <tr>
+        <th style="width: 5%;">#</th>
+        <th style="width: 50%;">Ürün</th>
+        <th style="width: 12%;">Ağırlık</th>
+        <th style="width: 18%;">SKU</th>
+        <th style="width: 15%;" class="price">Fiyat</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${list.map((p, i) => renderProductRow(p, i)).join('')}
+    </tbody>
+  </table>`;
+    }).join('');
+
     const printContent = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Price List</title>
+  <title>Fiyat Listesi</title>
   <style>
     @media print {
       @page { margin: 1cm; }
       body { margin: 0; }
+      .category-table { page-break-inside: auto; }
+      .category-table thead { display: table-header-group; }
+      .category-table tr { page-break-inside: avoid; }
     }
     body {
       font-family: Arial, sans-serif;
@@ -219,48 +268,15 @@ export default function UrunlerPage() {
       border-bottom: 2px solid #000;
       padding-bottom: 15px;
     }
-    .company-name {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .company-info {
-      font-size: 12px;
-      line-height: 1.6;
-      color: #333;
-    }
-    .title {
-      font-size: 28px;
-      font-weight: bold;
-      text-align: center;
-      margin: 30px 0;
-      text-transform: uppercase;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 8px;
-      text-align: left;
-      font-size: 12px;
-    }
-    th {
-      background-color: #f0f0f0;
-      font-weight: bold;
-    }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    .product-name {
-      font-weight: 500;
-    }
-    .price {
-      text-align: right;
-      font-weight: bold;
-    }
+    .company-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+    .company-info { font-size: 12px; line-height: 1.6; color: #333; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }
+    th { background-color: #f0f0f0; font-weight: bold; }
+    .category-title { font-size: 16px; text-align: center; padding: 10px; background-color: #e5e7eb; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .product-name { font-weight: 500; }
+    .price { text-align: right; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -270,48 +286,13 @@ export default function UrunlerPage() {
   <div class="header">
     <div class="company-name">${company?.companyName || 'Epicê Buhara'}</div>
     <div class="company-info">
-      ${company?.phone ? `<div>Tél: ${company.phone}</div>` : ''}
+      ${company?.phone ? `<div>Tel: ${company.phone}</div>` : ''}
       ${company?.email ? `<div>Email: ${company.email}</div>` : ''}
     </div>
   </div>
-  
-  <div class="title">Liste de Prix</div>
-  
-  <table>
-    <thead>
-      <tr>
-        <th style="width: 5%;">#</th>
-        <th style="width: 50%;">Produit</th>
-        <th style="width: 12%;">Poids</th>
-        <th style="width: 18%;">SKU</th>
-        <th style="width: 15%;" class="price">Prix</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${productsToPrint.map((product, index) => {
-        let weight = '-';
-        if (product.weight) {
-          const weightNum = parseFloat(product.weight);
-          const weightStr = weightNum % 1 === 0 ? Math.floor(weightNum).toString() : weightNum.toString();
-          weight = `${weightStr} ${product.unit || 'Gr'}`;
-        }
-        const productName = product.baseNameFr || product.baseNameEn || product.name;
-        const sku = product.sku || '-';
-        return `
-          <tr>
-            <td>${index + 1}</td>
-            <td class="product-name">${productName}</td>
-            <td>${weight}</td>
-            <td>${sku}</td>
-            <td class="price">$${parseFloat(product.price || '0').toFixed(2)}</td>
-          </tr>
-        `;
-      }).join('')}
-    </tbody>
-  </table>
-  
+  ${tablesHtml}
   <div style="margin-top: 30px; font-size: 11px; text-align: center; color: #666;">
-    Total: ${productsToPrint.length} produits
+    Toplam: ${filtered.length} ürün
   </div>
 </body>
 </html>
