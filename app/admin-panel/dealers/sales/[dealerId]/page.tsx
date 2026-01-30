@@ -116,6 +116,9 @@ export default function BayiSatisPage() {
   const [dealer, setDealer] = useState<Dealer | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [manualDiscount, setManualDiscount] = useState<string>(''); // Manuel iskonto yüzdesi
+  const [productToAdd, setProductToAdd] = useState<Product | null>(null);
+  const [addModalSellUnit, setAddModalSellUnit] = useState<'adet' | 'kutu'>('kutu');
+  const [addModalQuantity, setAddModalQuantity] = useState(1);
   
   useEffect(() => {
     setMounted(true);
@@ -331,93 +334,62 @@ export default function BayiSatisPage() {
     });
   }, [products, searchTerm]);
 
-  // CRITICAL: useCallback with empty deps - function should NOT depend on cart state
-  // CRITICAL: Use functional state update to avoid stale closures
-  const addToCart = useCallback((product: Product) => {
+  // CRITICAL: useCallback - quantityAdet: optional, when provided use it (adet bazlı)
+  const addToCart = useCallback((product: Product, quantityAdet?: number) => {
     if (!mounted) return;
-    // CRITICAL: Check isMountedRef before any operations
     if (!isMountedRef.current) return;
     
     try {
-      // CRITICAL: Validate input parameters
       if (!product || typeof product.id !== 'number' || isNaN(product.id)) {
         throw new Error(mounted ? t('admin.dealers.invalidProduct') : 'Geçersiz ürün');
       }
-
       const price = parseFloat(product.price || '0');
       if (isNaN(price) || price < 0 || !isFinite(price)) {
         throw new Error(mounted ? t('admin.dealers.invalidPrice') : 'Geçersiz fiyat');
       }
 
-      // CRITICAL: ALWAYS use functional state update
+      const packSize = (product as Product & { packSize?: number }).packSize ?? 1;
+      const addQty = quantityAdet != null && quantityAdet > 0 ? quantityAdet : (packSize > 1 ? packSize : 1);
+
       setCart((prevCart) => {
-        // CRITICAL: Check isMountedRef inside updater function
         if (!isMountedRef.current) return prevCart;
-        
-        // CRITICAL: Always validate array before operations
         const safeCart = Array.isArray(prevCart) ? prevCart : [];
         const existingItem = safeCart.find((item) => item.productId === product.id);
-
-        const packSize = (product as Product & { packSize?: number }).packSize ?? 1;
-        const addQty = packSize > 1 ? packSize : 1;
 
         if (existingItem) {
           return safeCart.map((item) => {
             if (item.productId === product.id) {
               const newQuantity = (typeof item.quantity === 'number' ? item.quantity : 0) + addQty;
               const itemPrice = typeof item.price === 'number' && !isNaN(item.price) ? item.price : 0;
-              return {
-                ...item,
-                quantity: Math.max(1, newQuantity),
-                total: newQuantity * itemPrice,
-              };
+              return { ...item, quantity: Math.max(1, newQuantity), total: newQuantity * itemPrice };
             }
             return item;
           });
-        } else {
-          let imageUrl: string | null = null;
-          try {
-            if (product.images && typeof product.images === 'string') {
-              try {
-                const parsed: unknown = JSON.parse(product.images);
-                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
-                  imageUrl = parsed[0];
-                }
-              } catch (parseErr) {
-                // JSON değilse, direkt string olarak kullan
-                const trimmed = product.images.trim();
-                if (trimmed) {
-                  imageUrl = trimmed.split(',')[0].trim();
-                }
-              }
-            }
-          } catch (parseError: any) {
-            console.warn('Error parsing product images:', parseError?.message || parseError);
-            // Images parse edilemese bile devam et
-          }
-
-          return [
-            ...safeCart,
-            {
-              productId: product.id,
-              productName: product.name || (mounted ? t('admin.common.notFound') : 'İsimsiz Ürün'),
-              productImage: imageUrl,
-              price,
-              quantity: addQty,
-              total: price * addQty,
-              packSize: packSize > 1 ? packSize : undefined,
-              packLabelTr: (product as Product & { packLabelTr?: string }).packLabelTr ?? undefined,
-            },
-          ];
         }
+        let imageUrl: string | null = null;
+        try {
+          if (product.images && typeof product.images === 'string') {
+            const trimmed = product.images.trim();
+            if (trimmed) imageUrl = trimmed.split(',')[0].trim();
+          }
+        } catch (_) {}
+        return [
+          ...safeCart,
+          {
+            productId: product.id,
+            productName: product.name || (mounted ? t('admin.common.notFound') : 'İsimsiz Ürün'),
+            productImage: imageUrl,
+            price,
+            quantity: addQty,
+            total: price * addQty,
+            packSize: packSize > 1 ? packSize : undefined,
+            packLabelTr: (product as Product & { packLabelTr?: string }).packLabelTr ?? undefined,
+          },
+        ];
       });
     } catch (error: any) {
       console.error('Error adding to cart:', error);
-      try {
-        showToast(error?.message || (mounted ? t('admin.dealers.addToCartError') : 'Ürün sepete eklenirken hata oluştu'), 'error');
-      } catch (toastError) {
-        console.error('Error showing toast:', toastError);
-      }
+      try { showToast(error?.message || (mounted ? t('admin.dealers.addToCartError') : 'Ürün sepete eklenirken hata oluştu'), 'error'); } catch (_) {}
     }
   }, [mounted, t]);
 
@@ -1090,6 +1062,7 @@ export default function BayiSatisPage() {
                       })()
                     : null;
 
+                  const packSize = (product as Product & { packSize?: number }).packSize ?? 1;
                   return (
                     <div
                       key={product.id}
@@ -1098,9 +1071,11 @@ export default function BayiSatisPage() {
                         e.preventDefault();
                         e.stopPropagation();
                         try {
-                          addToCart(product);
+                          setProductToAdd(product);
+                          setAddModalSellUnit(packSize > 1 ? 'kutu' : 'adet');
+                          setAddModalQuantity(1);
                         } catch (err: any) {
-                          console.error('Error adding product to cart:', err);
+                          console.error('Error opening add modal:', err);
                         }
                       }}
                     >
@@ -1175,6 +1150,86 @@ export default function BayiSatisPage() {
           </div>
         </div>
       </div>
+
+      {/* Sepete Ekle Modal – Adet / Kutu seçimi */}
+      {productToAdd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setProductToAdd(null)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-gray-900 text-sm">{getProductDisplayName(productToAdd)}</h3>
+            {((productToAdd as Product & { packSize?: number }).packSize ?? 1) > 1 ? (
+              <>
+                <p className="text-xs text-gray-600">Satış birimi</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setAddModalSellUnit('adet'); setAddModalQuantity(1); }}
+                    className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium ${addModalSellUnit === 'adet' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                  >
+                    Adet
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAddModalSellUnit('kutu'); setAddModalQuantity(1); }}
+                    className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium ${addModalSellUnit === 'kutu' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                  >
+                    {(productToAdd as Product & { packSize?: number }).packSize}&apos;li {(productToAdd as Product & { packLabelTr?: string }).packLabelTr || 'Kutu'}
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">
+                    {addModalSellUnit === 'kutu' ? 'Kaç kutu?' : 'Kaç adet?'}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={addModalSellUnit === 'kutu'
+                      ? Math.max(1, Math.floor((productToAdd.stock ?? 0) / ((productToAdd as Product & { packSize?: number }).packSize ?? 1)))
+                      : Math.max(1, productToAdd.stock ?? 99)}
+                    value={addModalQuantity}
+                    onChange={(e) => setAddModalQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Kaç adet?</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={Math.max(1, productToAdd.stock ?? 99)}
+                  value={addModalQuantity}
+                  onChange={(e) => setAddModalQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            )}
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setProductToAdd(null)}
+                className="flex-1 py-2 border border-gray-300 rounded-lg text-sm font-medium"
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!productToAdd) return;
+                  const ps = (productToAdd as Product & { packSize?: number }).packSize ?? 1;
+                  const qtyAdet = addModalSellUnit === 'kutu' ? addModalQuantity * ps : addModalQuantity;
+                  addToCart(productToAdd, qtyAdet);
+                  setProductToAdd(null);
+                }}
+                className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+              >
+                Sepete Ekle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
