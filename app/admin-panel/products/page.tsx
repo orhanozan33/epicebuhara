@@ -180,9 +180,6 @@ export default function UrunlerPage() {
       return;
     }
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
     const selectedCategoryIds = categories
       .filter(cat => selectedCategories.includes(cat.id))
       .map(cat => cat.id);
@@ -267,6 +264,19 @@ export default function UrunlerPage() {
       margin-bottom: 30px;
       border-bottom: 2px solid #000;
       padding-bottom: 15px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      position: relative;
+    }
+    .header-left { flex-shrink: 0; }
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 0;
+      font-size: 22px;
+      font-weight: bold;
     }
     .company-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
     .company-info { font-size: 12px; line-height: 1.6; color: #333; }
@@ -280,15 +290,15 @@ export default function UrunlerPage() {
   </style>
 </head>
 <body>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 12px; color: #666;">
-    <div>${new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</div>
-  </div>
   <div class="header">
-    <div class="company-name">${company?.companyName || 'Epicê Buhara'}</div>
-    <div class="company-info">
-      ${company?.phone ? `<div>Tel: ${company.phone}</div>` : ''}
-      ${company?.email ? `<div>Email: ${company.email}</div>` : ''}
+    <div class="header-left">
+      <div class="company-name">${company?.companyName || 'Epicê Buhara'}</div>
+      <div class="company-info">
+        ${company?.phone ? `<div>Tel: ${company.phone}</div>` : ''}
+        ${company?.email ? `<div>Email: ${company.email}</div>` : ''}
+      </div>
     </div>
+    <div class="header-center">Fiyat Listesi</div>
   </div>
   ${tablesHtml}
   <div style="margin-top: 30px; font-size: 11px; text-align: center; color: #666;">
@@ -298,13 +308,18 @@ export default function UrunlerPage() {
 </html>
     `;
 
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(printContent);
+    const printWindow = window.open(dataUrl, '_blank');
+    if (!printWindow) {
+      setShowPrintModal(false);
+      return;
+    }
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    };
     setShowPrintModal(false);
   };
 
