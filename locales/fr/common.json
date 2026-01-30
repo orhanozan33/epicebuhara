@@ -382,7 +382,11 @@
       "deleteFailed": "Échec de la suppression",
       "createFailed": "Échec de la création",
       "removeFromInvoice": "Retirer de la facture",
-      "itemRemoved": "Article retiré de la facture, stock mis à jour."
+      "itemRemoved": "Article retiré de la facture, stock mis à jour.",
+      "addToInvoice": "Ajouter le produit à la facture",
+      "itemsAddedToInvoice": "Article ajouté à la facture.",
+      "howManyBoxes": "Combien de boîtes ?",
+      "howManyPieces": "Combien d'unités ?"
     },
     "invoices": {
       "title": "Factures",

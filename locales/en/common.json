@@ -382,7 +382,11 @@
       "deleteFailed": "Delete failed",
       "createFailed": "Create failed",
       "removeFromInvoice": "Remove from invoice",
-      "itemRemoved": "Item removed from invoice, stock updated."
+      "itemRemoved": "Item removed from invoice, stock updated.",
+      "addToInvoice": "Add Product to Invoice",
+      "itemsAddedToInvoice": "Item added to invoice.",
+      "howManyBoxes": "How many boxes?",
+      "howManyPieces": "How many pieces?"
     },
     "invoices": {
       "title": "Invoices",
