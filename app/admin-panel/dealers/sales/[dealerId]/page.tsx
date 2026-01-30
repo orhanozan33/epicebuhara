@@ -71,10 +71,16 @@ interface Product {
   isActive: boolean;
   weight: string | null;
   unit: string | null;
+  categoryId?: number | null;
   packSize?: number | null;
   packLabelTr?: string | null;
   packLabelEn?: string | null;
   packLabelFr?: string | null;
+}
+
+interface Category {
+  id: number;
+  name: string;
 }
 
 interface CartItem {
@@ -110,6 +116,8 @@ export default function BayiSatisPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [categories, setCategories] = useState<Category[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK' | 'ODENMEDI'>('NAKIT');
   const [notes, setNotes] = useState('');
@@ -244,6 +252,20 @@ export default function BayiSatisPage() {
     }
   }, [dealerId, mounted, t]);
 
+  const fetchCategories = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const response = await fetch('/api/categories?admin=true', { cache: 'no-store', signal });
+      if (signal?.aborted || !isMountedRef.current) return;
+      if (!response.ok) return;
+      const data = await response.json();
+      if (isMountedRef.current && Array.isArray(data)) {
+        setCategories(data);
+      }
+    } catch (error: any) {
+      if (error?.name === 'AbortError' || !isMountedRef.current) return;
+    }
+  }, []);
+
   // CRITICAL: Data loading effect - MUST wait for paramsLoaded
   // CRITICAL: MUST include all dependencies to prevent stale closures
   useEffect(() => {
@@ -268,13 +290,12 @@ export default function BayiSatisPage() {
     const signal = abortController.signal;
 
     const loadData = async () => {
-      // CRITICAL: Check isMountedRef at start of async function
       if (!isMountedRef.current) return;
-      
       try {
         await Promise.all([
           fetchProducts(signal),
           fetchDealer(signal),
+          fetchCategories(signal),
         ]);
       } catch (error: any) {
         // CRITICAL: Only log errors if not aborted and still mounted
@@ -291,7 +312,7 @@ export default function BayiSatisPage() {
       isMountedRef.current = false;
       abortController.abort();
     };
-  }, [paramsLoaded, dealerId, fetchProducts, fetchDealer]); // CRITICAL: All deps must be included
+  }, [paramsLoaded, dealerId, fetchProducts, fetchDealer, fetchCategories]);
 
   // Ürün listesinde pack bilgisi: "İsot Biber 50 Gr - 20'li Kutu"
   const getProductDisplayName = useCallback((product: Product) => {
@@ -302,37 +323,27 @@ export default function BayiSatisPage() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    const safeProducts = Array.isArray(products) ? products : [];
+    let safeProducts = Array.isArray(products) ? products : [];
+    const catId = categoryFilter ? parseInt(categoryFilter, 10) : null;
+    if (catId && !isNaN(catId)) {
+      safeProducts = safeProducts.filter((p) => p.categoryId === catId);
+    }
     const searchLower = (searchTerm || '').toLowerCase().trim();
-    
     if (!searchLower) return safeProducts;
-    
     return safeProducts.filter((product) => {
       try {
         if (!product || !product.name) return false;
-        
-        // TR isim (name) ile arama
         const nameMatch = product.name.toLowerCase().includes(searchLower);
-        
-        // Base name (TR) ile arama
         const baseNameMatch = product.baseName && product.baseName.toLowerCase().includes(searchLower);
-        
-        // EN isim ile arama
         const baseNameEnMatch = product.baseNameEn && product.baseNameEn.toLowerCase().includes(searchLower);
-        
-        // FR isim ile arama
         const baseNameFrMatch = product.baseNameFr && product.baseNameFr.toLowerCase().includes(searchLower);
-        
-        // SKU ile arama
         const skuMatch = product.sku && product.sku.toLowerCase().includes(searchLower);
-        
         return nameMatch || baseNameMatch || baseNameEnMatch || baseNameFrMatch || skuMatch;
       } catch (err: any) {
-        console.warn('Error filtering product:', err?.message || err);
         return false;
       }
     });
-  }, [products, searchTerm]);
+  }, [products, searchTerm, categoryFilter]);
 
   // CRITICAL: useCallback - quantityAdet: optional, when provided use it (adet bazlı)
   const addToCart = useCallback((product: Product, quantityAdet?: number) => {
@@ -1017,26 +1028,34 @@ export default function BayiSatisPage() {
 
           {/* Sol Taraf - Ürünler - Mobilde altta */}
           <div className="lg:col-span-2 order-2 lg:order-1 bg-white rounded-lg shadow p-4 md:p-6 w-full min-w-0 overflow-x-hidden">
-            {/* Arama */}
-            <div className="mb-6 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+            {/* Arama + Kategori (kompakt, yan yana) */}
+            <div className="mb-4 flex flex-wrap gap-2 items-center">
+              <div className="relative flex-1 min-w-0 max-w-[220px] md:max-w-[260px]">
+                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
+                  value={searchTerm}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    try { setSearchTerm(e.target.value || ''); } catch (_) {}
+                  }}
+                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none"
+                />
               </div>
-              <input
-                type="text"
-                placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  try {
-                    setSearchTerm(e.target.value || '');
-                  } catch (err: any) {
-                    console.error('Error updating search term:', err);
-                  }
-                }}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:shadow-md"
-              />
+              <select
+                value={categoryFilter}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoryFilter(e.target.value || '')}
+                className="py-2 pl-3 pr-8 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none min-w-[140px] md:min-w-[160px] bg-white"
+              >
+                <option value="">{mounted ? t('admin.products.selectCategory') : 'Tüm kategoriler'}</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Ürünler Listesi */}
