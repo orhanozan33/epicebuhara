@@ -71,6 +71,10 @@ interface Product {
   isActive: boolean;
   weight: string | null;
   unit: string | null;
+  packSize?: number | null;
+  packLabelTr?: string | null;
+  packLabelEn?: string | null;
+  packLabelFr?: string | null;
 }
 
 interface CartItem {
@@ -80,6 +84,8 @@ interface CartItem {
   price: number;
   quantity: number;
   total: number;
+  packSize?: number;
+  packLabelTr?: string | null;
 }
 
 interface Dealer {
@@ -284,6 +290,14 @@ export default function BayiSatisPage() {
     };
   }, [paramsLoaded, dealerId, fetchProducts, fetchDealer]); // CRITICAL: All deps must be included
 
+  // Ürün listesinde pack bilgisi: "İsot Biber 50 Gr - 20'li Kutu"
+  const getProductDisplayName = useCallback((product: Product) => {
+    const packSize = (product as Product & { packSize?: number }).packSize ?? 1;
+    if (packSize <= 1) return product.name || '';
+    const label = (product as Product & { packLabelTr?: string }).packLabelTr || 'Kutu';
+    return `${product.name || ''} - ${packSize}'li ${label}`;
+  }, []);
+
   const filteredProducts = useMemo(() => {
     const safeProducts = Array.isArray(products) ? products : [];
     const searchLower = (searchTerm || '').toLowerCase().trim();
@@ -344,10 +358,13 @@ export default function BayiSatisPage() {
         const safeCart = Array.isArray(prevCart) ? prevCart : [];
         const existingItem = safeCart.find((item) => item.productId === product.id);
 
+        const packSize = (product as Product & { packSize?: number }).packSize ?? 1;
+        const addQty = packSize > 1 ? packSize : 1;
+
         if (existingItem) {
           return safeCart.map((item) => {
             if (item.productId === product.id) {
-              const newQuantity = (typeof item.quantity === 'number' ? item.quantity : 0) + 1;
+              const newQuantity = (typeof item.quantity === 'number' ? item.quantity : 0) + addQty;
               const itemPrice = typeof item.price === 'number' && !isNaN(item.price) ? item.price : 0;
               return {
                 ...item,
@@ -386,8 +403,10 @@ export default function BayiSatisPage() {
               productName: product.name || (mounted ? t('admin.common.notFound') : 'İsimsiz Ürün'),
               productImage: imageUrl,
               price,
-              quantity: 1,
-              total: price,
+              quantity: addQty,
+              total: price * addQty,
+              packSize: packSize > 1 ? packSize : undefined,
+              packLabelTr: (product as Product & { packLabelTr?: string }).packLabelTr ?? undefined,
             },
           ];
         }
@@ -799,20 +818,27 @@ export default function BayiSatisPage() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              updateQuantity(item.productId, item.quantity - 1);
+                              const ps = item.packSize ?? 1;
+                              const newQty = ps > 1 ? item.quantity - ps : item.quantity - 1;
+                              if (newQty < 1) removeFromCart(item.productId);
+                              else updateQuantity(item.productId, newQty);
                             }}
                             className="w-7 h-7 bg-white border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all font-bold text-sm flex items-center justify-center"
                           >
                             −
                           </button>
-                          <span className="text-sm font-bold text-gray-900 w-8 text-center bg-white border-2 border-gray-200 rounded-lg py-1">
-                            {item.quantity}
+                          <span className="text-sm font-bold text-gray-900 min-w-[4rem] text-center bg-white border-2 border-gray-200 rounded-lg py-1">
+                            {item.packSize && item.packSize > 1
+                              ? `${Math.floor(item.quantity / item.packSize)} ${item.packLabelTr || 'Kutu'} (${item.quantity} adet)`
+                              : item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              updateQuantity(item.productId, item.quantity + 1);
+                              const ps = item.packSize ?? 1;
+                              const addQty = ps > 1 ? ps : 1;
+                              updateQuantity(item.productId, item.quantity + addQty);
                             }}
                             className="w-7 h-7 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-bold text-sm flex items-center justify-center"
                           >
@@ -1115,7 +1141,7 @@ export default function BayiSatisPage() {
                       <div className="p-2 flex-1 flex flex-col">
                         <div className="flex items-start justify-between gap-1.5 mb-1">
                           <h3 className="font-medium text-gray-900 text-[10px] leading-tight line-clamp-2 flex-1 group-hover:text-blue-600 transition-colors">
-                            {product.name}
+                            {getProductDisplayName(product)}
                           </h3>
                           {/* Gramaj Bilgisi - Sağda */}
                           {weightDisplay && (

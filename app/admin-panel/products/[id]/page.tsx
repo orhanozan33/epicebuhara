@@ -60,6 +60,10 @@ export default function EditProductPage() {
     isActive: true,
     description: '',
     images: '',
+    packSize: '1',
+    packLabelTr: '',
+    packLabelEn: '',
+    packLabelFr: '',
   });
   const [uploading, setUploading] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -192,6 +196,10 @@ export default function EditProductPage() {
             isActive: product.isActive ?? true,
             description: product.description || '',
             images: product.images || '',
+            packSize: (product as any).packSize != null ? String((product as any).packSize) : '1',
+            packLabelTr: (product as any).packLabelTr ?? '',
+            packLabelEn: (product as any).packLabelEn ?? '',
+            packLabelFr: (product as any).packLabelFr ?? '',
           });
         } else {
           setError(mounted ? t('admin.common.notFound') : 'Ürün bulunamadı');
@@ -367,6 +375,10 @@ export default function EditProductPage() {
         isActive: formData.isActive,
         description: formData.description || null,
         images: imageUrls.join(',') || null,
+        packSize: parseInt(formData.packSize) || 1,
+        packLabelTr: formData.packLabelTr?.trim() || null,
+        packLabelEn: formData.packLabelEn?.trim() || null,
+        packLabelFr: formData.packLabelFr?.trim() || null,
       };
 
       // "yeni" veya "new" yeni ürün oluşturma için
@@ -711,6 +723,57 @@ export default function EditProductPage() {
                   <option value="Kg">Kg</option>
                   <option value="Lt">Lt</option>
                 </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Paket / Kutu (Satış birimi)
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                1 = adet bazlı satış. &gt;1 girilirse liste/detayda &quot;20&apos;li Kutu&quot; gibi gösterilir ve kullanıcı kutu sayısı seçebilir.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Bir kutuda kaç adet</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.packSize}
+                    onChange={(e) => setFormData({ ...formData, packSize: e.target.value || '1' })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Birim etiketi (TR) örn. Kutu, Paket</label>
+                  <input
+                    type="text"
+                    value={formData.packLabelTr}
+                    onChange={(e) => setFormData({ ...formData, packLabelTr: e.target.value })}
+                    placeholder="Kutu"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">EN</label>
+                  <input
+                    type="text"
+                    value={formData.packLabelEn}
+                    onChange={(e) => setFormData({ ...formData, packLabelEn: e.target.value })}
+                    placeholder="Box"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">FR</label>
+                  <input
+                    type="text"
+                    value={formData.packLabelFr}
+                    onChange={(e) => setFormData({ ...formData, packLabelFr: e.target.value })}
+                    placeholder="Boîte"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+                  />
+                </div>
               </div>
             </div>
 

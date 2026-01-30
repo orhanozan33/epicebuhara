@@ -22,6 +22,10 @@ interface Product {
   weight?: string | null;
   unit?: string | null;
   productGroup?: string | null;
+  packSize?: number | null;
+  packLabelTr?: string | null;
+  packLabelEn?: string | null;
+  packLabelFr?: string | null;
   categoryId?: number | null;
   description?: string | null;
   images?: string | null;
@@ -39,7 +43,11 @@ interface ProductVariant {
   price: string;
   comparePrice?: string;
   stock: number | null;
-  images?: string; // Varyantın resimlerini de sakla
+  images?: string;
+  packSize?: number | null;
+  packLabelTr?: string | null;
+  packLabelEn?: string | null;
+  packLabelFr?: string | null;
 }
 
 export default function ProductDetailPage() {
@@ -55,6 +63,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
+  const [boxCount, setBoxCount] = useState(1);
 
   useEffect(() => {
     setMounted(true);
@@ -236,7 +245,11 @@ export default function ProductDetailPage() {
                 price: p.price || '0',
                 comparePrice: p.comparePrice || undefined,
                 stock: p.stock ?? 0,
-                images: p.images || undefined, // Her varyantın resimlerini de sakla
+                images: p.images || undefined,
+                packSize: p.packSize ?? 1,
+                packLabelTr: p.packLabelTr ?? null,
+                packLabelEn: p.packLabelEn ?? null,
+                packLabelFr: p.packLabelFr ?? null,
               }))
             : [];
           
@@ -321,6 +334,25 @@ export default function ProductDetailPage() {
     }
     // TR veya çeviri yoksa orijinal ismi kullan
     return displayProduct.baseName || displayProduct.name;
+  };
+
+  // Paket etiketi (dile göre): Kutu, Box, Boîte
+  const getPackLabel = (p: { packLabelTr?: string | null; packLabelEn?: string | null; packLabelFr?: string | null }) => {
+    if (currentLanguage === 'fr' && p.packLabelFr) return p.packLabelFr;
+    if (currentLanguage === 'en' && p.packLabelEn) return p.packLabelEn;
+    return p.packLabelTr || 'Kutu';
+  };
+
+  // Başlık: "İsot Biber 50 Gr - 20'li Kutu" formatı (packSize > 1 ise)
+  const getDisplayTitle = () => {
+    const base = getProductName();
+    const packSize = (displayProduct as any)?.packSize;
+    if (!packSize || packSize <= 1) return base;
+    const weight = displayProduct?.weight;
+    const unit = displayProduct?.unit || 'Gr';
+    const weightPart = weight && unit ? ` ${weight} ${unit}` : '';
+    const label = getPackLabel(displayProduct as any);
+    return `${base}${weightPart} - ${packSize}'li ${label}`;
   };
   
   const productName = getProductName();
@@ -426,7 +458,7 @@ export default function ProductDetailPage() {
           <div className="space-y-4 sm:space-y-6">
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
-                {displayProduct.baseName || displayProduct.name}
+                {getDisplayTitle()}
               </h1>
               {displayProduct.categoryName && (() => {
                 const categoryName = (currentLanguage === 'fr' && displayProduct.categoryNameFr) 
@@ -457,6 +489,26 @@ export default function ProductDetailPage() {
                   : (mounted ? t('products.outOfStock') : 'Stokta Yok')}
               </p>
             </div>
+
+            {/* Kutu sayısı (packSize > 1 ise) */}
+            {((displayProduct as any)?.packSize ?? 1) > 1 && (
+              <div className="mt-3 sm:mt-4">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  {currentLanguage === 'fr' ? 'Nombre de boîtes' : currentLanguage === 'en' ? 'Number of boxes' : 'Kutu sayısı'}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={Math.max(1, Math.floor(((displayProduct?.stock ?? 0) / ((displayProduct as any)?.packSize ?? 1))) || 99)}
+                    value={boxCount}
+                    onChange={(e) => setBoxCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm"
+                  />
+                  <span className="text-sm text-gray-600">{getPackLabel(displayProduct as any)}</span>
+                </div>
+              </div>
+            )}
 
             {/* Gramaj Varyantları - Küçük ve Kompakt */}
             {variants.length > 1 && (
@@ -527,6 +579,8 @@ export default function ProductDetailPage() {
                   onClick={async () => {
                     const productIdToAdd = selectedVariant?.id || product?.id;
                     if (!productIdToAdd) return;
+                    const packSize = (selectedVariant as any)?.packSize ?? (displayProduct as any)?.packSize ?? 1;
+                    const quantity = packSize > 1 ? boxCount * packSize : 1;
                     
                     setAddingToCart(true);
                     try {
@@ -537,7 +591,7 @@ export default function ProductDetailPage() {
                         },
                         body: JSON.stringify({
                           productId: productIdToAdd,
-                          quantity: 1,
+                          quantity,
                         }),
                       });
 
@@ -574,6 +628,8 @@ export default function ProductDetailPage() {
                 <button
                   onClick={async () => {
                     if (!product?.id) return;
+                    const packSize = (displayProduct as any)?.packSize ?? 1;
+                    const quantity = packSize > 1 ? boxCount * packSize : 1;
                     
                     setAddingToCart(true);
                     try {
@@ -584,7 +640,7 @@ export default function ProductDetailPage() {
                         },
                         body: JSON.stringify({
                           productId: product.id,
-                          quantity: 1,
+                          quantity,
                         }),
                       });
 

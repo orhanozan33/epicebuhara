@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
+    const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images, packSize, packLabelTr, packLabelEn, packLabelFr } = body;
 
     if (!name || !price) {
       return NextResponse.json(
@@ -45,8 +45,8 @@ export async function POST(request: Request) {
     // nameFr ve nameEn kolonları varsa ekle, yoksa sadece diğer kolonları ekle
     try {
       const newProduct = await db.execute(
-        sql`INSERT INTO products (name, name_fr, name_en, base_name, base_name_fr, base_name_en, slug, sku, price, compare_price, stock, weight, unit, product_group, category_id, is_active, description, images, track_stock) 
-            VALUES (${name}, ${nameFr || null}, ${nameEn || null}, ${baseName || null}, ${baseNameFr || null}, ${baseNameEn || null}, ${slug}, ${sku || null}, ${price.toString()}, ${comparePrice ? comparePrice.toString() : null}, ${stock || 0}, ${weight || null}, ${unit || 'Gr'}, ${productGroup || null}, ${categoryId ? parseInt(categoryId) : null}, ${isActive ?? true}, ${description || null}, ${images || null}, true) 
+        sql`INSERT INTO products (name, name_fr, name_en, base_name, base_name_fr, base_name_en, slug, sku, price, compare_price, stock, weight, unit, product_group, category_id, is_active, description, images, track_stock, pack_size, pack_label_tr, pack_label_en, pack_label_fr) 
+            VALUES (${name}, ${nameFr || null}, ${nameEn || null}, ${baseName || null}, ${baseNameFr || null}, ${baseNameEn || null}, ${slug}, ${sku || null}, ${price.toString()}, ${comparePrice ? comparePrice.toString() : null}, ${stock || 0}, ${weight || null}, ${unit || 'Gr'}, ${productGroup || null}, ${categoryId ? parseInt(categoryId) : null}, ${isActive ?? true}, ${description || null}, ${images || null}, true, ${packSize != null ? parseInt(String(packSize)) : 1}, ${packLabelTr || null}, ${packLabelEn || null}, ${packLabelFr || null}) 
             RETURNING *`
       ) as any;
       const product = Array.isArray(newProduct) ? newProduct[0] : (newProduct.rows ? newProduct.rows[0] : newProduct);
@@ -70,6 +70,10 @@ export async function POST(request: Request) {
           description: description || null,
           images: images || null,
           trackStock: true,
+          packSize: packSize != null ? parseInt(String(packSize)) : 1,
+          packLabelTr: packLabelTr || null,
+          packLabelEn: packLabelEn || null,
+          packLabelFr: packLabelFr || null,
         }).returning();
         return NextResponse.json(newProduct[0], { status: 201 });
       }
@@ -261,6 +265,10 @@ export async function GET(request: Request) {
         unit: product.unit,
         weight: product.weight,
         productGroup: product.productGroup,
+        packSize: (product as any).packSize ?? 1,
+        packLabelTr: (product as any).packLabelTr ?? null,
+        packLabelEn: (product as any).packLabelEn ?? null,
+        packLabelFr: (product as any).packLabelFr ?? null,
         images: product.images,
         isActive: product.isActive,
         isFeatured: product.isFeatured,

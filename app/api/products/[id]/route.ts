@@ -95,12 +95,17 @@ export async function GET(
       // Hata olsa bile devam et, null değerlerle dön
     }
 
+    const p = product[0] as any;
     return NextResponse.json({
-      ...product[0],
+      ...p,
       nameFr: nameFrEn.nameFr,
       nameEn: nameFrEn.nameEn,
       baseNameFr: nameFrEn.baseNameFr,
       baseNameEn: nameFrEn.baseNameEn,
+      packSize: p.packSize ?? 1,
+      packLabelTr: p.packLabelTr ?? null,
+      packLabelEn: p.packLabelEn ?? null,
+      packLabelFr: p.packLabelFr ?? null,
     });
   } catch (error: any) {
     console.error('Error fetching product (Drizzle):', error);
@@ -158,7 +163,7 @@ export async function PUT(
     }
 
     const product = existingProduct[0];
-    const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images } = body;
+    const { name, nameFr, nameEn, baseName, baseNameFr, baseNameEn, sku, price, comparePrice, stock, weight, unit, productGroup, categoryId, isActive, description, images, packSize, packLabelTr, packLabelEn, packLabelFr } = body;
     
     // Debug: Gönderilen değerleri logla
     console.log('Received baseNameFr:', baseNameFr, 'type:', typeof baseNameFr);
@@ -234,6 +239,10 @@ export async function PUT(
     if (isActive !== undefined) updateData.isActive = isActive;
     if (description !== undefined) updateData.description = description || null;
     if (images !== undefined) updateData.images = images || null;
+    if (packSize !== undefined) updateData.packSize = packSize != null ? parseInt(String(packSize)) : 1;
+    if (packLabelTr !== undefined) updateData.packLabelTr = packLabelTr || null;
+    if (packLabelEn !== undefined) updateData.packLabelEn = packLabelEn || null;
+    if (packLabelFr !== undefined) updateData.packLabelFr = packLabelFr || null;
 
     // baseNameFr ve baseNameEn her zaman gönderiliyor, bu yüzden her zaman güncelleme yapıyoruz
     try {
@@ -385,12 +394,17 @@ export async function PUT(
       console.error('PUT - Error details:', err);
     }
 
+    const up = updatedProduct[0] as any;
     return NextResponse.json({
-      ...updatedProduct[0],
+      ...up,
       nameFr: nameFrEn.nameFr,
       nameEn: nameFrEn.nameEn,
       baseNameFr: nameFrEn.baseNameFr,
       baseNameEn: nameFrEn.baseNameEn,
+      packSize: up.packSize ?? 1,
+      packLabelTr: up.packLabelTr ?? null,
+      packLabelEn: up.packLabelEn ?? null,
+      packLabelFr: up.packLabelFr ?? null,
     });
   } catch (error: any) {
     console.error('Error updating product (Drizzle):', error);
