@@ -42,6 +42,9 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Birim etiketi varsayılanları (TR, EN, FR) – her zaman otomatik
+  const PACK_LABEL_DEFAULT = { tr: 'Kutu', en: 'Box', fr: 'Boîte' };
+
   const [formData, setFormData] = useState({
     name: '',
     nameFr: '',
@@ -61,9 +64,9 @@ export default function EditProductPage() {
     description: '',
     images: '',
     packSize: '1',
-    packLabelTr: '',
-    packLabelEn: '',
-    packLabelFr: '',
+    packLabelTr: PACK_LABEL_DEFAULT.tr,
+    packLabelEn: PACK_LABEL_DEFAULT.en,
+    packLabelFr: PACK_LABEL_DEFAULT.fr,
   });
   const [uploading, setUploading] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -197,9 +200,9 @@ export default function EditProductPage() {
             description: product.description || '',
             images: product.images || '',
             packSize: (product as any).packSize != null ? String((product as any).packSize) : '1',
-            packLabelTr: (product as any).packLabelTr ?? '',
-            packLabelEn: (product as any).packLabelEn ?? '',
-            packLabelFr: (product as any).packLabelFr ?? '',
+            packLabelTr: (product as any).packLabelTr?.trim() || PACK_LABEL_DEFAULT.tr,
+            packLabelEn: (product as any).packLabelEn?.trim() || PACK_LABEL_DEFAULT.en,
+            packLabelFr: (product as any).packLabelFr?.trim() || PACK_LABEL_DEFAULT.fr,
           });
         } else {
           setError(mounted ? t('admin.common.notFound') : 'Ürün bulunamadı');
@@ -376,9 +379,9 @@ export default function EditProductPage() {
         description: formData.description || null,
         images: imageUrls.join(',') || null,
         packSize: parseInt(formData.packSize) || 1,
-        packLabelTr: formData.packLabelTr?.trim() || null,
-        packLabelEn: formData.packLabelEn?.trim() || null,
-        packLabelFr: formData.packLabelFr?.trim() || null,
+        packLabelTr: parseInt(formData.packSize) > 1 ? (formData.packLabelTr?.trim() || PACK_LABEL_DEFAULT.tr) : null,
+        packLabelEn: parseInt(formData.packSize) > 1 ? (formData.packLabelEn?.trim() || PACK_LABEL_DEFAULT.en) : null,
+        packLabelFr: parseInt(formData.packSize) > 1 ? (formData.packLabelFr?.trim() || PACK_LABEL_DEFAULT.fr) : null,
       };
 
       // "yeni" veya "new" yeni ürün oluşturma için
@@ -731,7 +734,7 @@ export default function EditProductPage() {
                 Paket / Kutu (Satış birimi)
               </label>
               <p className="text-xs text-gray-500 mb-2">
-                1 = adet bazlı satış. &gt;1 girilirse liste/detayda &quot;20&apos;li Kutu&quot; gibi gösterilir ve kullanıcı kutu sayısı seçebilir.
+                1 = adet bazlı satış. &gt;1 girilirse liste/detayda &quot;20&apos;li Kutu&quot; gibi gösterilir. Birim etiketi otomatik: Kutu (TR), Box (EN), Boîte (FR).
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -740,7 +743,19 @@ export default function EditProductPage() {
                     type="number"
                     min="1"
                     value={formData.packSize}
-                    onChange={(e) => setFormData({ ...formData, packSize: e.target.value || '1' })}
+                    onChange={(e) => {
+                      const newPackSize = e.target.value || '1';
+                      const isPack = parseInt(newPackSize, 10) > 1;
+                      setFormData({
+                        ...formData,
+                        packSize: newPackSize,
+                        ...(isPack && {
+                          packLabelTr: formData.packLabelTr?.trim() || PACK_LABEL_DEFAULT.tr,
+                          packLabelEn: formData.packLabelEn?.trim() || PACK_LABEL_DEFAULT.en,
+                          packLabelFr: formData.packLabelFr?.trim() || PACK_LABEL_DEFAULT.fr,
+                        }),
+                      });
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                   />
                 </div>

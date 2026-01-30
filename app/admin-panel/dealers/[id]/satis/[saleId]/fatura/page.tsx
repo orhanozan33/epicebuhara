@@ -13,6 +13,9 @@ interface SaleItem {
   total: string;
   productName: string;
   productImage: string | null;
+  categoryName?: string | null;
+  packSize?: number | null;
+  packLabelTr?: string | null;
 }
 
 interface Sale {
@@ -358,26 +361,39 @@ export default function FaturaPage() {
           
         </div>
 
-        {/* Ürünler Tablosu */}
+        {/* Ürünler Tablosu: Kategori, Ürün, Miktar (kutu/adet açıklaması), Birim Fiyat (adet; kutu ise 0.99×20 gösterimi), Toplam */}
         <div className="mb-6 overflow-x-auto" style={{ maxWidth: '100%', width: '100%' }}>
           <table className="w-full border-collapse border-2 border-gray-800 min-w-0 lg:min-w-0">
             <thead>
               <tr className="bg-gray-100 border-b-2 border-gray-800">
+                <th className="text-left py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">Kategori</th>
                 <th className="text-left py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">{mounted ? t('admin.invoices.product') : 'Ürün'}</th>
-                <th className="text-center py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">{mounted ? t('admin.invoices.quantityLabel') : 'Miktar'}</th>
-                <th className="text-right py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">{mounted ? t('admin.invoices.unitPrice') : 'Birim Fiyat'}</th>
+                <th className="text-center py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">Miktar (kutu / adet)</th>
+                <th className="text-right py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">Birim Fiyat (adet)</th>
                 <th className="text-right py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900">{mounted ? t('admin.invoices.total') : 'Toplam'}</th>
               </tr>
             </thead>
             <tbody>
-              {sale.items && sale.items.map((item, index) => (
-                <tr key={item.id} className={`border-b border-gray-300 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                  <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{item.productName}</td>
-                  <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-center text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{item.quantity}</td>
-                  <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-right text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">${parseFloat(item.price || '0').toFixed(2)}</td>
-                  <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-right text-[10px] lg:text-sm font-semibold text-gray-900">${parseFloat(item.total || '0').toFixed(2)}</td>
-                </tr>
-              ))}
+              {sale.items && sale.items.map((item, index) => {
+                const packSize = item.packSize ?? 1;
+                const unitPrice = parseFloat(item.price || '0');
+                const qty = item.quantity;
+                const kutuText = packSize > 1 ? `${Math.floor(qty / packSize)} ${item.packLabelTr || 'Kutu'}` : '';
+                const adetText = `${qty} adet`;
+                const quantityDisplay = packSize > 1 ? `${kutuText} (${adetText})` : adetText;
+                const unitPriceDisplay = packSize > 1
+                  ? `${unitPrice.toFixed(2)} $/adet (1 ${item.packLabelTr || 'Kutu'} = ${unitPrice.toFixed(2)}×${packSize} = ${(unitPrice * packSize).toFixed(2)} $)`
+                  : `${unitPrice.toFixed(2)} $`;
+                return (
+                  <tr key={item.id} className={`border-b border-gray-300 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{item.categoryName || '–'}</td>
+                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{item.productName}</td>
+                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-center text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{quantityDisplay}</td>
+                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-right text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{unitPriceDisplay}</td>
+                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-right text-[10px] lg:text-sm font-semibold text-gray-900">${parseFloat(item.total || '0').toFixed(2)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

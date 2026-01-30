@@ -418,6 +418,7 @@
       "totalLabel": "TOTAL",
       "signature": "Signature",
       "electronicSignature": "Electronic Signature",
+      "category": "Category",
       "product": "Product",
       "unitPrice": "Unit Price",
       "quantityLabel": "Quantity",

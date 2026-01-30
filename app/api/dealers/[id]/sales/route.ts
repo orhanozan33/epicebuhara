@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
-import { dealerSales, dealerSaleItems, products, dealers, orders, orderItems } from '@/src/db/schema';
+import { dealerSales, dealerSaleItems, products, dealers, orders, orderItems, categories } from '@/src/db/schema';
 import { eq, desc, inArray, sql } from 'drizzle-orm';
 
 // Force dynamic rendering
@@ -76,17 +76,27 @@ export async function GET(
     ];
     const uniqueProductIds = [...new Set(allProductIds)];
 
-    // Product bilgilerini getir
+    // Product bilgilerini getir (kategori ve pack için)
     const productList = uniqueProductIds.length > 0
       ? await db.select({
           id: products.id,
           name: products.name,
           baseName: products.baseName,
           images: products.images,
+          categoryId: products.categoryId,
+          packSize: products.packSize,
+          packLabelTr: products.packLabelTr,
         })
           .from(products)
           .where(inArray(products.id, uniqueProductIds))
       : [];
+
+    // Kategori isimlerini getir
+    const categoryIds = [...new Set(productList.map(p => p.categoryId).filter((id): id is number => id != null))];
+    const categoryList = categoryIds.length > 0
+      ? await db.select({ id: categories.id, name: categories.name }).from(categories).where(inArray(categories.id, categoryIds))
+      : [];
+    const categoryMap = new Map(categoryList.map(c => [c.id, c.name]));
 
     // Satışları öğelerle birleştir
     const salesWithItems = sales.map((sale) => {
@@ -95,6 +105,7 @@ export async function GET(
         .filter(item => item.saleId === sale.id)
         .map((item) => {
           const product = productList.find(p => p.id === item.productId);
+          const packSize = product?.packSize ?? 1;
           return {
             id: item.id,
             productId: item.productId,
@@ -104,6 +115,9 @@ export async function GET(
             productName: product?.baseName || product?.name || 'Ürün bulunamadı',
             productBaseName: product?.baseName || null,
             productImage: product?.images || null,
+            categoryName: product?.categoryId != null ? (categoryMap.get(product.categoryId) || null) : null,
+            packSize: packSize > 1 ? packSize : null,
+            packLabelTr: product?.packLabelTr || null,
           };
         });
 
@@ -115,6 +129,7 @@ export async function GET(
           const ordItems = orderItemsData.filter(item => item.orderId === orderId);
           items = ordItems.map((item) => {
             const product = productList.find(p => p.id === item.productId);
+            const packSize = product?.packSize ?? 1;
             return {
               id: item.id,
               productId: item.productId,
@@ -124,6 +139,9 @@ export async function GET(
               productName: product?.baseName || product?.name || 'Ürün bulunamadı',
               productBaseName: product?.baseName || null,
               productImage: product?.images || null,
+              categoryName: product?.categoryId != null ? (categoryMap.get(product.categoryId) || null) : null,
+              packSize: packSize > 1 ? packSize : null,
+              packLabelTr: product?.packLabelTr || null,
             };
           });
         }

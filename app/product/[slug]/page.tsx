@@ -63,7 +63,8 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
-  const [boxCount, setBoxCount] = useState(1);
+  const [sellUnit, setSellUnit] = useState<'adet' | 'kutu'>('kutu');
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     setMounted(true);
@@ -104,11 +105,13 @@ export default function ProductDetailPage() {
     };
   }, [i18n]);
 
-  // Seçilen varyant değiştiğinde scroll to top (URL güncellemesi onClick'te yapılıyor)
+  // Seçilen varyant değiştiğinde scroll to top ve satış birimi/miktarı sıfırla
   useEffect(() => {
     if (selectedVariant) {
-      // Sadece scroll yap, URL güncellemesi onClick handler'ında yapılıyor
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      const ps = (selectedVariant as any)?.packSize ?? 1;
+      setSellUnit(ps > 1 ? 'kutu' : 'adet');
+      setQuantity(1);
     }
   }, [selectedVariant]);
 
@@ -479,7 +482,30 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Fiyat - Gizlendi */}
+            {/* Fiyat: tek ürün (adet) fiyatı; kutu seçilirse 0.99 × 20 = 19.80 $ gösterimi */}
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600">
+                {currentLanguage === 'fr' ? 'Prix unitaire' : currentLanguage === 'en' ? 'Unit price' : 'Birim fiyat'}
+                {' '}({currentLanguage === 'fr' ? 'pièce' : currentLanguage === 'en' ? 'piece' : 'adet'}):{' '}
+                <span className="font-semibold text-gray-900">
+                  ${parseFloat(displayProduct?.price || '0').toFixed(2)}
+                </span>
+              </p>
+              {((displayProduct as any)?.packSize ?? 1) > 1 && sellUnit === 'kutu' && (
+                <p className="text-sm text-gray-700">
+                  1 {getPackLabel(displayProduct as any)} = {parseFloat(displayProduct?.price || '0').toFixed(2)} × {((displayProduct as any)?.packSize ?? 1)} ={' '}
+                  <span className="font-semibold text-gray-900">
+                    ${(parseFloat(displayProduct?.price || '0') * ((displayProduct as any)?.packSize ?? 1)).toFixed(2)}
+                  </span>
+                </p>
+              )}
+              <p className="text-base font-semibold text-[#E91E63]">
+                {currentLanguage === 'fr' ? 'Total' : currentLanguage === 'en' ? 'Total' : 'Toplam'}:{' '}
+                {((displayProduct as any)?.packSize ?? 1) > 1 && sellUnit === 'kutu'
+                  ? `${quantity} ${getPackLabel(displayProduct as any)} = $${(parseFloat(displayProduct?.price || '0') * ((displayProduct as any)?.packSize ?? 1) * quantity).toFixed(2)}`
+                  : `${quantity} ${currentLanguage === 'fr' ? 'pièce(s)' : currentLanguage === 'en' ? 'piece(s)' : 'adet'} = $${(parseFloat(displayProduct?.price || '0') * quantity).toFixed(2)}`}
+              </p>
+            </div>
 
             {/* Stok Durumu */}
             <div>
@@ -490,22 +516,70 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            {/* Kutu sayısı (packSize > 1 ise) */}
-            {((displayProduct as any)?.packSize ?? 1) > 1 && (
+            {/* Satış birimi varyantı (packSize > 1: Adet | Kutu) + miktar */}
+            {((displayProduct as any)?.packSize ?? 1) > 1 ? (
+              <div className="mt-3 sm:mt-4 space-y-3">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                  {currentLanguage === 'fr' ? 'Unité de vente' : currentLanguage === 'en' ? 'Selling unit' : 'Satış birimi'}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setSellUnit('adet'); setQuantity(1); }}
+                    className={`flex-shrink-0 p-2 sm:p-3 border-2 rounded-lg text-center transition-all min-w-[80px] sm:min-w-[90px] text-sm font-medium ${
+                      sellUnit === 'adet' ? 'border-green-300 bg-green-50 text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    }`}
+                  >
+                    {currentLanguage === 'fr' ? 'Unité' : currentLanguage === 'en' ? 'Piece(s)' : 'Adet'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSellUnit('kutu'); setQuantity(1); }}
+                    className={`flex-shrink-0 p-2 sm:p-3 border-2 rounded-lg text-center transition-all min-w-[80px] sm:min-w-[90px] text-sm font-medium ${
+                      sellUnit === 'kutu' ? 'border-green-300 bg-green-50 text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    }`}
+                  >
+                    {((displayProduct as any)?.packSize ?? 1)}&apos;li {getPackLabel(displayProduct as any)}
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    {sellUnit === 'kutu'
+                      ? (currentLanguage === 'fr' ? 'Nombre de boîtes' : currentLanguage === 'en' ? 'Number of boxes' : 'Kaç kutu?')
+                      : (currentLanguage === 'fr' ? 'Quantité' : currentLanguage === 'en' ? 'How many?' : 'Kaç adet?')}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={sellUnit === 'kutu'
+                        ? Math.max(1, Math.floor(((displayProduct?.stock ?? 0) / ((displayProduct as any)?.packSize ?? 1))) || 99)
+                        : Math.max(1, displayProduct?.stock ?? 99)}
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm"
+                    />
+                    <span className="text-sm text-gray-600">
+                      {sellUnit === 'kutu' ? getPackLabel(displayProduct as any) : (currentLanguage === 'fr' ? 'unité(s)' : currentLanguage === 'en' ? 'piece(s)' : 'adet')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <div className="mt-3 sm:mt-4">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  {currentLanguage === 'fr' ? 'Nombre de boîtes' : currentLanguage === 'en' ? 'Number of boxes' : 'Kutu sayısı'}
+                  {currentLanguage === 'fr' ? 'Quantité' : currentLanguage === 'en' ? 'How many?' : 'Kaç adet?'}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     min={1}
-                    max={Math.max(1, Math.floor(((displayProduct?.stock ?? 0) / ((displayProduct as any)?.packSize ?? 1))) || 99)}
-                    value={boxCount}
-                    onChange={(e) => setBoxCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    max={Math.max(1, displayProduct?.stock ?? 99)}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
                     className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] text-sm"
                   />
-                  <span className="text-sm text-gray-600">{getPackLabel(displayProduct as any)}</span>
+                  <span className="text-sm text-gray-600">{currentLanguage === 'fr' ? 'unité(s)' : currentLanguage === 'en' ? 'piece(s)' : 'adet'}</span>
                 </div>
               </div>
             )}
@@ -580,7 +654,9 @@ export default function ProductDetailPage() {
                     const productIdToAdd = selectedVariant?.id || product?.id;
                     if (!productIdToAdd) return;
                     const packSize = (selectedVariant as any)?.packSize ?? (displayProduct as any)?.packSize ?? 1;
-                    const quantity = packSize > 1 ? boxCount * packSize : 1;
+                    const quantityToAdd = packSize > 1
+                      ? (sellUnit === 'kutu' ? quantity * packSize : quantity)
+                      : quantity;
                     
                     setAddingToCart(true);
                     try {
@@ -591,7 +667,7 @@ export default function ProductDetailPage() {
                         },
                         body: JSON.stringify({
                           productId: productIdToAdd,
-                          quantity,
+                          quantity: quantityToAdd,
                         }),
                       });
 
@@ -629,7 +705,9 @@ export default function ProductDetailPage() {
                   onClick={async () => {
                     if (!product?.id) return;
                     const packSize = (displayProduct as any)?.packSize ?? 1;
-                    const quantity = packSize > 1 ? boxCount * packSize : 1;
+                    const quantityToAdd = packSize > 1
+                      ? (sellUnit === 'kutu' ? quantity * packSize : quantity)
+                      : quantity;
                     
                     setAddingToCart(true);
                     try {
@@ -640,7 +718,7 @@ export default function ProductDetailPage() {
                         },
                         body: JSON.stringify({
                           productId: product.id,
-                          quantity,
+                          quantity: quantityToAdd,
                         }),
                       });
 

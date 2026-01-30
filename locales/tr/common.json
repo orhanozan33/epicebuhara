@@ -406,6 +406,7 @@
       "subtotal": "Ara Toplam",
       "discount": "İskonto",
       "afterDiscount": "İskonto Sonrası",
+      "category": "Kategori",
       "quantityLabel": "Miktar",
       "tps": "TPS (5%)",
       "tvq": "TVQ (9.975%)",
