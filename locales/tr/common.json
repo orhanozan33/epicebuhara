@@ -375,7 +375,11 @@
       "deleteFailed": "Silme başarısız",
       "createFailed": "Oluşturma başarısız",
       "removeFromInvoice": "Faturadan çıkar",
-      "itemRemoved": "Ürün faturadan çıkarıldı, stok güncellendi."
+      "itemRemoved": "Ürün faturadan çıkarıldı, stok güncellendi.",
+      "addToInvoice": "Faturaya Ürün Ekle",
+      "itemsAddedToInvoice": "Ürün faturaya eklendi.",
+      "howManyBoxes": "Kaç kutu?",
+      "howManyPieces": "Kaç adet?"
     },
     "invoices": {
       "title": "Faturalar",
