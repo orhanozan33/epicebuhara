@@ -512,6 +512,16 @@ export default function FaturaPage() {
   const tvq = 0;
   const total = parseFloat(sale.total || '0');
 
+  const { totalKutu, totalAdet } = (sale.items || []).reduce(
+    (acc, item) => {
+      const ps = item.packSize ?? 1;
+      acc.totalAdet += item.quantity;
+      if (ps > 1) acc.totalKutu += Math.floor(item.quantity / ps);
+      return acc;
+    },
+    { totalKutu: 0, totalAdet: 0 }
+  );
+
   const paymentMethodText: Record<string, string> = {
     NAKIT: mounted ? t('admin.orders.cash') : 'Nakit',
     KREDI_KARTI: mounted ? t('admin.orders.creditCard') : 'Kredi Kartı',
@@ -677,6 +687,10 @@ export default function FaturaPage() {
                 <div className="flex justify-between text-[10px] lg:text-sm">
                   <span className="text-gray-700">{mounted ? t('admin.invoices.subtotal') : 'Ara Toplam'}:</span>
                   <span className="font-semibold text-gray-900">${subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-[9px] lg:text-xs text-gray-600">
+                  <span>{mounted ? t('admin.invoices.totalPackAndPieces') : 'Toplam ürün'}:</span>
+                  <span>{totalKutu} {mounted ? t('admin.invoices.boxes') : 'kutu'}, {totalAdet} {mounted ? t('admin.invoices.pieces') : 'adet'}</span>
                 </div>
                 {discount > 0 && (
                   <>
