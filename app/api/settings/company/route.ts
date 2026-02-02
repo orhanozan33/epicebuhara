@@ -15,6 +15,7 @@ export async function GET() {
     if (settings.length === 0) {
       return NextResponse.json({
         companyName: '',
+        companyNameLine2: '',
         address: '',
         phone: '',
         email: '',
@@ -73,7 +74,7 @@ export async function PUT(request: Request) {
   let body: any = null;
   try {
     body = await request.json();
-    const { companyName, address, phone, email, postalCode, tpsNumber, tvqNumber, tpsRate, tvqRate, instagramUrl, facebookUrl } = body;
+    const { companyName, companyNameLine2, address, phone, email, postalCode, tpsNumber, tvqNumber, tpsRate, tvqRate, instagramUrl, facebookUrl } = body;
 
     const tpsRateVal = tpsRate != null && tpsRate !== '' ? String(Math.min(100, Math.max(0, parseFloat(String(tpsRate)) || 0))) : null;
     const tvqRateVal = tvqRate != null && tvqRate !== '' ? String(Math.min(100, Math.max(0, parseFloat(String(tvqRate)) || 0))) : null;
@@ -85,6 +86,7 @@ export async function PUT(request: Request) {
       // Güncelle
       const updatePayload: Record<string, unknown> = {
         companyName: companyName?.trim() || null,
+        companyNameLine2: companyNameLine2?.trim() || null,
         address: address?.trim() || null,
         phone: phone?.trim() || null,
         email: email?.trim() || null,
@@ -108,6 +110,7 @@ export async function PUT(request: Request) {
       // Yeni oluştur
       const insertPayload: Record<string, unknown> = {
         companyName: companyName?.trim() || null,
+        companyNameLine2: companyNameLine2?.trim() || null,
         address: address?.trim() || null,
         phone: phone?.trim() || null,
         email: email?.trim() || null,

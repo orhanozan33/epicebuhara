@@ -483,6 +483,7 @@
     "settings": {
       "title": "Settings",
       "companyInfo": "Company Information",
+      "companyNameLine2": "Invoice line 2 (shown below company name)",
       "socialMedia": "Social Media",
       "backToSettings": "Back to Settings",
       "edit": "edit",

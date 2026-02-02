@@ -477,6 +477,7 @@
     "settings": {
       "title": "Ayarlar",
       "companyInfo": "Firma Bilgileri",
+      "companyNameLine2": "Fatura alt satırı (firma adının altında görünür)",
       "socialMedia": "Sosyal Medya",
       "backToSettings": "Ayarlar'a Dön",
       "edit": "düzenle",

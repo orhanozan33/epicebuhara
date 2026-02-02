@@ -104,6 +104,7 @@ export const cart = pgTable('cart', {
 export const companySettings = pgTable('company_settings', {
   id: serial('id').primaryKey().notNull(),
   companyName: varchar('company_name', { length: 255 }),
+  companyNameLine2: varchar('company_name_line2', { length: 255 }),
   address: text('address'),
   phone: varchar('phone', { length: 20 }),
   email: varchar('email', { length: 255 }),

@@ -33,6 +33,7 @@ interface Category {
 
 interface CompanySettings {
   companyName: string;
+  companyNameLine2?: string | null;
   address: string;
   phone: string;
   email: string;
@@ -78,6 +79,7 @@ export default function UrunlerPage() {
         const data = await response.json();
         setCompany({
           companyName: data.companyName || '',
+          companyNameLine2: data.companyNameLine2 || '',
           address: data.address || '',
           phone: data.phone || '',
           email: data.email || '',
@@ -316,6 +318,7 @@ export default function UrunlerPage() {
   <div class="header">
     <div class="header-left">
       <div class="company-name">${company?.companyName || 'Epicê Buhara'}</div>
+      ${company?.companyNameLine2 ? `<div class="company-name-line2" style="font-size: 11px; color: #555; margin-top: 2px;">${company.companyNameLine2}</div>` : ''}
       <div class="company-info">
         ${company?.phone ? `<div>Tel: ${company.phone}</div>` : ''}
         ${company?.email ? `<div>Email: ${company.email}</div>` : ''}

@@ -483,6 +483,7 @@
     "settings": {
       "title": "Paramètres",
       "companyInfo": "Informations sur l'Entreprise",
+      "companyNameLine2": "Ligne 2 facture (affichée sous le nom de l'entreprise)",
       "socialMedia": "Réseaux Sociaux",
       "backToSettings": "Retour aux Paramètres",
       "edit": "modifier",

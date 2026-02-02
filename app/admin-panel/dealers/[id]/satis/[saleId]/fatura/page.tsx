@@ -46,6 +46,7 @@ interface Dealer {
 
 interface CompanySettings {
   companyName: string;
+  companyNameLine2?: string | null;
   address: string;
   phone: string;
   email: string;
@@ -340,6 +341,7 @@ export default function FaturaPage() {
               </h1>
               <div className="text-[10px] lg:text-sm text-gray-700 space-y-0.5 lg:space-y-1">
                 {company?.companyName && <p className="font-semibold text-xs lg:text-base">{company.companyName}</p>}
+                {company?.companyNameLine2 && <p className="text-[10px] lg:text-xs text-gray-600">{company.companyNameLine2}</p>}
                 <p><strong>{mounted ? t('checkout.address') : 'Adres'}:</strong> {company?.address || ''}</p>
                 <p><strong>{mounted ? t('admin.invoices.postalCode') : 'Posta Kodu'}:</strong> {company?.postalCode || ''}</p>
                 <p><strong>{mounted ? t('checkout.phone') : 'Telefon'}:</strong> {company?.phone || ''}</p>
@@ -487,7 +489,9 @@ export default function FaturaPage() {
             {/* Sağ: Epic Buhara İmza */}
             <div>
               <div className="pt-4">
-                <p className="font-semibold text-[10px] lg:text-base text-gray-900 mb-4 lg:mb-8">{company?.companyName || 'Epicê Buhara'}</p>
+                <p className="font-semibold text-[10px] lg:text-base text-gray-900 mb-0.5 lg:mb-1">{company?.companyName || 'Epicê Buhara'}</p>
+                {company?.companyNameLine2 && <p className="text-[9px] lg:text-xs text-gray-600 mb-4 lg:mb-8">{company.companyNameLine2}</p>}
+                {!company?.companyNameLine2 && <div className="mb-4 lg:mb-8" />}
                 <p className="text-[10px] lg:text-sm text-gray-600 mb-1 lg:mb-2">{mounted ? t('admin.invoices.signature') : 'İmza'}:</p>
                 <div className="border-b-2 border-gray-400 mt-8 lg:mt-16 mb-1 lg:mb-2 relative">
                   {/* Signature électronique - Au-dessus de la ligne de signature */}

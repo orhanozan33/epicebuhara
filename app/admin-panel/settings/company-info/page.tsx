@@ -9,6 +9,7 @@ import { showToast } from '@/components/Toast';
 interface CompanySettings {
   id?: number;
   companyName: string;
+  companyNameLine2: string;
   address: string;
   phone: string;
   email: string;
@@ -27,6 +28,7 @@ export default function FirmaBilgileriPage() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<CompanySettings>({
     companyName: '',
+    companyNameLine2: '',
     address: '',
     phone: '',
     email: '',
@@ -49,6 +51,7 @@ export default function FirmaBilgileriPage() {
         const data = await response.json();
         setFormData({
           companyName: data.companyName || '',
+          companyNameLine2: data.companyNameLine2 || '',
           address: data.address || '',
           phone: data.phone || '',
           email: data.email || '',
@@ -154,7 +157,16 @@ export default function FirmaBilgileriPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
               placeholder={mounted ? t('admin.dealers.companyName') : 'Firma adını girin'}
             />
-            <p className="mt-1 text-xs text-gray-500">9542-2838 QC. inc</p>
+            <label className="block text-xs text-gray-500 mt-2 mb-1">
+              {mounted ? t('admin.settings.companyNameLine2') : 'Fatura alt satırı (firma adının altında görünür)'}
+            </label>
+            <input
+              type="text"
+              value={formData.companyNameLine2}
+              onChange={(e) => handleChange('companyNameLine2', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+              placeholder="9542-2838 QC. inc"
+            />
           </div>
 
           <div>
