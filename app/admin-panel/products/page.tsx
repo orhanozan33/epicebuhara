@@ -15,6 +15,8 @@ interface Product {
   weight?: string | null;
   unit?: string | null;
   categoryName?: string | null;
+  categoryNameFr?: string | null;
+  categoryNameEn?: string | null;
   categoryId?: number | null;
   isActive?: boolean;
   baseName?: string | null;
@@ -48,6 +50,7 @@ export default function UrunlerPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [company, setCompany] = useState<CompanySettings | null>(null);
+  const [printLanguage, setPrintLanguage] = useState<'tr' | 'en' | 'fr'>('tr');
 
   useEffect(() => {
     setMounted(true);
@@ -194,13 +197,32 @@ export default function UrunlerPage() {
       return (a.baseNameFr || a.baseNameEn || a.name).localeCompare(b.baseNameFr || b.baseNameEn || b.name);
     });
 
-    const byCategory = new Map<string, Product[]>();
+    const byCategoryId = new Map<number, Product[]>();
     filtered.forEach(p => {
-      const cat = p.categoryName || 'Diğer';
-      if (!byCategory.has(cat)) byCategory.set(cat, []);
-      byCategory.get(cat)!.push(p);
+      const cid = p.categoryId ?? 0;
+      if (!byCategoryId.has(cid)) byCategoryId.set(cid, []);
+      byCategoryId.get(cid)!.push(p);
     });
-    const categoryNames = Array.from(byCategory.keys());
+    const categoryIdsOrder = Array.from(byCategoryId.keys());
+
+    const getCategoryDisplayName = (productsInCat: Product[]) => {
+      const p = productsInCat[0];
+      if (!p) return 'Diğer';
+      if (printLanguage === 'fr') return p.categoryNameFr || p.categoryNameEn || p.categoryName || 'Autres';
+      if (printLanguage === 'en') return p.categoryNameEn || p.categoryNameFr || p.categoryName || 'Other';
+      return p.categoryName || 'Diğer';
+    };
+    const getProductDisplayName = (product: Product) => {
+      if (printLanguage === 'fr') return product.baseNameFr || product.baseNameEn || product.name;
+      if (printLanguage === 'en') return product.baseNameEn || product.baseNameFr || product.name;
+      return product.baseName || product.name;
+    };
+
+    const labels = printLanguage === 'fr'
+      ? { title: 'Liste des prix', product: 'Produit', weight: 'Poids', price: 'Prix', total: 'Total', productsCount: 'produits' }
+      : printLanguage === 'en'
+        ? { title: 'Price List', product: 'Product', weight: 'Weight', price: 'Price', total: 'Total', productsCount: 'products' }
+        : { title: 'Fiyat Listesi', product: 'Ürün', weight: 'Ağırlık', price: 'Fiyat', total: 'Toplam', productsCount: 'ürün' };
 
     const renderProductRow = (product: Product, index: number) => {
       let weight = '-';
@@ -209,7 +231,7 @@ export default function UrunlerPage() {
         const weightStr = weightNum % 1 === 0 ? Math.floor(weightNum).toString() : weightNum.toString();
         weight = `${weightStr} ${product.unit || 'Gr'}`;
       }
-      const productName = product.baseNameFr || product.baseNameEn || product.name;
+      const productName = getProductDisplayName(product);
       const sku = product.sku || '-';
       return `<tr>
         <td>${index + 1}</td>
@@ -220,19 +242,20 @@ export default function UrunlerPage() {
       </tr>`;
     };
 
-    const tablesHtml = categoryNames.map((catName, catIndex) => {
-      const list = byCategory.get(catName) || [];
+    const tablesHtml = categoryIdsOrder.map((cid, catIndex) => {
+      const list = byCategoryId.get(cid) || [];
+      const catDisplayName = getCategoryDisplayName(list);
       const pageBreak = catIndex === 0 ? '' : ' page-break-before: always;';
       return `
   <table class="category-table" style="margin-top: ${catIndex === 0 ? 20 : 0}px;${pageBreak}">
     <thead>
-      <tr><th colspan="5" class="category-title">${catName}</th></tr>
+      <tr><th colspan="5" class="category-title">${catDisplayName}</th></tr>
       <tr>
         <th style="width: 5%;">#</th>
-        <th style="width: 50%;">Ürün</th>
-        <th style="width: 12%;">Ağırlık</th>
+        <th style="width: 50%;">${labels.product}</th>
+        <th style="width: 12%;">${labels.weight}</th>
         <th style="width: 18%;">SKU</th>
-        <th style="width: 15%;" class="price">Fiyat</th>
+        <th style="width: 15%;" class="price">${labels.price}</th>
       </tr>
     </thead>
     <tbody>
@@ -246,7 +269,7 @@ export default function UrunlerPage() {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Fiyat Listesi</title>
+  <title>${labels.title}</title>
   <style>
     @media print {
       @page { margin: 1cm; }
@@ -298,11 +321,11 @@ export default function UrunlerPage() {
         ${company?.email ? `<div>Email: ${company.email}</div>` : ''}
       </div>
     </div>
-    <div class="header-center">Fiyat Listesi</div>
+    <div class="header-center">${labels.title}</div>
   </div>
   ${tablesHtml}
   <div style="margin-top: 30px; font-size: 11px; text-align: center; color: #666;">
-    Toplam: ${filtered.length} ürün
+    ${labels.total}: ${filtered.length} ${labels.productsCount}
   </div>
 </body>
 </html>
@@ -315,7 +338,7 @@ export default function UrunlerPage() {
     }
     printWindow.document.write(printContent);
     printWindow.document.close();
-    printWindow.document.title = 'Fiyat Listesi';
+    printWindow.document.title = labels.title;
     printWindow.focus();
     setTimeout(() => {
       printWindow.print();
@@ -601,6 +624,32 @@ export default function UrunlerPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Kategori Seçin</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Yazdırma dili</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPrintLanguage('tr')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${printLanguage === 'tr' ? 'bg-[#E91E63] text-white border-[#E91E63]' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Türkçe
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrintLanguage('en')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${printLanguage === 'en' ? 'bg-[#E91E63] text-white border-[#E91E63]' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                >
+                  English
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrintLanguage('fr')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${printLanguage === 'fr' ? 'bg-[#E91E63] text-white border-[#E91E63]' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Français
+                </button>
+              </div>
+            </div>
             <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">
               {categories.map((category) => (
                 <label key={category.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
