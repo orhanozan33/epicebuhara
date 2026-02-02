@@ -57,7 +57,7 @@ export async function POST(
       );
     }
 
-    const productIds = items.map((i: { productId?: number }) => i?.productId).filter((id): id is number => typeof id === 'number' && !isNaN(id));
+    const productIds = items.map((i: { productId?: number }) => i?.productId).filter((id: number | undefined): id is number => typeof id === 'number' && !isNaN(id));
     if (productIds.length === 0) {
       return NextResponse.json(
         { error: 'Geçerli ürün ID bulunamadı' },
