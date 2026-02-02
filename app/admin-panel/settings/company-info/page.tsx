@@ -154,6 +154,7 @@ export default function FirmaBilgileriPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
               placeholder={mounted ? t('admin.dealers.companyName') : 'Firma adını girin'}
             />
+            <p className="mt-1 text-xs text-gray-500">9542-2838 QC. inc</p>
           </div>
 
           <div>
