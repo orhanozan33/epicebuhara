@@ -234,7 +234,6 @@ export default function UrunlerPage() {
           boxQty: 'Qté/boîte',
           unitPrice: 'Prix unit.',
           boxPrice: 'Prix boîte',
-          pricePer100g: 'Prix/100g',
         }
       : printLanguage === 'en'
         ? {
@@ -247,7 +246,6 @@ export default function UrunlerPage() {
             boxQty: 'Qty/box',
             unitPrice: 'Unit price',
             boxPrice: 'Box price',
-            pricePer100g: 'Price/100g',
           }
         : {
             title: 'Fiyat Listesi',
@@ -259,7 +257,6 @@ export default function UrunlerPage() {
             boxQty: 'Kutu (adet)',
             unitPrice: 'Birim fiyat',
             boxPrice: 'Kutu fiyatı',
-            pricePer100g: 'Fiyat/100g',
           };
 
     const renderProductRow = (product: Product, index: number) => {
@@ -274,13 +271,9 @@ export default function UrunlerPage() {
       const packSize = product.packSize ?? 1;
       const unitPrice = parseFloat(product.price || '0');
       const boxPrice = packSize > 1 ? unitPrice * packSize : null;
-      const weightNum = product.weight ? parseFloat(product.weight) : 0;
-      const unitIsGr = (product.unit || 'Gr').toLowerCase().includes('gr');
-      const pricePer100g = weightNum > 0 && unitIsGr ? (unitPrice / weightNum) * 100 : null;
 
       const boxQtyCell = packSize > 1 ? packSize : '-';
       const boxPriceCell = boxPrice != null ? `$${boxPrice.toFixed(2)}` : '-';
-      const pricePer100gCell = pricePer100g != null ? `$${pricePer100g.toFixed(2)}` : '-';
 
       return `<tr>
         <td>${index + 1}</td>
@@ -289,7 +282,6 @@ export default function UrunlerPage() {
         <td style="text-align: center;">${boxQtyCell}</td>
         <td class="price">$${unitPrice.toFixed(2)}</td>
         <td class="price">${boxPriceCell}</td>
-        <td class="price">${pricePer100gCell}</td>
         <td>${sku}</td>
       </tr>`;
     };
@@ -301,16 +293,15 @@ export default function UrunlerPage() {
       return `
   <table class="category-table" style="margin-top: ${catIndex === 0 ? 20 : 0}px;${pageBreak}">
     <thead>
-      <tr><th colspan="8" class="category-title">${catDisplayName}</th></tr>
+      <tr><th colspan="7" class="category-title">${catDisplayName}</th></tr>
       <tr>
         <th style="width: 4%;">#</th>
-        <th style="width: 32%;">${labels.product}</th>
-        <th style="width: 10%;">${labels.weight}</th>
+        <th style="width: 34%;">${labels.product}</th>
+        <th style="width: 12%;">${labels.weight}</th>
         <th style="width: 10%;">${labels.boxQty}</th>
-        <th style="width: 12%;" class="price">${labels.unitPrice}</th>
-        <th style="width: 11%;" class="price">${labels.boxPrice}</th>
-        <th style="width: 11%;" class="price">${labels.pricePer100g}</th>
-        <th style="width: 10%;">SKU</th>
+        <th style="width: 13%;" class="price">${labels.unitPrice}</th>
+        <th style="width: 12%;" class="price">${labels.boxPrice}</th>
+        <th style="width: 15%;">SKU</th>
       </tr>
     </thead>
     <tbody>
