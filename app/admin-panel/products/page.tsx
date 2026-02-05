@@ -185,13 +185,11 @@ export default function UrunlerPage() {
       return;
     }
 
-    const selectedCategoryIds = categories
-      .filter(cat => selectedCategories.includes(cat.id))
-      .map(cat => cat.id);
-    
-    // Kategori ID'lerine göre filtrele ve kategoriye göre grupla
+    const selectedCategoryIdsSet = new Set(selectedCategories);
+
+    // Kategori ID'lerine göre filtrele ve kategoriye göre grupla (ürünler kategori adına göre sıralı)
     const filtered = products.filter(p => {
-      return p.categoryId && selectedCategoryIds.includes(p.categoryId) && p.isActive !== false;
+      return p.categoryId && selectedCategoryIdsSet.has(p.categoryId) && p.isActive !== false;
     }).sort((a, b) => {
       const catA = a.categoryName || '';
       const catB = b.categoryName || '';
@@ -205,7 +203,8 @@ export default function UrunlerPage() {
       if (!byCategoryId.has(cid)) byCategoryId.set(cid, []);
       byCategoryId.get(cid)!.push(p);
     });
-    const categoryIdsOrder = Array.from(byCategoryId.keys());
+    // Yazdırma sırası: modalda seçilen kategori sırası (ilk seçilen en başta)
+    const categoryIdsOrder = selectedCategories.filter(id => byCategoryId.has(id));
 
     const getCategoryDisplayName = (productsInCat: Product[]) => {
       const p = productsInCat[0];
