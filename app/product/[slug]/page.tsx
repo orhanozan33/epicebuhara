@@ -105,12 +105,12 @@ export default function ProductDetailPage() {
     };
   }, [i18n]);
 
-  // Seçilen varyant değiştiğinde scroll to top ve satış birimi/miktarı sıfırla
+  // Seçilen varyant değiştiğinde scroll to top ve satış birimi/miktarı sıfırla (normal kullanıcıda sadece kutu)
   useEffect(() => {
     if (selectedVariant) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       const ps = (selectedVariant as any)?.packSize ?? 1;
-      setSellUnit(ps > 1 ? 'kutu' : 'adet');
+      setSellUnit(ps > 1 ? 'kutu' : 'kutu');
       setQuantity(0);
     }
   }, [selectedVariant]);
@@ -490,21 +490,19 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Fiyat: tek ürün (adet) fiyatı; kutu seçilirse 0.99 × 20 = 19.80 $ gösterimi */}
+            {/* Fiyat: packSize > 1 ise sadece kutu fiyatı; packSize === 1 ise birim fiyat (normal kullanıcıda adet seçeneği yok) */}
             <div className="space-y-1">
-              <p className="text-sm text-gray-600">
-                {currentLanguage === 'fr' ? 'Prix unitaire' : currentLanguage === 'en' ? 'Unit price' : 'Birim fiyat'}
-                {' '}({currentLanguage === 'fr' ? 'pièce' : currentLanguage === 'en' ? 'piece' : 'adet'}):{' '}
-                <span className="font-semibold text-gray-900">
-                  ${parseFloat(displayProduct?.price || '0').toFixed(2)}
-                </span>
-              </p>
-              {((displayProduct as any)?.packSize ?? 1) > 1 && sellUnit === 'kutu' && (
+              {((displayProduct as any)?.packSize ?? 1) > 1 ? (
                 <p className="text-sm text-gray-700">
                   1 {getPackLabel(displayProduct as any)} = {parseFloat(displayProduct?.price || '0').toFixed(2)} × {((displayProduct as any)?.packSize ?? 1)} ={' '}
                   <span className="font-semibold text-gray-900">
                     ${(parseFloat(displayProduct?.price || '0') * ((displayProduct as any)?.packSize ?? 1)).toFixed(2)}
                   </span>
+                </p>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  {currentLanguage === 'fr' ? 'Prix unitaire' : currentLanguage === 'en' ? 'Unit price' : 'Birim fiyat'}:{' '}
+                  <span className="font-semibold text-gray-900">${parseFloat(displayProduct?.price || '0').toFixed(2)}</span>
                 </p>
               )}
               <p className="text-base font-semibold text-[#E91E63]">
@@ -527,37 +525,20 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            {/* Satış birimi varyantı (packSize > 1: Adet | Kutu) + miktar */}
+            {/* Satış birimi: normal kullanıcıda sadece kutu (adet seçeneği yok, sadece admin bayi satışında) */}
             {((displayProduct as any)?.packSize ?? 1) > 1 ? (
               <div className="mt-3 sm:mt-4 space-y-3">
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
                   {currentLanguage === 'fr' ? 'Unité de vente' : currentLanguage === 'en' ? 'Selling unit' : 'Satış birimi'}
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { setSellUnit('adet'); setQuantity(0); }}
-                    className={`flex-shrink-0 p-2 sm:p-3 border-2 rounded-lg text-center transition-all min-w-[80px] sm:min-w-[90px] text-sm font-medium ${
-                      sellUnit === 'adet' ? 'border-green-300 bg-green-50 text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                    }`}
-                  >
-                    {currentLanguage === 'fr' ? 'Unité' : currentLanguage === 'en' ? 'Piece(s)' : 'Adet'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setSellUnit('kutu'); setQuantity(0); }}
-                    className={`flex-shrink-0 p-2 sm:p-3 border-2 rounded-lg text-center transition-all min-w-[80px] sm:min-w-[90px] text-sm font-medium ${
-                      sellUnit === 'kutu' ? 'border-green-300 bg-green-50 text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                    }`}
-                  >
+                  <span className="flex-shrink-0 p-2 sm:p-3 border-2 border-green-300 bg-green-50 rounded-lg text-center min-w-[80px] sm:min-w-[90px] text-sm font-medium text-gray-900">
                     {getPackDisplayText((displayProduct as any)?.packSize ?? 1)}
-                  </button>
+                  </span>
                 </div>
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    {sellUnit === 'kutu'
-                      ? (currentLanguage === 'fr' ? 'Nombre de boîtes' : currentLanguage === 'en' ? 'Number of boxes' : 'Kaç kutu?')
-                      : (currentLanguage === 'fr' ? 'Quantité' : currentLanguage === 'en' ? 'How many?' : 'Kaç adet?')}
+                    {currentLanguage === 'fr' ? 'Nombre de boîtes' : currentLanguage === 'en' ? 'Number of boxes' : 'Kaç kutu?'}
                   </label>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
@@ -618,7 +599,7 @@ export default function ProductDetailPage() {
             ) : (
               <div className="mt-3 sm:mt-4">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  {currentLanguage === 'fr' ? 'Quantité' : currentLanguage === 'en' ? 'How many?' : 'Kaç adet?'}
+                  {currentLanguage === 'fr' ? 'Quantité' : currentLanguage === 'en' ? 'Quantity' : 'Miktar'}
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
@@ -664,7 +645,7 @@ export default function ProductDetailPage() {
                       +
                     </button>
                   </div>
-                  <span className="text-sm text-gray-600">{currentLanguage === 'fr' ? 'unité(s)' : currentLanguage === 'en' ? 'piece(s)' : 'adet'}</span>
+                  <span className="text-sm text-gray-600">{currentLanguage === 'fr' ? 'unité(s)' : currentLanguage === 'en' ? 'unit(s)' : 'adet'}</span>
                 </div>
               </div>
             )}
