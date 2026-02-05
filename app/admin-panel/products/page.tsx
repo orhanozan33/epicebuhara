@@ -22,6 +22,10 @@ interface Product {
   baseName?: string | null;
   baseNameFr?: string | null;
   baseNameEn?: string | null;
+  packSize?: number | null;
+  packLabelTr?: string | null;
+  packLabelEn?: string | null;
+  packLabelFr?: string | null;
 }
 
 interface Category {
@@ -220,10 +224,43 @@ export default function UrunlerPage() {
     };
 
     const labels = printLanguage === 'fr'
-      ? { title: 'Liste des prix', product: 'Produit', weight: 'Poids', price: 'Prix', total: 'Total', productsCount: 'produits' }
+      ? {
+          title: 'Liste des prix',
+          product: 'Produit',
+          weight: 'Poids',
+          price: 'Prix',
+          total: 'Total',
+          productsCount: 'produits',
+          boxQty: 'Qté/boîte',
+          unitPrice: 'Prix unit.',
+          boxPrice: 'Prix boîte',
+          pricePer100g: 'Prix/100g',
+        }
       : printLanguage === 'en'
-        ? { title: 'Price List', product: 'Product', weight: 'Weight', price: 'Price', total: 'Total', productsCount: 'products' }
-        : { title: 'Fiyat Listesi', product: 'Ürün', weight: 'Ağırlık', price: 'Fiyat', total: 'Toplam', productsCount: 'ürün' };
+        ? {
+            title: 'Price List',
+            product: 'Product',
+            weight: 'Weight',
+            price: 'Price',
+            total: 'Total',
+            productsCount: 'products',
+            boxQty: 'Qty/box',
+            unitPrice: 'Unit price',
+            boxPrice: 'Box price',
+            pricePer100g: 'Price/100g',
+          }
+        : {
+            title: 'Fiyat Listesi',
+            product: 'Ürün',
+            weight: 'Ağırlık',
+            price: 'Fiyat',
+            total: 'Toplam',
+            productsCount: 'ürün',
+            boxQty: 'Kutu (adet)',
+            unitPrice: 'Birim fiyat',
+            boxPrice: 'Kutu fiyatı',
+            pricePer100g: 'Fiyat/100g',
+          };
 
     const renderProductRow = (product: Product, index: number) => {
       let weight = '-';
@@ -234,12 +271,26 @@ export default function UrunlerPage() {
       }
       const productName = getProductDisplayName(product);
       const sku = product.sku || '-';
+      const packSize = product.packSize ?? 1;
+      const unitPrice = parseFloat(product.price || '0');
+      const boxPrice = packSize > 1 ? unitPrice * packSize : null;
+      const weightNum = product.weight ? parseFloat(product.weight) : 0;
+      const unitIsGr = (product.unit || 'Gr').toLowerCase().includes('gr');
+      const pricePer100g = weightNum > 0 && unitIsGr ? (unitPrice / weightNum) * 100 : null;
+
+      const boxQtyCell = packSize > 1 ? packSize : '-';
+      const boxPriceCell = boxPrice != null ? `$${boxPrice.toFixed(2)}` : '-';
+      const pricePer100gCell = pricePer100g != null ? `$${pricePer100g.toFixed(2)}` : '-';
+
       return `<tr>
         <td>${index + 1}</td>
         <td class="product-name">${productName}</td>
         <td>${weight}</td>
         <td>${sku}</td>
-        <td class="price">$${parseFloat(product.price || '0').toFixed(2)}</td>
+        <td style="text-align: center;">${boxQtyCell}</td>
+        <td class="price">$${unitPrice.toFixed(2)}</td>
+        <td class="price">${boxPriceCell}</td>
+        <td class="price">${pricePer100gCell}</td>
       </tr>`;
     };
 
@@ -250,13 +301,16 @@ export default function UrunlerPage() {
       return `
   <table class="category-table" style="margin-top: ${catIndex === 0 ? 20 : 0}px;${pageBreak}">
     <thead>
-      <tr><th colspan="5" class="category-title">${catDisplayName}</th></tr>
+      <tr><th colspan="8" class="category-title">${catDisplayName}</th></tr>
       <tr>
-        <th style="width: 5%;">#</th>
-        <th style="width: 50%;">${labels.product}</th>
-        <th style="width: 12%;">${labels.weight}</th>
-        <th style="width: 18%;">SKU</th>
-        <th style="width: 15%;" class="price">${labels.price}</th>
+        <th style="width: 4%;">#</th>
+        <th style="width: 32%;">${labels.product}</th>
+        <th style="width: 10%;">${labels.weight}</th>
+        <th style="width: 10%;">SKU</th>
+        <th style="width: 10%;">${labels.boxQty}</th>
+        <th style="width: 12%;" class="price">${labels.unitPrice}</th>
+        <th style="width: 11%;" class="price">${labels.boxPrice}</th>
+        <th style="width: 11%;" class="price">${labels.pricePer100g}</th>
       </tr>
     </thead>
     <tbody>
