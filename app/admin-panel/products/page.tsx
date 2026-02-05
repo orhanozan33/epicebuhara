@@ -286,11 +286,11 @@ export default function UrunlerPage() {
         <td>${index + 1}</td>
         <td class="product-name">${productName}</td>
         <td>${weight}</td>
-        <td>${sku}</td>
         <td style="text-align: center;">${boxQtyCell}</td>
         <td class="price">$${unitPrice.toFixed(2)}</td>
         <td class="price">${boxPriceCell}</td>
         <td class="price">${pricePer100gCell}</td>
+        <td>${sku}</td>
       </tr>`;
     };
 
@@ -306,11 +306,11 @@ export default function UrunlerPage() {
         <th style="width: 4%;">#</th>
         <th style="width: 32%;">${labels.product}</th>
         <th style="width: 10%;">${labels.weight}</th>
-        <th style="width: 10%;">SKU</th>
         <th style="width: 10%;">${labels.boxQty}</th>
         <th style="width: 12%;" class="price">${labels.unitPrice}</th>
         <th style="width: 11%;" class="price">${labels.boxPrice}</th>
         <th style="width: 11%;" class="price">${labels.pricePer100g}</th>
+        <th style="width: 10%;">SKU</th>
       </tr>
     </thead>
     <tbody>
