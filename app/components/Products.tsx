@@ -21,6 +21,8 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
   const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
+  const [addToCartModalProduct, setAddToCartModalProduct] = useState<any | null>(null);
+  const [addToCartBoxQty, setAddToCartBoxQty] = useState<number>(1);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -87,6 +89,14 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
       inputRef.current.focus();
     }
   }, []);
+
+  // Paket metni: 20'li Kutu / 20 Box / Boîte de 20
+  const getPackDisplayText = useCallback((packSize: number, packLabelTr?: string | null, packLabelEn?: string | null, packLabelFr?: string | null) => {
+    const label = currentLanguage === 'fr' ? (packLabelFr || 'Boîte') : currentLanguage === 'en' ? (packLabelEn || 'Box') : (packLabelTr || 'Kutu');
+    if (currentLanguage === 'fr') return `${label} de ${packSize}`;
+    if (currentLanguage === 'en') return `${packSize} ${label}`;
+    return `${packSize}'li ${label}`;
+  }, [currentLanguage]);
 
   useEffect(() => {
     async function loadProducts() {
@@ -399,54 +409,158 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                   )}
                 </Link>
 
-                {/* Sepete Ekle Butonu */}
+                {/* Sepete Ekle Butonu - Modal ile paket türü ve kutu sayısı */}
                 <button
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    
-                    if (addingToCart === product.id) return;
-                    
-                    setAddingToCart(product.id);
-                    try {
-                      const response = await fetch('/api/cart', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          productId: product.id,
-                          quantity: 1,
-                        }),
-                      });
-
-                      if (response.ok) {
-                        showToast(mounted ? t('cart.addedToCart') : 'Ürün sepete eklendi!', 'success');
-                        // Sepet badge'ini güncelle
-                        window.dispatchEvent(new Event('cartUpdated'));
-                      } else {
-                        const error = await response.json();
-                        showToast(error.error || (mounted ? t('cart.addToCartError') : 'Ürün sepete eklenirken hata oluştu'), 'error');
-                      }
-                    } catch (error) {
-                      console.error('Error adding to cart:', error);
-                      showToast(mounted ? t('cart.addToCartError') : 'Ürün sepete eklenirken hata oluştu', 'error');
-                    } finally {
-                      setAddingToCart(null);
-                    }
+                    if (product.stock === 0) return;
+                    setAddToCartModalProduct(product);
+                    setAddToCartBoxQty(1);
                   }}
-                  disabled={addingToCart === product.id || product.stock === 0}
+                  disabled={product.stock === 0}
                   className="w-full px-2 py-1.5 sm:px-3 sm:py-2 bg-[#E91E63] text-white text-[10px] sm:text-xs font-medium rounded hover:bg-[#C2185B] transition-colors mt-auto disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {addingToCart === product.id 
-                    ? (mounted ? t('products.addingToCart') : 'Ekleniyor...')
-                    : (mounted ? t('products.addToCart') : 'Sepete Ekle')}
+                  {mounted ? t('products.addToCart') : 'Sepete Ekle'}
                 </button>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Sepete Ekle Modal - Paket türü ve kutu sayısı (sadece kutu satışı) */}
+      {addToCartModalProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setAddToCartModalProduct(null)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-4 sm:p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-gray-900 mb-3 text-sm sm:text-base">
+              {currentLanguage === 'fr' ? 'Ajouter au panier' : currentLanguage === 'en' ? 'Add to cart' : 'Sepete Ekle'}
+            </h3>
+            <p className="text-gray-700 text-xs sm:text-sm mb-1">
+              {(currentLanguage === 'fr' && addToCartModalProduct.baseNameFr) || (currentLanguage === 'en' && addToCartModalProduct.baseNameEn)
+                ? (currentLanguage === 'fr' ? addToCartModalProduct.baseNameFr : addToCartModalProduct.baseNameEn)
+                : (addToCartModalProduct.baseName || addToCartModalProduct.name)}
+            </p>
+            {addToCartModalProduct.weight && (
+              <p className="text-gray-500 text-xs mb-3">
+                {(() => {
+                  const w = parseFloat(addToCartModalProduct.weight);
+                  const u = addToCartModalProduct.unit || 'Gr';
+                  if (u === 'Gr' && w >= 1000 && w % 1000 === 0) return `${w / 1000} Kg`;
+                  return `${Math.floor(w)} ${u}`;
+                })()}
+              </p>
+            )}
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {currentLanguage === 'fr' ? 'Type de conditionnement' : currentLanguage === 'en' ? 'Package type' : 'Paket türü'}
+                </label>
+                <div className="py-2 px-3 bg-gray-50 rounded-lg text-sm text-gray-900 border border-gray-200">
+                  {getPackDisplayText(
+                    addToCartModalProduct.packSize ?? 1,
+                    addToCartModalProduct.packLabelTr,
+                    addToCartModalProduct.packLabelEn,
+                    addToCartModalProduct.packLabelFr
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {currentLanguage === 'fr' ? 'Nombre de boîtes' : currentLanguage === 'en' ? 'Number of boxes' : 'Kaç kutu?'}
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAddToCartBoxQty((q) => Math.max(1, q - 1))}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={(() => {
+                      const ps = addToCartModalProduct.packSize ?? 1;
+                      const stock = addToCartModalProduct.stock ?? 0;
+                      return ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
+                    })()}
+                    value={addToCartBoxQty}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v)) {
+                        const ps = addToCartModalProduct.packSize ?? 1;
+                        const stock = addToCartModalProduct.stock ?? 0;
+                        const maxB = ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
+                        setAddToCartBoxQty(Math.min(maxB, Math.max(1, v)));
+                      }
+                    }}
+                    className="w-14 text-center border border-gray-300 rounded-lg py-2 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ps = addToCartModalProduct.packSize ?? 1;
+                      const stock = addToCartModalProduct.stock ?? 0;
+                      const maxB = ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
+                      setAddToCartBoxQty((q) => Math.min(maxB, q + 1));
+                    }}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setAddToCartModalProduct(null)}
+                className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+              >
+                {currentLanguage === 'fr' ? 'Annuler' : currentLanguage === 'en' ? 'Cancel' : 'İptal'}
+              </button>
+              <button
+                type="button"
+                disabled={addingToCart === addToCartModalProduct.id}
+                onClick={async () => {
+                  if (!addToCartModalProduct) return;
+                  const packSize = addToCartModalProduct.packSize ?? 1;
+                  const quantityToAdd = packSize > 1 ? addToCartBoxQty * packSize : addToCartBoxQty;
+                  setAddingToCart(addToCartModalProduct.id);
+                  try {
+                    const response = await fetch('/api/cart', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        productId: addToCartModalProduct.id,
+                        quantity: quantityToAdd,
+                      }),
+                    });
+                    if (response.ok) {
+                      showToast(mounted ? t('cart.addedToCart') : 'Ürün sepete eklendi!', 'success');
+                      window.dispatchEvent(new Event('cartUpdated'));
+                      setAddToCartModalProduct(null);
+                    } else {
+                      const error = await response.json();
+                      showToast(error.error || (mounted ? t('cart.addToCartError') : 'Ürün sepete eklenirken hata oluştu'), 'error');
+                    }
+                  } catch {
+                    showToast(mounted ? t('cart.addToCartError') : 'Ürün sepete eklenirken hata oluştu', 'error');
+                  } finally {
+                    setAddingToCart(null);
+                  }
+                }}
+                className="flex-1 py-2 bg-[#E91E63] text-white rounded-lg text-sm font-medium hover:bg-[#C2185B] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {addingToCart === addToCartModalProduct.id
+                  ? (currentLanguage === 'fr' ? 'Ajout...' : currentLanguage === 'en' ? 'Adding...' : 'Ekleniyor...')
+                  : (currentLanguage === 'fr' ? 'Ajouter' : currentLanguage === 'en' ? 'Add' : 'Sepete Ekle')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
