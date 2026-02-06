@@ -126,7 +126,7 @@ export default function BayiSatisPage() {
   const [manualDiscount, setManualDiscount] = useState<string>(''); // Manuel iskonto yüzdesi
   const [productToAdd, setProductToAdd] = useState<Product | null>(null);
   const [addModalSellUnit, setAddModalSellUnit] = useState<'adet' | 'kutu'>('kutu');
-  const [addModalQuantity, setAddModalQuantity] = useState<number | ''>(0);
+  const [addModalQuantity, setAddModalQuantity] = useState<number | ''>('');
   
   useEffect(() => {
     setMounted(true);
@@ -1072,7 +1072,7 @@ export default function BayiSatisPage() {
                         try {
                           setProductToAdd(product);
                           setAddModalSellUnit(packSize > 1 ? 'kutu' : 'adet');
-                          setAddModalQuantity(0);
+                          setAddModalQuantity('');
                         } catch (err: any) {
                           console.error('Error opening add modal:', err);
                         }
@@ -1161,14 +1161,14 @@ export default function BayiSatisPage() {
                 <div className="flex gap-1">
                   <button
                     type="button"
-                    onClick={() => { setAddModalSellUnit('adet'); setAddModalQuantity(0); }}
+                    onClick={() => { setAddModalSellUnit('adet'); setAddModalQuantity(''); }}
                     className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
                   >
                     Adet
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setAddModalSellUnit('kutu'); setAddModalQuantity(0); }}
+                    onClick={() => { setAddModalSellUnit('kutu'); setAddModalQuantity(''); }}
                     className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
                   >
                     {(productToAdd as Product & { packSize?: number }).packSize}&apos;li {(productToAdd as Product & { packLabelTr?: string }).packLabelTr || 'Kutu'}
