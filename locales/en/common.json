@@ -382,6 +382,7 @@
       "deleteFailed": "Delete failed",
       "createFailed": "Create failed",
       "removeFromInvoice": "Remove from invoice",
+      "searchProductInInvoice": "Search product in invoice...",
       "itemRemoved": "Item removed from invoice, stock updated.",
       "addToInvoice": "Add Product to Invoice",
       "itemsAddedToInvoice": "Item added to invoice.",

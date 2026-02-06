@@ -375,6 +375,7 @@
       "deleteFailed": "Silme başarısız",
       "createFailed": "Oluşturma başarısız",
       "removeFromInvoice": "Faturadan çıkar",
+      "searchProductInInvoice": "Faturada ürün ara...",
       "itemRemoved": "Ürün faturadan çıkarıldı, stok güncellendi.",
       "addToInvoice": "Faturaya Ürün Ekle",
       "itemsAddedToInvoice": "Ürün faturaya eklendi.",

@@ -382,6 +382,7 @@
       "deleteFailed": "Échec de la suppression",
       "createFailed": "Échec de la création",
       "removeFromInvoice": "Retirer de la facture",
+      "searchProductInInvoice": "Rechercher un produit dans la facture...",
       "itemRemoved": "Article retiré de la facture, stock mis à jour.",
       "addToInvoice": "Ajouter le produit à la facture",
       "itemsAddedToInvoice": "Article ajouté à la facture.",
