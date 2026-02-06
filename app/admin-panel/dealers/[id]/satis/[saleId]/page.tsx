@@ -60,13 +60,15 @@ export default function SatisDetayPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
   const [showAddToInvoiceModal, setShowAddToInvoiceModal] = useState(false);
-  const [addToInvoiceProducts, setAddToInvoiceProducts] = useState<{ id: number; name: string; baseName?: string | null; baseNameFr?: string | null; baseNameEn?: string | null; price: string; stock: number | null; packSize?: number | null; packLabelTr?: string | null; images?: string | null }[]>([]);
+  const [addToInvoiceProducts, setAddToInvoiceProducts] = useState<{ id: number; name: string; baseName?: string | null; baseNameFr?: string | null; baseNameEn?: string | null; price: string; stock: number | null; packSize?: number | null; packLabelTr?: string | null; images?: string | null; categoryId?: number | null }[]>([]);
   const [addToInvoiceSearch, setAddToInvoiceSearch] = useState('');
   const [addToInvoiceProduct, setAddToInvoiceProduct] = useState<typeof addToInvoiceProducts[0] | null>(null);
   const [addToInvoiceSellUnit, setAddToInvoiceSellUnit] = useState<'adet' | 'kutu'>('kutu');
   const [addToInvoiceQuantity, setAddToInvoiceQuantity] = useState<number | ''>(0);
   const [addingToInvoice, setAddingToInvoice] = useState(false);
   const [invoiceProductSearch, setInvoiceProductSearch] = useState('');
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [addToInvoiceCategoryId, setAddToInvoiceCategoryId] = useState<string>('');
 
   useEffect(() => {
     setMounted(true);
@@ -195,7 +197,7 @@ export default function SatisDetayPage() {
 
   const fetchProductsForInvoice = useCallback(async () => {
     try {
-      const res = await fetch('/api/products', { cache: 'no-store' });
+      const res = await fetch('/api/products?admin=true', { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
       const list = Array.isArray(data) ? data : (data?.products ?? []);
@@ -203,6 +205,18 @@ export default function SatisDetayPage() {
       if (isMountedRef.current) setAddToInvoiceProducts(active);
     } catch (e) {
       console.error('Error fetching products:', e);
+    }
+  }, []);
+
+  const fetchCategoriesForInvoice = useCallback(async () => {
+    try {
+      const res = await fetch('/api/categories', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : [];
+      if (isMountedRef.current) setCategories(list);
+    } catch (e) {
+      console.error('Error fetching categories:', e);
     }
   }, []);
 
@@ -774,7 +788,10 @@ export default function SatisDetayPage() {
                   setShowAddToInvoiceModal(true);
                   setAddToInvoiceProduct(null);
                   setAddToInvoiceQuantity(0);
+                  setAddToInvoiceCategoryId('');
+                  setAddToInvoiceSearch('');
                   fetchProductsForInvoice();
+                  fetchCategoriesForInvoice();
                 }}
                 className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
               >
@@ -980,14 +997,26 @@ export default function SatisDetayPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-4 border-b border-gray-100">
-              <input
-                type="text"
-                value={addToInvoiceSearch}
-                onChange={(e) => setAddToInvoiceSearch(e.target.value)}
-                placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
+            <div className="p-4 border-b border-gray-100 space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <select
+                  value={addToInvoiceCategoryId}
+                  onChange={(e) => setAddToInvoiceCategoryId(e.target.value)}
+                  className="sm:w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                >
+                  <option value="">{mounted ? t('admin.products.allCategories') : 'Tüm kategoriler'}</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={addToInvoiceSearch}
+                  onChange={(e) => setAddToInvoiceSearch(e.target.value)}
+                  placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
             </div>
             <div className="flex-1 overflow-auto p-4">
               {addToInvoiceProduct ? (
@@ -1030,6 +1059,8 @@ export default function SatisDetayPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {addToInvoiceProducts
                     .filter((p) => {
+                      const catId = addToInvoiceCategoryId ? parseInt(addToInvoiceCategoryId, 10) : null;
+                      if (catId != null && (p.categoryId ?? null) !== catId) return false;
                       const q = addToInvoiceSearch.trim().toLowerCase();
                       if (!q) return true;
                       const name = (p.baseName || p.baseNameFr || p.baseNameEn || p.name || '').toLowerCase();
