@@ -768,23 +768,21 @@ export default function SatisDetayPage() {
                 </svg>
                 {mounted ? t('admin.dealers.invoicePrint') : 'Fatura Yazdır'}
               </button>
-              {sale.saleNumber.startsWith('SAL-') && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddToInvoiceModal(true);
-                    setAddToInvoiceProduct(null);
-                    setAddToInvoiceQuantity(0);
-                    fetchProductsForInvoice();
-                  }}
-                  className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  {mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ürün ekle'}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddToInvoiceModal(true);
+                  setAddToInvoiceProduct(null);
+                  setAddToInvoiceQuantity(0);
+                  fetchProductsForInvoice();
+                }}
+                className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                {mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ürün ekle'}
+              </button>
               {!sale.isPaid && (
                 <button
                   type="button"
