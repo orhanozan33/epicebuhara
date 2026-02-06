@@ -111,19 +111,8 @@ export default function SiparisPage() {
     }, 0);
   };
 
-  const calculateTPS = (subtotal: number) => {
-    return subtotal * 0.05;
-  };
-
-  const calculateTVQ = (subtotal: number) => {
-    return subtotal * 0.09975;
-  };
-
   const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const tps = calculateTPS(subtotal);
-    const tvq = calculateTVQ(subtotal);
-    return subtotal + tps + tvq;
+    return calculateSubtotal(); // Vergi yok
   };
 
   const handleCheckout = async (e: React.FormEvent) => {
@@ -138,9 +127,7 @@ export default function SiparisPage() {
     setSubmitting(true);
     try {
       const subtotal = calculateSubtotal();
-      const tps = calculateTPS(subtotal);
-      const tvq = calculateTVQ(subtotal);
-      const total = subtotal + tps + tvq;
+      const total = subtotal; // Vergi yok
 
       const orderData = {
         cartItems: cartItems.map(item => ({
@@ -155,9 +142,9 @@ export default function SiparisPage() {
         shippingProvince: checkoutForm.province,
         shippingCity: checkoutForm.city,
         subtotal: subtotal.toFixed(2),
-        tax: (tps + tvq).toFixed(2),
-        tps: tps.toFixed(2),
-        tvq: tvq.toFixed(2),
+        tax: '0.00',
+        tps: '0.00',
+        tvq: '0.00',
         shipping: '0.00',
         total: total.toFixed(2),
       };

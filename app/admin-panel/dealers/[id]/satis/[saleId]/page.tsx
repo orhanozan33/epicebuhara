@@ -622,33 +622,12 @@ export default function SatisDetayPage() {
                   <span className="font-semibold">-${parseFloat(sale.discount || '0').toFixed(2)}</span>
                 </div>
               )}
-              {(() => {
-                const subtotal = parseFloat(sale.subtotal || '0');
-                const discount = parseFloat(sale.discount || '0');
-                const afterDiscount = Math.max(0, subtotal - discount);
-                const tps = 0; // Vergi yok
-                const tvq = 0; // Vergi yok
-                const calculatedTotal = Math.round(afterDiscount * 100) / 100;
-                
-                return (
-                  <>
-                    {discount > 0 && (
-                      <div className="flex justify-between text-xs text-gray-600">
-                        <span>{mounted ? t('admin.dealers.discountAfter') : 'İskonto Sonrası'}:</span>
-                        <span className="font-medium">${afterDiscount.toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-sm text-gray-700">
-                      <span>{mounted ? t('admin.invoices.tps') : 'TPS (5%)'}:</span>
-                      <span className="font-semibold">${tps.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-700">
-                      <span>{mounted ? t('admin.invoices.tvq') : 'TVQ (9.975%)'}:</span>
-                      <span className="font-semibold">${tvq.toFixed(2)}</span>
-                    </div>
-                  </>
-                );
-              })()}
+              {parseFloat(sale.discount || '0') > 0 && (
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>{mounted ? t('admin.dealers.discountAfter') : 'İskonto Sonrası'}:</span>
+                  <span className="font-medium">${(Math.max(0, parseFloat(sale.subtotal || '0') - parseFloat(sale.discount || '0'))).toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-xl font-bold text-gray-900 pt-3 border-t-2 border-blue-200">
                 <span>{mounted ? t('cart.total') : 'Toplam'}:</span>
                 <span className="text-blue-600">${(() => {
@@ -667,9 +646,7 @@ export default function SatisDetayPage() {
                 const subtotal = parseFloat(sale.subtotal || '0');
                 const discount = parseFloat(sale.discount || '0');
                 const afterDiscount = Math.max(0, subtotal - discount);
-                const tps = Math.round(afterDiscount * 0.05 * 100) / 100;
-                const tvq = Math.round((afterDiscount + tps) * 0.09975 * 100) / 100; // Quebec: TVQ, TPS dahil fiyat üzerinden
-                const total = Math.round((afterDiscount + tps + tvq) * 100) / 100;
+                const total = Math.round(afterDiscount * 100) / 100; // Vergi yok
                 const paid = parseFloat(sale.paidAmount || '0');
                 const remaining = Math.max(0, total - paid);
                 const hasPartialPayment = !sale.isPaid && paid > 0;

@@ -510,16 +510,6 @@ export default function BayiSatisPage() {
     return Math.max(0, subtotal - discountAmount);
   }, [subtotal, discountAmount]);
   
-  // TPS - Vergi yok, 0
-  const tpsAmount = useMemo(() => {
-    return 0;
-  }, []);
-  
-  // TVQ - Vergi yok, 0
-  const tvqAmount = useMemo(() => {
-    return 0;
-  }, []);
-  
   // Toplam (İskonto sonrası, vergi yok)
   const total = useMemo(() => {
     return Math.round(afterDiscount * 100) / 100;
@@ -916,16 +906,6 @@ export default function BayiSatisPage() {
                         <span className="font-medium">${afterDiscount.toFixed(2)}</span>
                       </div>
                     )}
-                    {/* TPS (Quebec Sales Tax) */}
-                    <div className="flex justify-between text-sm text-gray-700 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
-                      <span className="font-medium">{mounted ? t('admin.invoices.tps') : 'TPS (5%)'}:</span>
-                      <span className="font-semibold">${tpsAmount.toFixed(2)}</span>
-                    </div>
-                    {/* TVQ (Quebec Goods and Services Tax) */}
-                    <div className="flex justify-between text-sm text-gray-700 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
-                      <span className="font-medium">{mounted ? t('admin.invoices.tvq') : 'TVQ (9.975%)'}:</span>
-                      <span className="font-semibold">${tvqAmount.toFixed(2)}</span>
-                    </div>
                     <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t-2 border-blue-200 mt-2">
                       <span>{mounted ? t('cart.total') : 'Toplam'}:</span>
                       <span className="text-blue-600">${total.toFixed(2)}</span>

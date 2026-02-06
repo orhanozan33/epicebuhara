@@ -104,19 +104,8 @@ export default function SepetPage() {
     }, 0);
   };
 
-  const calculateTPS = (subtotal: number) => {
-    return subtotal * 0.05;
-  };
-
-  const calculateTVQ = (subtotal: number) => {
-    return subtotal * 0.09975;
-  };
-
   const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const tps = calculateTPS(subtotal);
-    const tvq = calculateTVQ(subtotal);
-    return subtotal + tps + tvq;
+    return calculateSubtotal(); // Vergi yok
   };
 
   if (loading) {
@@ -226,14 +215,6 @@ export default function SepetPage() {
                     <div className="flex justify-between text-gray-600 text-sm sm:text-base">
                       <span>{mounted ? t('cart.subtotal') : 'Ara Toplam'}</span>
                       <span>${calculateSubtotal().toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                      <span>TPS (5%)</span>
-                      <span>${calculateTPS(calculateSubtotal()).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                      <span>TVQ (9.975%)</span>
-                      <span>${calculateTVQ(calculateSubtotal()).toFixed(2)}</span>
                     </div>
                     <div className="border-t border-gray-200 pt-3 flex justify-between text-base sm:text-lg font-bold text-gray-900">
                       <span>{mounted ? t('cart.total') : 'Toplam'}</span>

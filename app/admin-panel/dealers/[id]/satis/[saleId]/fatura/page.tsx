@@ -280,11 +280,6 @@ export default function FaturaPage() {
   const subtotal = parseFloat(sale.subtotal || '0');
   const discount = parseFloat(sale.discount || '0');
   const afterDiscount = Math.max(0, subtotal - discount);
-  // Vergi yok - TPS ve TVQ 0
-  const tpsRatePct = 0;
-  const tvqRatePct = 0;
-  const tps = 0;
-  const tvq = 0;
   const total = parseFloat(sale.total || '0');
 
   const { totalKutu, totalAdet } = (sale.items || []).reduce(
@@ -454,14 +449,6 @@ export default function FaturaPage() {
                     </div>
                   </>
                 )}
-                <div className="flex justify-between text-[10px] lg:text-sm">
-                  <span className="text-gray-700">{mounted ? t('admin.invoices.tps') : 'TPS'} ({tpsRatePct}%):</span>
-                  <span className="font-semibold text-gray-900">${tps.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-[10px] lg:text-sm">
-                  <span className="text-gray-700">{mounted ? t('admin.invoices.tvq') : 'TVQ'} ({tvqRatePct}%):</span>
-                  <span className="font-semibold text-gray-900">${tvq.toFixed(2)}</span>
-                </div>
               </div>
               <div className="p-2 lg:p-4 bg-gray-800 text-white">
                 <div className="flex justify-between items-center">
