@@ -93,6 +93,61 @@ export async function PUT(
   }
 }
 
+// Ödemeyi iptal et (Ödenmedi yap)
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string; saleId: string }> }
+) {
+  try {
+    const { id, saleId } = await params;
+    const dealerId = parseInt(id);
+    const saleIdNum = parseInt(saleId);
+
+    if (isNaN(dealerId) || isNaN(saleIdNum)) {
+      return NextResponse.json(
+        { error: 'Geçersiz bayi veya satış ID' },
+        { status: 400 }
+      );
+    }
+
+    const sale = await db.select()
+      .from(dealerSales)
+      .where(and(
+        eq(dealerSales.id, saleIdNum),
+        eq(dealerSales.dealerId, dealerId)
+      ))
+      .limit(1);
+
+    if (sale.length === 0) {
+      return NextResponse.json(
+        { error: 'Satış bulunamadı' },
+        { status: 404 }
+      );
+    }
+
+    const updatedSale = await db.update(dealerSales)
+      .set({
+        isPaid: false,
+        paidAmount: '0',
+        paidAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(dealerSales.id, saleIdNum))
+      .returning();
+
+    return NextResponse.json({
+      success: true,
+      sale: updatedSale[0],
+    });
+  } catch (error: any) {
+    console.error('Error cancelling payment (Drizzle):', error);
+    return NextResponse.json(
+      { error: 'Ödeme iptal edilirken hata oluştu', details: error?.message || 'Bilinmeyen hata' },
+      { status: 500 }
+    );
+  }
+}
+
 // Satış sil
 export async function DELETE(
   request: Request,

@@ -22,7 +22,7 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
   const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
   const [addToCartModalProduct, setAddToCartModalProduct] = useState<any | null>(null);
-  const [addToCartBoxQty, setAddToCartBoxQty] = useState<number>(1);
+  const [addToCartBoxQty, setAddToCartBoxQty] = useState<number | ''>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -416,7 +416,7 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                     e.stopPropagation();
                     if (product.stock === 0) return;
                     setAddToCartModalProduct(product);
-                    setAddToCartBoxQty(1);
+                    setAddToCartBoxQty('');
                   }}
                   disabled={product.stock === 0}
                   className="w-full px-2 py-1.5 sm:px-3 sm:py-2 bg-[#E91E63] text-white text-[10px] sm:text-xs font-medium rounded hover:bg-[#C2185B] transition-colors mt-auto disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -472,27 +472,33 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setAddToCartBoxQty((q) => Math.max(1, q - 1))}
+                    onClick={() => {
+                      const q = addToCartBoxQty === '' ? 0 : addToCartBoxQty;
+                      if (q <= 1) setAddToCartBoxQty('');
+                      else setAddToCartBoxQty(q - 1);
+                    }}
                     className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50"
                   >
                     −
                   </button>
                   <input
                     type="number"
-                    min={1}
+                    min={0}
                     max={(() => {
                       const ps = addToCartModalProduct.packSize ?? 1;
                       const stock = addToCartModalProduct.stock ?? 0;
                       return ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
                     })()}
-                    value={addToCartBoxQty}
+                    value={addToCartBoxQty === '' ? '' : addToCartBoxQty}
                     onChange={(e) => {
-                      const v = parseInt(e.target.value, 10);
-                      if (!isNaN(v)) {
+                      const v = e.target.value;
+                      if (v === '') { setAddToCartBoxQty(''); return; }
+                      const n = parseInt(v, 10);
+                      if (!isNaN(n)) {
                         const ps = addToCartModalProduct.packSize ?? 1;
                         const stock = addToCartModalProduct.stock ?? 0;
                         const maxB = ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
-                        setAddToCartBoxQty(Math.min(maxB, Math.max(1, v)));
+                        setAddToCartBoxQty(Math.min(maxB, Math.max(0, n)));
                       }
                     }}
                     className="w-14 text-center border border-gray-300 rounded-lg py-2 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -503,7 +509,8 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                       const ps = addToCartModalProduct.packSize ?? 1;
                       const stock = addToCartModalProduct.stock ?? 0;
                       const maxB = ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
-                      setAddToCartBoxQty((q) => Math.min(maxB, q + 1));
+                      const q = addToCartBoxQty === '' ? 0 : addToCartBoxQty;
+                      setAddToCartBoxQty(Math.min(maxB, q + 1));
                     }}
                     className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50"
                   >
@@ -522,11 +529,13 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
               </button>
               <button
                 type="button"
-                disabled={addingToCart === addToCartModalProduct.id}
+                disabled={addingToCart === addToCartModalProduct.id || (addToCartBoxQty === '' ? 0 : addToCartBoxQty) <= 0}
                 onClick={async () => {
                   if (!addToCartModalProduct) return;
+                  const qty = addToCartBoxQty === '' ? 0 : addToCartBoxQty;
+                  if (qty <= 0) return;
                   const packSize = addToCartModalProduct.packSize ?? 1;
-                  const quantityToAdd = packSize > 1 ? addToCartBoxQty * packSize : addToCartBoxQty;
+                  const quantityToAdd = packSize > 1 ? qty * packSize : qty;
                   setAddingToCart(addToCartModalProduct.id);
                   try {
                     const response = await fetch('/api/cart', {

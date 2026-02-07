@@ -64,7 +64,7 @@ export default function SatisDetayPage() {
   const [addToInvoiceSearch, setAddToInvoiceSearch] = useState('');
   const [addToInvoiceProduct, setAddToInvoiceProduct] = useState<typeof addToInvoiceProducts[0] | null>(null);
   const [addToInvoiceSellUnit, setAddToInvoiceSellUnit] = useState<'adet' | 'kutu'>('kutu');
-  const [addToInvoiceQuantity, setAddToInvoiceQuantity] = useState<number | ''>(0);
+  const [addToInvoiceQuantity, setAddToInvoiceQuantity] = useState<number | ''>('');
   const [addingToInvoice, setAddingToInvoice] = useState(false);
   const [invoiceProductSearch, setInvoiceProductSearch] = useState('');
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
@@ -243,7 +243,7 @@ export default function SatisDetayPage() {
       }
       showToast(mounted ? t('admin.dealers.itemsAddedToInvoice') : 'Ürün faturaya eklendi.', 'success');
       setAddToInvoiceProduct(null);
-      setAddToInvoiceQuantity(0);
+      setAddToInvoiceQuantity('');
       await fetchSale();
     } catch (err: any) {
       showToast(err?.message || (mounted ? t('admin.common.error') : 'İşlem başarısız'), 'error');
@@ -652,9 +652,9 @@ export default function SatisDetayPage() {
                 const hasPartialPayment = !sale.isPaid && paid > 0;
                 
                 if (sale.isPaid) {
-                  // Tamamen ödendi
+                  // Tamamen ödendi - ödemeyi iptal et butonu
                   return (
-                    <div className="mt-3 pt-3 border-t-2 border-green-200">
+                    <div className="mt-3 pt-3 border-t-2 border-green-200 space-y-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-green-700 font-semibold flex items-center gap-2">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,6 +664,30 @@ export default function SatisDetayPage() {
                         </span>
                         <span className="text-green-700 font-bold">{mounted ? t('admin.dealers.fullyPaid') : 'Tamamen Ödendi'}</span>
                       </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!dealerId || !saleId) return;
+                          if (!confirm(mounted ? t('admin.dealers.cancelPaymentConfirm') : 'Ödemeyi iptal edip faturayı ödenmedi yapacaksınız. Devam edilsin mi?')) return;
+                          try {
+                            const res = await fetch(`/api/dealers/${dealerId}/sales/${saleId}`, {
+                              method: 'PATCH',
+                            });
+                            if (res.ok) {
+                              showToast(mounted ? t('admin.dealers.paymentCancelled') : 'Ödeme iptal edildi.', 'success');
+                              await fetchSale();
+                            } else {
+                              const data = await res.json();
+                              showToast(data?.error || (mounted ? t('admin.common.error') : 'İşlem başarısız'), 'error');
+                            }
+                          } catch (e) {
+                            showToast(mounted ? t('admin.common.error') : 'İşlem başarısız', 'error');
+                          }
+                        }}
+                        className="w-full mt-2 px-3 py-2 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                      >
+                        {mounted ? t('admin.dealers.cancelPayment') : 'Ödemeyi İptal Et'}
+                      </button>
                     </div>
                   );
                 } else if (hasPartialPayment) {
@@ -764,7 +788,7 @@ export default function SatisDetayPage() {
                 onClick={() => {
                   setShowAddToInvoiceModal(true);
                   setAddToInvoiceProduct(null);
-                  setAddToInvoiceQuantity(0);
+                  setAddToInvoiceQuantity('');
                   setAddToInvoiceCategoryId('');
                   setAddToInvoiceSearch('');
                   fetchProductsForInvoice();
@@ -1003,8 +1027,8 @@ export default function SatisDetayPage() {
                   <div className="flex gap-2">
                     {(addToInvoiceProduct.packSize ?? 1) > 1 ? (
                       <>
-                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('adet'); setAddToInvoiceQuantity(0); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>Adet</button>
-                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('kutu'); setAddToInvoiceQuantity(0); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{addToInvoiceProduct.packSize}&apos;li {addToInvoiceProduct.packLabelTr || 'Kutu'}</button>
+                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('adet'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>Adet</button>
+                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('kutu'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{addToInvoiceProduct.packSize}&apos;li {addToInvoiceProduct.packLabelTr || 'Kutu'}</button>
                       </>
                     ) : (
                       <span className="text-sm text-gray-600">Adet</span>
@@ -1050,7 +1074,7 @@ export default function SatisDetayPage() {
                         onClick={() => {
                           setAddToInvoiceProduct(p);
                           setAddToInvoiceSellUnit((p.packSize ?? 1) > 1 ? 'kutu' : 'adet');
-                          setAddToInvoiceQuantity(0);
+                          setAddToInvoiceQuantity('');
                         }}
                         className="p-3 text-left border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors"
                       >

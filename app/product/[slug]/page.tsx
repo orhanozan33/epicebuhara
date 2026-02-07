@@ -64,7 +64,7 @@ export default function ProductDetailPage() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<string>('tr');
   const [sellUnit, setSellUnit] = useState<'adet' | 'kutu'>('kutu');
-  const [quantity, setQuantity] = useState<number | ''>(0);
+  const [quantity, setQuantity] = useState<number | ''>('');
 
   useEffect(() => {
     setMounted(true);
@@ -111,7 +111,7 @@ export default function ProductDetailPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       const ps = (selectedVariant as any)?.packSize ?? 1;
       setSellUnit(ps > 1 ? 'kutu' : 'kutu');
-      setQuantity(0);
+      setQuantity('');
     }
   }, [selectedVariant]);
 
