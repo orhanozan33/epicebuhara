@@ -385,9 +385,11 @@ export default function FaturaPage() {
                 const packSize = item.packSize ?? 1;
                 const unitPrice = parseFloat(item.price || '0');
                 const qty = item.quantity;
-                const kutuText = packSize > 1 ? `${Math.floor(qty / packSize)} ${item.packLabelTr || 'Kutu'}` : '';
-                const adetText = `${qty} adet`;
-                const quantityDisplay = packSize > 1 ? `${kutuText} (${adetText})` : adetText;
+                // Tüm kategorilerde packSize > 1 ise: "1 Kutu (12 adet)" formatı
+                const numKutu = packSize > 1 ? Math.floor(qty / packSize) : 0;
+                const quantityDisplay = packSize > 1
+                  ? `${numKutu} Kutu (${qty} adet)`
+                  : `${qty} adet`;
                 const unitPriceDisplay = packSize > 1
                   ? `${unitPrice.toFixed(2)} $/adet (1 ${item.packLabelTr || 'Kutu'} = ${unitPrice.toFixed(2)}×${packSize} = ${(unitPrice * packSize).toFixed(2)} $)`
                   : `${unitPrice.toFixed(2)} $`;
