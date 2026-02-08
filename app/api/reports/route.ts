@@ -45,7 +45,12 @@ export async function GET(request: Request) {
     const orderTPS = 0; // Vergi yok
     const orderTVQ = 0; // Vergi yok
 
-    // Toplam bayi satışları
+    // Toplam bayi satışları (sadece kaydedilmiş faturalar; silinen fatura raporlara dahil edilmez)
+    const dealerSalesBaseConditions = [eq(dealerSales.isSaved, true)];
+    const dealerSalesDateConditions = dateFilter
+      ? [...dealerSalesBaseConditions, gte(dealerSales.createdAt, dateFilter.start), lte(dealerSales.createdAt, dateFilter.end)]
+      : dealerSalesBaseConditions;
+
     const dealerSalesQuery = db
       .select({
         totalSales: sql<number>`COUNT(${dealerSales.id})::int`,
@@ -53,16 +58,10 @@ export async function GET(request: Request) {
         dealerSubtotal: sql<number>`COALESCE(SUM(CAST(${dealerSales.subtotal} AS DECIMAL)), 0)`,
         dealerDiscount: sql<number>`COALESCE(SUM(CAST(${dealerSales.discount} AS DECIMAL)), 0)`,
       })
-      .from(dealerSales);
+      .from(dealerSales)
+      .where(and(...dealerSalesDateConditions));
 
-    const dealerSalesResult = dateFilter
-      ? await dealerSalesQuery.where(
-          and(
-            gte(dealerSales.createdAt, dateFilter.start),
-            lte(dealerSales.createdAt, dateFilter.end)
-          )
-        )
-      : await dealerSalesQuery;
+    const dealerSalesResult = await dealerSalesQuery;
     const totalSales = dealerSalesResult[0]?.totalSales || 0;
     const dealerRevenue = parseFloat(dealerSalesResult[0]?.dealerRevenue?.toString() || '0');
     const dealerSubtotalRaw = parseFloat(dealerSalesResult[0]?.dealerSubtotal?.toString() || '0');
@@ -71,21 +70,15 @@ export async function GET(request: Request) {
     const dealerTPS = 0; // Vergi yok
     const dealerTVQ = 0; // Vergi yok
 
-    // Toplam alacak (borçlu satışlar)
+    // Toplam alacak (borçlu satışlar; sadece kaydedilmiş faturalar)
     const alacakQuery = db
       .select({
         totalAlacak: sql<number>`COALESCE(SUM(CASE WHEN ${dealerSales.isPaid} = false THEN CAST(${dealerSales.total} AS DECIMAL) - COALESCE(CAST(${dealerSales.paidAmount} AS DECIMAL), 0) ELSE 0 END), 0)`,
       })
-      .from(dealerSales);
+      .from(dealerSales)
+      .where(and(...dealerSalesDateConditions));
 
-    const alacakResult = dateFilter
-      ? await alacakQuery.where(
-          and(
-            gte(dealerSales.createdAt, dateFilter.start),
-            lte(dealerSales.createdAt, dateFilter.end)
-          )
-        )
-      : await alacakQuery;
+    const alacakResult = await alacakQuery;
     const totalAlacak = parseFloat(alacakResult[0]?.totalAlacak?.toString() || '0');
 
     // Sipariş durumlarına göre gruplama
@@ -131,7 +124,7 @@ export async function GET(request: Request) {
         )
       : await orderItemsQuery;
 
-    // dealer_sale_items'tan
+    // dealer_sale_items'tan (sadece kaydedilmiş faturalardan)
     const dealerItemsQuery = db
       .select({
         productId: dealerSaleItems.productId,
@@ -140,16 +133,10 @@ export async function GET(request: Request) {
       })
       .from(dealerSaleItems)
       .innerJoin(dealerSales, eq(dealerSaleItems.saleId, dealerSales.id))
+      .where(and(...dealerSalesDateConditions))
       .groupBy(dealerSaleItems.productId);
 
-    const dealerItemsResult = dateFilter
-      ? await dealerItemsQuery.where(
-          and(
-            gte(dealerSales.createdAt, dateFilter.start),
-            lte(dealerSales.createdAt, dateFilter.end)
-          )
-        )
-      : await dealerItemsQuery;
+    const dealerItemsResult = await dealerItemsQuery;
 
     // Her iki kaynaktan gelen verileri birleştir
     const productStats = new Map<number, { quantity: number; revenue: number }>();

@@ -32,6 +32,18 @@ export default function RaporlarPage() {
     fetchReports('', '');
   }, []);
 
+  // Sayfa tekrar görünür olduğunda raporu yenile (silinen fatura sonrası güncel veri)
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        if (startDate && endDate) fetchReports(startDate, endDate);
+        else fetchReports('', '');
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [startDate, endDate]);
+
   const fetchReports = async (start: string, end: string) => {
     setLoading(true);
     try {

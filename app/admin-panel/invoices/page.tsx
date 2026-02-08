@@ -84,6 +84,15 @@ export default function FaturalarPage() {
     fetchInvoices();
   }, [startDate, endDate]);
 
+  // Sayfa tekrar görünür olduğunda listeyi yenile (başka sekmede silinen fatura vb.)
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchInvoices();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [startDate, endDate]);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedInvoices(new Set(filteredInvoices.map(inv => inv.id)));
@@ -123,7 +132,7 @@ export default function FaturalarPage() {
         });
         if (response.ok) {
           showToast(mounted ? t('admin.invoices.deleted') : 'Fatura başarıyla silindi', 'success');
-          await fetchInvoices();
+          await fetchInvoices(); // Listeyi ve Toplam Tutar'ı güncelle
         } else {
           showToast(mounted ? t('admin.invoices.deleteError') : 'Fatura silinirken hata oluştu', 'error');
         }
@@ -137,7 +146,7 @@ export default function FaturalarPage() {
         if (response.ok) {
           const data = await response.json();
           showToast(mounted ? t('admin.invoices.bulkDeleted', { count: data.deletedCount }) : `${data.deletedCount} fatura başarıyla silindi`, 'success');
-          await fetchInvoices();
+          await fetchInvoices(); // Listeyi ve Toplam Tutar'ı güncelle
         } else {
           showToast(mounted ? t('admin.invoices.deleteError') : 'Faturalar silinirken hata oluştu', 'error');
         }
