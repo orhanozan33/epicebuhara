@@ -21,7 +21,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { amount, paymentMethod } = body;
+    const { amount, paymentMethod, discountPercent: bodyDiscountPercent } = body;
 
     if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function PUT(
     }
 
     // Satışı getir
-    const sale = await db.select()
+    let sale = await db.select()
       .from(dealerSales)
       .where(and(
         eq(dealerSales.id, saleIdNum),
@@ -54,13 +54,39 @@ export async function PUT(
     }
 
     const saleData = sale[0];
-    const totalAmount = parseFloat(saleData.total || '0');
+    const subtotal = parseFloat(saleData.subtotal || '0');
+    let totalAmount = parseFloat(saleData.total || '0');
+    let currentPaidAmount = parseFloat(saleData.paidAmount || '0');
+
+    // Opsiyonel: Ödeme alırken iskonto uygula
+    if (bodyDiscountPercent != null && bodyDiscountPercent !== '') {
+      const pct = Math.min(100, Math.max(0, parseFloat(String(bodyDiscountPercent)) || 0));
+      const discountAmount = (subtotal * pct) / 100;
+      const newTotal = Math.max(0, subtotal - discountAmount);
+      // Önceden ödenen tutar yeni toplamı aşmasın
+      const cappedPaid = Math.min(currentPaidAmount, newTotal);
+      const isFullyPaidAfterDiscount = cappedPaid >= newTotal;
+
+      await db.update(dealerSales)
+        .set({
+          discount: discountAmount.toFixed(2),
+          total: newTotal.toFixed(2),
+          paidAmount: cappedPaid.toFixed(2),
+          isPaid: isFullyPaidAfterDiscount,
+          updatedAt: new Date(),
+        })
+        .where(eq(dealerSales.id, saleIdNum));
+
+      totalAmount = newTotal;
+      currentPaidAmount = cappedPaid;
+      // Güncel satışı kullan (aynı request içinde tekrar okumaya gerek yok, değişkenleri güncelledik)
+    }
+
     const newPaidAmount = parseFloat(amount);
-    const currentPaidAmount = parseFloat(saleData.paidAmount || '0');
     const totalPaidAmount = currentPaidAmount + newPaidAmount;
     const isFullyPaid = totalPaidAmount >= totalAmount;
 
-    // Satışı güncelle
+    // Satışı güncelle (ödeme bilgisi)
     const updateData = {
       paymentMethod,
       isPaid: isFullyPaid,

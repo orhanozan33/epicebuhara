@@ -540,6 +540,7 @@ export default function BayiSatisPage() {
         })),
         paymentMethod,
         notes: notes.trim() || null,
+        discountPercent: discountPercent,
       };
 
       const response = await fetch(`/api/dealers/${dealerId}/sales`, {
@@ -598,7 +599,7 @@ export default function BayiSatisPage() {
         setSubmitting(false);
       }
     }
-  }, [dealerId, cart, paymentMethod, notes, router, mounted, t]);
+  }, [dealerId, cart, paymentMethod, notes, discountPercent, router, mounted, t]);
 
   // CRITICAL: Global cleanup effect - MUST be last effect
   // This ensures isMountedRef is always false when component unmounts

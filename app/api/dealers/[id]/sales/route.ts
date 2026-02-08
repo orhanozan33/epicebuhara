@@ -198,7 +198,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { items, paymentMethod, notes } = body;
+    const { items, paymentMethod, notes, discountPercent: bodyDiscountPercent } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -265,9 +265,12 @@ export async function POST(
       );
     }
 
-    // İskonto hesapla (bayi iskontosu)
+    // İskonto hesapla: istekte gönderilen yüzde varsa onu kullan, yoksa bayi iskontosu
     const dealerDiscount = parseFloat(dealer[0].discount?.toString() || '0');
-    const discountAmount = (subtotal * dealerDiscount) / 100;
+    const effectiveDiscountPercent = bodyDiscountPercent != null && bodyDiscountPercent !== ''
+      ? Math.min(100, Math.max(0, parseFloat(String(bodyDiscountPercent)) || 0))
+      : dealerDiscount;
+    const discountAmount = (subtotal * effectiveDiscountPercent) / 100;
     const afterDiscount = subtotal - discountAmount;
 
     // TPS ve TVQ hesapla - Vergi yok, 0

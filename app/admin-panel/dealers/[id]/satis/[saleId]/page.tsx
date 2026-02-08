@@ -56,6 +56,7 @@ export default function SatisDetayPage() {
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentDiscountPercent, setPaymentDiscountPercent] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK'>('NAKIT');
   const [processingPayment, setProcessingPayment] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
@@ -305,12 +306,10 @@ export default function SatisDetayPage() {
   const handleOpenPaymentModal = useCallback(() => {
     if (!sale) return;
     
-    // Kalan borç tutarını hesapla
+    setPaymentDiscountPercent('');
     const total = parseFloat(sale.total || '0');
     const paid = parseFloat(sale.paidAmount || '0');
     const remainingAmount = Math.max(0, total - paid);
-    
-    // Ödeme tutarı olarak kalan borç tutarını set et
     setPaymentAmount(remainingAmount.toFixed(2));
     setPaymentMethod('NAKIT');
     setShowPaymentModal(true);
@@ -319,6 +318,7 @@ export default function SatisDetayPage() {
   const handleClosePaymentModal = useCallback(() => {
     setShowPaymentModal(false);
     setPaymentAmount('');
+    setPaymentDiscountPercent('');
     setPaymentMethod('NAKIT');
   }, []);
 
@@ -331,8 +331,10 @@ export default function SatisDetayPage() {
       return;
     }
 
-    const totalAmount = parseFloat(sale.total || '0');
-    if (amount > totalAmount) {
+    const subtotal = parseFloat(sale.subtotal || '0');
+    const pct = paymentDiscountPercent !== '' ? Math.min(100, Math.max(0, parseFloat(paymentDiscountPercent) || 0)) : null;
+    const effectiveTotal = pct != null ? Math.max(0, subtotal - (subtotal * pct) / 100) : parseFloat(sale.total || '0');
+    if (amount > effectiveTotal) {
       showToast(mounted ? t('admin.dealers.paymentAmountExceeds') : 'Ödeme tutarı toplam tutardan fazla olamaz', 'error');
       return;
     }
@@ -340,15 +342,20 @@ export default function SatisDetayPage() {
     try {
       setProcessingPayment(true);
 
+      const body: { amount: string; paymentMethod: string; discountPercent?: number | string } = {
+        amount: amount.toFixed(2),
+        paymentMethod,
+      };
+      if (paymentDiscountPercent !== '' && !isNaN(parseFloat(paymentDiscountPercent))) {
+        body.discountPercent = parseFloat(paymentDiscountPercent);
+      }
+
       const response = await fetch(`/api/dealers/${dealerId}/sales/${saleId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          amount: amount.toFixed(2),
-          paymentMethod,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!isMountedRef.current) return;
@@ -389,7 +396,7 @@ export default function SatisDetayPage() {
         setProcessingPayment(false);
       }
     }
-  }, [dealerId, saleId, sale, paymentAmount, paymentMethod, fetchSale, mounted, t]);
+  }, [dealerId, saleId, sale, paymentAmount, paymentDiscountPercent, paymentMethod, fetchSale, mounted, t]);
 
   if (!paramsLoaded || loading) {
     return (
@@ -849,15 +856,33 @@ export default function SatisDetayPage() {
             </div>
 
             <div className="space-y-3">
-              {/* Toplam Tutar / Kalan Borç */}
+              {/* İskonto % (ödeme alırken uygulanacak) */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  {mounted ? t('admin.dealers.manualDiscount') : 'İskonto (%)'} <span className="text-gray-400 font-normal">(opsiyonel)</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={paymentDiscountPercent}
+                  onChange={(e) => setPaymentDiscountPercent(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                  placeholder="0"
+                />
+              </div>
+
+              {/* Toplam Tutar / Kalan Borç (iskonto sonrası) */}
               {(() => {
-                const total = parseFloat(sale.total || '0');
+                const subtotal = parseFloat(sale.subtotal || '0');
+                const discountPct = paymentDiscountPercent !== '' ? Math.min(100, Math.max(0, parseFloat(paymentDiscountPercent) || 0)) : 0;
+                const effectiveTotal = discountPct > 0 ? Math.max(0, subtotal - (subtotal * discountPct) / 100) : parseFloat(sale.total || '0');
                 const paid = parseFloat(sale.paidAmount || '0');
-                const remaining = Math.max(0, total - paid);
+                const remaining = Math.max(0, effectiveTotal - paid);
                 const hasPartialPayment = !sale.isPaid && paid > 0;
 
                 if (hasPartialPayment) {
-                  // Kısmi ödeme varsa "Kalan Borç" göster
                   return (
                     <div className="bg-yellow-50 rounded-lg p-3 border-2 border-yellow-200">
                       <label className="text-[10px] font-semibold text-yellow-700 uppercase block mb-1">
@@ -869,7 +894,7 @@ export default function SatisDetayPage() {
                       <div className="mt-1.5 pt-1.5 border-t border-yellow-200">
                         <div className="flex justify-between text-[10px] text-yellow-600">
                           <span>{mounted ? t('admin.dealers.totalAmount') : 'Toplam'}:</span>
-                          <span className="font-semibold">${total.toFixed(2)}</span>
+                          <span className="font-semibold">${effectiveTotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-[10px] text-green-600 mt-0.5">
                           <span>{mounted ? t('admin.dealers.paidAmount') : 'Ödenen'}:</span>
@@ -879,14 +904,16 @@ export default function SatisDetayPage() {
                     </div>
                   );
                 } else {
-                  // Hiç ödeme yoksa "Toplam Tutar" göster
                   return (
                     <div className="bg-blue-50 rounded-lg p-3 border-2 border-blue-200">
                       <label className="text-[10px] font-semibold text-blue-700 uppercase block mb-1">
                         {mounted ? t('admin.dealers.totalAmount') : 'Toplam Tutar'}
+                        {discountPct > 0 && (
+                          <span className="text-blue-600 font-normal ml-1">(%{discountPct} iskonto sonrası)</span>
+                        )}
                       </label>
                       <p className="text-xl font-bold text-blue-900">
-                        ${total.toFixed(2)}
+                        ${effectiveTotal.toFixed(2)}
                       </p>
                     </div>
                   );
@@ -899,10 +926,11 @@ export default function SatisDetayPage() {
                   {mounted ? t('admin.dealers.paymentAmount') : 'Ödeme Tutarı'} <span className="text-red-500">*</span>
                 </label>
                 {(() => {
-                  const total = parseFloat(sale.total || '0');
+                  const subtotal = parseFloat(sale.subtotal || '0');
+                  const discountPct = paymentDiscountPercent !== '' ? Math.min(100, Math.max(0, parseFloat(paymentDiscountPercent) || 0)) : 0;
+                  const effectiveTotal = discountPct > 0 ? Math.max(0, subtotal - (subtotal * discountPct) / 100) : parseFloat(sale.total || '0');
                   const paid = parseFloat(sale.paidAmount || '0');
-                  const remaining = Math.max(0, total - paid);
-                  
+                  const remaining = Math.max(0, effectiveTotal - paid);
                   return (
                     <>
                       <input
