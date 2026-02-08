@@ -322,17 +322,37 @@ export default function SatisDetayPage() {
     setPaymentMethod('NAKIT');
   }, []);
 
+  // İskonto % değişince ödeme tutarını yeni kalan borca göre güncelle (toplamı aşmasın)
+  useEffect(() => {
+    if (!showPaymentModal || !sale) return;
+    const subtotal = parseFloat(sale.subtotal || '0');
+    const pct = paymentDiscountPercent !== '' ? Math.min(100, Math.max(0, parseFloat(String(paymentDiscountPercent).replace(',', '.')) || 0)) : 0;
+    const effectiveTotal = pct > 0 ? Math.max(0, subtotal - (subtotal * pct) / 100) : parseFloat(sale.total || '0');
+    const paid = parseFloat(sale.paidAmount || '0');
+    const remaining = Math.max(0, effectiveTotal - paid);
+    const current = parseFloat(paymentAmount.replace(',', '.')) || 0;
+    if (current > remaining) {
+      setPaymentAmount(remaining.toFixed(2));
+    }
+  }, [showPaymentModal, sale, paymentDiscountPercent, paymentAmount]);
+
+  // Virgül/nokta fark etmeksizin sayı parse et (19,80 → 19.80)
+  const parsePaymentAmount = useCallback((value: string) => {
+    const normalized = value.trim().replace(',', '.');
+    return parseFloat(normalized);
+  }, []);
+
   const handleProcessPayment = useCallback(async () => {
     if (!dealerId || !saleId || !sale || !isMountedRef.current) return;
 
-    const amount = parseFloat(paymentAmount);
+    const amount = parsePaymentAmount(paymentAmount);
     if (isNaN(amount) || amount <= 0) {
       showToast(mounted ? t('admin.dealers.paymentAmountRequired') : 'Geçerli bir ödeme tutarı giriniz', 'error');
       return;
     }
 
     const subtotal = parseFloat(sale.subtotal || '0');
-    const pct = paymentDiscountPercent !== '' ? Math.min(100, Math.max(0, parseFloat(paymentDiscountPercent) || 0)) : null;
+    const pct = paymentDiscountPercent !== '' ? Math.min(100, Math.max(0, parseFloat(String(paymentDiscountPercent).replace(',', '.')) || 0)) : null;
     const effectiveTotal = pct != null ? Math.max(0, subtotal - (subtotal * pct) / 100) : parseFloat(sale.total || '0');
     if (amount > effectiveTotal) {
       showToast(mounted ? t('admin.dealers.paymentAmountExceeds') : 'Ödeme tutarı toplam tutardan fazla olamaz', 'error');
@@ -396,7 +416,7 @@ export default function SatisDetayPage() {
         setProcessingPayment(false);
       }
     }
-  }, [dealerId, saleId, sale, paymentAmount, paymentDiscountPercent, paymentMethod, fetchSale, mounted, t]);
+  }, [dealerId, saleId, sale, paymentAmount, paymentDiscountPercent, paymentMethod, fetchSale, mounted, t, parsePaymentAmount]);
 
   if (!paramsLoaded || loading) {
     return (
@@ -991,7 +1011,7 @@ export default function SatisDetayPage() {
               <button
                 type="button"
                 onClick={handleProcessPayment}
-                disabled={processingPayment || !paymentAmount || parseFloat(paymentAmount) <= 0}
+                disabled={processingPayment || !paymentAmount || parsePaymentAmount(paymentAmount) <= 0}
                 className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
               >
                 {processingPayment ? (
