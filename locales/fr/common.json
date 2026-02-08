@@ -322,6 +322,7 @@
       "products": "produits",
       "salesTitle": "Vente Distributeur",
       "searchProducts": "Rechercher des produits...",
+      "searchDealersPlaceholder": "Rechercher par nom, téléphone ou courriel...",
       "noSearchResults": "Aucun résultat de recherche trouvé",
       "noProducts": "Aucun produit trouvé",
       "emptyCart": "Panier vide",

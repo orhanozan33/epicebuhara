@@ -300,7 +300,7 @@ export default function FaturaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-2 lg:p-8 print:p-4 print:mt-0 print:bg-white w-full overflow-x-auto" style={{ maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}>
+    <div className="min-h-screen print:min-h-0 bg-gray-100 p-2 lg:p-8 print:p-4 print:mt-0 print:bg-white w-full overflow-x-auto" style={{ maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}>
       {/* Action Buttons - Only visible when not printing */}
       <div className="mb-4 lg:mb-6 print:hidden flex gap-2 lg:gap-3 items-center justify-center">
         <button
@@ -462,8 +462,8 @@ export default function FaturaPage() {
           </div>
         </div>
 
-        {/* İmza Alanları */}
-        <div className="mb-6 pb-6 border-b border-gray-300">
+        {/* İmza Alanları - yazdırmada boş 2. sayfayı önlemek için invoice-signature-block */}
+        <div className="invoice-signature-block mb-6 pb-6 border-b border-gray-300">
           <div className="grid grid-cols-2 gap-6 mt-8">
             {/* Sol: Müşteri İmza */}
             <div>
@@ -557,7 +557,7 @@ export default function FaturaPage() {
           
           html, body {
             width: 210mm !important; /* A4 genişliği */
-            height: 297mm !important; /* A4 yüksekliği */
+            min-height: auto !important; /* Sabit height boş 2. sayfa yapabilir; kaldır */
             margin: 0 !important;
             padding: 0 !important;
             background: white !important;
@@ -678,6 +678,14 @@ export default function FaturaPage() {
           
           .print\\:border-0 {
             border: 0 !important;
+          }
+          
+          /* Boş 2. sayfayı önle: imza sonrası sayfa kırılmasın */
+          .invoice-signature-block {
+            page-break-after: avoid !important;
+          }
+          .print\\:min-h-0 {
+            min-height: 0 !important;
           }
           
           .print\\:shadow-none {

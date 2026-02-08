@@ -45,6 +45,7 @@ export default function BayiPage() {
   // CRITICAL: State initialization
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingDealer, setEditingDealer] = useState<Dealer | null>(null);
   const [formData, setFormData] = useState({
@@ -232,6 +233,16 @@ export default function BayiPage() {
     }
   };
 
+  const q = searchQuery.trim().toLowerCase();
+  const filteredDealers = q
+    ? dealers.filter(
+        (d) =>
+          (d.companyName || '').toLowerCase().includes(q) ||
+          (d.phone || '').toLowerCase().includes(q) ||
+          (d.email || '').toLowerCase().includes(q)
+      )
+    : dealers;
+
   if (loading) {
     return (
       <div className="w-full overflow-x-hidden min-w-0 box-border" style={{ maxWidth: '100%', overflowX: 'hidden', width: '100%' }}>
@@ -256,6 +267,22 @@ export default function BayiPage() {
           </button>
         )}
       </div>
+
+      {/* Bayi Arama */}
+      {!showForm && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            {mounted ? t('admin.common.search') : 'Arama'}
+          </label>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={mounted ? t('admin.dealers.searchDealersPlaceholder') : 'Firma adı, telefon veya e-posta ile ara...'}
+            className="w-full max-w-md px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] focus:border-[#E91E63] text-sm"
+          />
+        </div>
+      )}
 
       {/* Bayi Listesi */}
       {!showForm && (
@@ -286,14 +313,16 @@ export default function BayiPage() {
               </thead>
 
               <tbody className="bg-white divide-y divide-gray-200">
-                {dealers.length === 0 ? (
+                {filteredDealers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                      {mounted ? t('admin.common.notFound') : 'Henüz bayi eklenmemiş'}
+                      {dealers.length === 0
+                        ? (mounted ? t('admin.common.notFound') : 'Henüz bayi eklenmemiş')
+                        : (mounted ? t('admin.dealers.noSearchResults') : 'Arama kriterine uygun bayi bulunamadı')}
                     </td>
                   </tr>
                 ) : (
-                  dealers.map((dealer) => (
+                  filteredDealers.map((dealer) => (
                     <tr key={dealer.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-medium text-gray-900">
                         <div className="truncate" title={dealer.companyName}>
@@ -384,9 +413,9 @@ export default function BayiPage() {
       )}
 
       {/* Mobil Görünüm */}
-      {!showForm && dealers.length > 0 && (
+      {!showForm && filteredDealers.length > 0 && (
         <div className="lg:hidden mt-4 space-y-3">
-          {dealers.map((dealer) => (
+          {filteredDealers.map((dealer) => (
             <div key={dealer.id} className="bg-white border border-gray-200 rounded-lg p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">

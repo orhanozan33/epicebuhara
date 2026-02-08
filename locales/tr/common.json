@@ -315,6 +315,7 @@
       "products": "ürün",
       "salesTitle": "Bayi Satışı",
       "searchProducts": "Ürün ara...",
+      "searchDealersPlaceholder": "Firma adı, telefon veya e-posta ile ara...",
       "noSearchResults": "Arama sonucu bulunamadı",
       "noProducts": "Ürün bulunamadı",
       "emptyCart": "Sepet boş",

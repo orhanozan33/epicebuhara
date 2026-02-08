@@ -322,6 +322,7 @@
       "products": "products",
       "salesTitle": "Dealer Sale",
       "searchProducts": "Search products...",
+      "searchDealersPlaceholder": "Search by company name, phone or email...",
       "noSearchResults": "No search results found",
       "noProducts": "No products found",
       "emptyCart": "Cart is empty",
