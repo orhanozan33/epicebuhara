@@ -118,6 +118,8 @@ export default function BayiSatisPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const CART_STORAGE_KEY_PREFIX = 'dealer-sale-cart-';
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK' | 'ODENMEDI'>('NAKIT');
   const [notes, setNotes] = useState('');
@@ -173,6 +175,34 @@ export default function BayiSatisPage() {
       isActive = false;
     };
   }, [params]);
+
+  // Sepeti bayi bazında localStorage'dan geri yükle (sayfaya dönünce aynı sepet kalsın)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !dealerId) return;
+    try {
+      const raw = localStorage.getItem(`${CART_STORAGE_KEY_PREFIX}${dealerId}`);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every((x: unknown) => x != null && typeof (x as any).productId === 'number' && typeof (x as any).quantity === 'number')) {
+        if (isMountedRef.current) setCart(parsed as CartItem[]);
+      }
+    } catch {
+      // Geçersiz veri, yoksay
+    }
+  }, [dealerId]);
+
+  // Sepet değişince localStorage'a yaz (boş sepeti silme; sadece satış tamamlanınca siliniyor)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !dealerId) return;
+    try {
+      const currentCart = Array.isArray(cart) ? cart : [];
+      if (currentCart.length > 0) {
+        localStorage.setItem(`${CART_STORAGE_KEY_PREFIX}${dealerId}`, JSON.stringify(currentCart));
+      }
+    } catch {
+      // localStorage dolu vs.
+    }
+  }, [dealerId, cart]);
 
   // CRITICAL: useCallback with empty deps - function should NOT depend on state
   // CRITICAL: Always use AbortSignal for API calls
@@ -574,9 +604,16 @@ export default function BayiSatisPage() {
         'success'
       );
 
-      // Sepeti temizle ve sayfayı yenile
+      // Sepeti temizle ve localStorage'dan kaldır
       if (isMountedRef.current) {
         setCart([]);
+        try {
+          if (typeof window !== 'undefined' && dealerId) {
+            localStorage.removeItem(`${CART_STORAGE_KEY_PREFIX}${dealerId}`);
+          }
+        } catch {
+          // ignore
+        }
         setNotes('');
         setPaymentMethod('NAKIT');
         setManualDiscount('');
