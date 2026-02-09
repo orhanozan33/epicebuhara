@@ -176,33 +176,47 @@ export default function BayiSatisPage() {
     };
   }, [params]);
 
+  const [hasRestoredCart, setHasRestoredCart] = useState(false);
+
   // Sepeti bayi bazında localStorage'dan geri yükle (sayfaya dönünce aynı sepet kalsın)
   useEffect(() => {
-    if (typeof window === 'undefined' || !dealerId) return;
+    if (typeof window === 'undefined' || !dealerId) {
+      setHasRestoredCart(true);
+      return;
+    }
+    setHasRestoredCart(false);
     try {
       const raw = localStorage.getItem(`${CART_STORAGE_KEY_PREFIX}${dealerId}`);
-      if (!raw) return;
+      if (!raw) {
+        setHasRestoredCart(true);
+        return;
+      }
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.every((x: unknown) => x != null && typeof (x as any).productId === 'number' && typeof (x as any).quantity === 'number')) {
         if (isMountedRef.current) setCart(parsed as CartItem[]);
       }
     } catch {
       // Geçersiz veri, yoksay
+    } finally {
+      setHasRestoredCart(true);
     }
   }, [dealerId]);
 
-  // Sepet değişince localStorage'a yaz (boş sepeti silme; sadece satış tamamlanınca siliniyor)
+  // Sepet değişince localStorage'a yaz; boş sepet olunca localStorage'dan sil (restore tamamlandıktan sonra)
   useEffect(() => {
-    if (typeof window === 'undefined' || !dealerId) return;
+    if (typeof window === 'undefined' || !dealerId || !hasRestoredCart) return;
     try {
+      const key = `${CART_STORAGE_KEY_PREFIX}${dealerId}`;
       const currentCart = Array.isArray(cart) ? cart : [];
       if (currentCart.length > 0) {
-        localStorage.setItem(`${CART_STORAGE_KEY_PREFIX}${dealerId}`, JSON.stringify(currentCart));
+        localStorage.setItem(key, JSON.stringify(currentCart));
+      } else {
+        localStorage.removeItem(key);
       }
     } catch {
       // localStorage dolu vs.
     }
-  }, [dealerId, cart]);
+  }, [dealerId, cart, hasRestoredCart]);
 
   // CRITICAL: useCallback with empty deps - function should NOT depend on state
   // CRITICAL: Always use AbortSignal for API calls
