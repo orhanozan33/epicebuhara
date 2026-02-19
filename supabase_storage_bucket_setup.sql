@@ -7,7 +7,7 @@ VALUES (
   'product-images',
   'product-images',
   true, -- Public bucket (herkese açık)
-  5242880, -- 5MB file size limit
+  10485760, -- 10MB file size limit
   ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
 )
 ON CONFLICT (id) DO NOTHING;

@@ -240,9 +240,9 @@ export default function EditProductPage() {
       return;
     }
 
-    // Dosya boyutu kontrolü (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError(mounted ? t('admin.common.error') : 'Dosya boyutu 5MB\'dan küçük olmalıdır');
+    // Dosya boyutu kontrolü (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError(mounted ? t('admin.common.error') : 'Dosya boyutu 10MB\'dan küçük olmalıdır');
       return;
     }
 
@@ -871,7 +871,7 @@ export default function EditProductPage() {
                   </span>
                 </label>
                 <span className="text-xs text-gray-500">
-                  JPG, PNG, GIF (Max 5MB)
+                  JPG, PNG, GIF (Max 10MB)
                 </span>
               </div>
 

@@ -71,9 +71,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Sadece resim dosyaları yüklenebilir' }, { status: 400 });
     }
 
-    // Dosya boyutu kontrolü (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'Dosya boyutu 5MB\'dan küçük olmalıdır' }, { status: 400 });
+    // Dosya boyutu kontrolü (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Dosya boyutu 10MB\'dan küçük olmalıdır' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
