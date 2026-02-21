@@ -81,6 +81,8 @@ interface Product {
 interface Category {
   id: number;
   name: string;
+  nameFr?: string | null;
+  nameEn?: string | null;
 }
 
 interface CartItem {
@@ -103,7 +105,8 @@ interface Dealer {
 export default function BayiSatisPage() {
   const params = useParams();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = (i18n?.language || 'tr').split('-')[0] as 'tr' | 'fr' | 'en';
   const [mounted, setMounted] = useState(false);
   
   // CRITICAL: isMountedRef MUST be at component top level
@@ -358,13 +361,22 @@ export default function BayiSatisPage() {
     };
   }, [paramsLoaded, dealerId, fetchProducts, fetchDealer, fetchCategories]);
 
-  // Ürün listesinde pack bilgisi: "İsot Biber 50 Gr - 20'li Kutu"
+  // Ürün adı ve pack bilgisi seçilen dile göre (FR/EN/TR)
   const getProductDisplayName = useCallback((product: Product) => {
+    const base = lang === 'fr'
+      ? (product.baseNameFr || product.baseNameEn || product.name || '')
+      : lang === 'en'
+        ? (product.baseNameEn || product.baseNameFr || product.name || '')
+        : (product.baseName || product.name || '');
     const packSize = (product as Product & { packSize?: number }).packSize ?? 1;
-    if (packSize <= 1) return product.name || '';
-    const label = (product as Product & { packLabelTr?: string }).packLabelTr || 'Kutu';
-    return `${product.name || ''} - ${packSize}'li ${label}`;
-  }, []);
+    if (packSize <= 1) return base;
+    const packLabel = lang === 'fr'
+      ? ((product as Product & { packLabelFr?: string }).packLabelFr || (product as Product & { packLabelEn?: string }).packLabelEn || 'Boîte')
+      : lang === 'en'
+        ? ((product as Product & { packLabelEn?: string }).packLabelEn || (product as Product & { packLabelFr?: string }).packLabelFr || 'Box')
+        : ((product as Product & { packLabelTr?: string }).packLabelTr || 'Kutu');
+    return `${base} - ${packSize}'li ${packLabel}`;
+  }, [lang]);
 
   const filteredProducts = useMemo(() => {
     let safeProducts = Array.isArray(products) ? products : [];
@@ -432,7 +444,7 @@ export default function BayiSatisPage() {
           ...safeCart,
           {
             productId: product.id,
-            productName: product.name || (mounted ? t('admin.common.notFound') : 'İsimsiz Ürün'),
+            productName: getProductDisplayName(product) || (mounted ? t('admin.common.notFound') : 'İsimsiz Ürün'),
             productImage: imageUrl,
             price,
             quantity: addQty,
@@ -446,7 +458,7 @@ export default function BayiSatisPage() {
       console.error('Error adding to cart:', error);
       try { showToast(error?.message || (mounted ? t('admin.dealers.addToCartError') : 'Ürün sepete eklenirken hata oluştu'), 'error'); } catch (_) {}
     }
-  }, [mounted, t]);
+  }, [mounted, t, getProductDisplayName]);
 
   const removeFromCart = useCallback((productId: number) => {
     if (!isMountedRef.current) return;
@@ -1083,10 +1095,11 @@ export default function BayiSatisPage() {
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoryFilter(e.target.value || '')}
                 className="py-2 pl-3 pr-8 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none min-w-[140px] md:min-w-[160px] bg-white"
               >
-                <option value="">{mounted ? t('admin.products.selectCategory') : 'Tüm kategoriler'}</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
+                <option value="">{mounted ? t('admin.products.allCategories') : 'Tüm kategoriler'}</option>
+                {categories.map((cat) => {
+                  const catLabel = lang === 'fr' ? (cat.nameFr || cat.nameEn || cat.name) : lang === 'en' ? (cat.nameEn || cat.nameFr || cat.name) : cat.name;
+                  return <option key={cat.id} value={cat.id}>{catLabel || '-'}</option>;
+                })}
               </select>
             </div>
 
@@ -1182,13 +1195,13 @@ export default function BayiSatisPage() {
                           <span className="text-xs font-bold text-blue-600">
                             ${parseFloat(product.price || '0').toFixed(2)}
                           </span>
-                          {/* Stok Bilgisi */}
+                          {/* Stok Bilgisi - seçilen dilde etiket */}
                           <div className="flex items-center gap-0.5">
-                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-2.5 h-2.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
                             <span className={`text-[10px] ${product.stock && product.stock > 0 ? 'text-green-600 font-medium' : 'text-red-500'}`}>
-                              {product.stock ?? 0}
+                              {mounted ? t('admin.products.stock') : 'Stok'}: {product.stock ?? 0}
                             </span>
                           </div>
                         </div>
@@ -1209,25 +1222,25 @@ export default function BayiSatisPage() {
             <h3 className="font-semibold text-gray-900 text-[11px] leading-tight line-clamp-2">{getProductDisplayName(productToAdd)}</h3>
             {((productToAdd as Product & { packSize?: number }).packSize ?? 1) > 1 ? (
               <>
-                <p className="text-[10px] text-gray-500 font-medium">Satış birimi</p>
+                <p className="text-[10px] text-gray-500 font-medium">{mounted ? t('admin.dealers.sellUnit') : 'Satış birimi'}</p>
                 <div className="flex gap-1">
                   <button
                     type="button"
                     onClick={() => { setAddModalSellUnit('adet'); setAddModalQuantity(''); }}
                     className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
                   >
-                    Adet
+                    {mounted ? t('admin.dealers.piece') : 'Adet'}
                   </button>
                   <button
                     type="button"
                     onClick={() => { setAddModalSellUnit('kutu'); setAddModalQuantity(''); }}
                     className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
                   >
-                    {(productToAdd as Product & { packSize?: number }).packSize}&apos;li {(productToAdd as Product & { packLabelTr?: string }).packLabelTr || 'Kutu'}
+                    {(productToAdd as Product & { packSize?: number }).packSize}&apos;li {lang === 'fr' ? ((productToAdd as Product & { packLabelFr?: string }).packLabelFr || (productToAdd as Product & { packLabelEn?: string }).packLabelEn || t('admin.dealers.box')) : lang === 'en' ? ((productToAdd as Product & { packLabelEn?: string }).packLabelEn || (productToAdd as Product & { packLabelFr?: string }).packLabelFr || t('admin.dealers.box')) : ((productToAdd as Product & { packLabelTr?: string }).packLabelTr || (mounted ? t('admin.dealers.box') : 'Kutu'))}
                   </button>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-500 mb-0.5">{addModalSellUnit === 'kutu' ? 'Kaç kutu?' : 'Kaç adet?'}</label>
+                  <label className="block text-[10px] text-gray-500 mb-0.5">{addModalSellUnit === 'kutu' ? (mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?') : (mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?')}</label>
                   <input
                     type="number"
                     min={0}
@@ -1252,7 +1265,7 @@ export default function BayiSatisPage() {
               </>
             ) : (
               <div>
-                <label className="block text-[10px] text-gray-500 mb-0.5">Kaç adet?</label>
+                <label className="block text-[10px] text-gray-500 mb-0.5">{mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?'}</label>
                 <input
                   type="number"
                   min={0}
@@ -1273,7 +1286,7 @@ export default function BayiSatisPage() {
             )}
             <div className="flex gap-1 pt-0.5">
               <button type="button" onClick={() => setProductToAdd(null)} className="flex-1 py-1 rounded-md border border-gray-200 text-gray-600 text-[11px] font-medium hover:bg-gray-50">
-                İptal
+                {mounted ? t('admin.common.cancel') : 'İptal'}
               </button>
               <button
                 type="button"
@@ -1292,7 +1305,7 @@ export default function BayiSatisPage() {
                 className="flex-1 py-1 rounded-md bg-blue-600 text-white text-[11px] font-medium hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={(addModalQuantity === '' ? 0 : addModalQuantity) <= 0}
               >
-                Sepete Ekle
+                {mounted ? t('admin.dealers.addToCart') : 'Sepete Ekle'}
               </button>
             </div>
           </div>

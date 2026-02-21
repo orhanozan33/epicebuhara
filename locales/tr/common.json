@@ -384,7 +384,11 @@
       "addToInvoice": "Faturaya Ürün Ekle",
       "itemsAddedToInvoice": "Ürün faturaya eklendi.",
       "howManyBoxes": "Kaç kutu?",
-      "howManyPieces": "Kaç adet?"
+      "howManyPieces": "Kaç adet?",
+      "sellUnit": "Satış birimi",
+      "piece": "Adet",
+      "box": "Kutu",
+      "addToCart": "Sepete Ekle"
     },
     "invoices": {
       "title": "Faturalar",

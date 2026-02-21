@@ -391,7 +391,11 @@
       "addToInvoice": "Ajouter le produit à la facture",
       "itemsAddedToInvoice": "Article ajouté à la facture.",
       "howManyBoxes": "Combien de boîtes ?",
-      "howManyPieces": "Combien d'unités ?"
+      "howManyPieces": "Combien d'unités ?",
+      "sellUnit": "Unité de vente",
+      "piece": "Unité",
+      "box": "Boîte",
+      "addToCart": "Ajouter au panier"
     },
     "invoices": {
       "title": "Factures",

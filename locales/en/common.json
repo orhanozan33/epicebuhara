@@ -391,7 +391,11 @@
       "addToInvoice": "Add Product to Invoice",
       "itemsAddedToInvoice": "Item added to invoice.",
       "howManyBoxes": "How many boxes?",
-      "howManyPieces": "How many pieces?"
+      "howManyPieces": "How many pieces?",
+      "sellUnit": "Sell unit",
+      "piece": "Piece",
+      "box": "Box",
+      "addToCart": "Add to cart"
     },
     "invoices": {
       "title": "Invoices",

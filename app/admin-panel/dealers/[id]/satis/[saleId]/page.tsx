@@ -43,7 +43,8 @@ interface Dealer {
 export default function SatisDetayPage() {
   const params = useParams();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = (i18n?.language || 'tr').split('-')[0] as 'tr' | 'fr' | 'en';
   const [mounted, setMounted] = useState(false);
   
   const isMountedRef = useRef(true);
@@ -61,14 +62,14 @@ export default function SatisDetayPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
   const [showAddToInvoiceModal, setShowAddToInvoiceModal] = useState(false);
-  const [addToInvoiceProducts, setAddToInvoiceProducts] = useState<{ id: number; name: string; baseName?: string | null; baseNameFr?: string | null; baseNameEn?: string | null; price: string; stock: number | null; packSize?: number | null; packLabelTr?: string | null; images?: string | null; categoryId?: number | null }[]>([]);
+  const [addToInvoiceProducts, setAddToInvoiceProducts] = useState<{ id: number; name: string; baseName?: string | null; baseNameFr?: string | null; baseNameEn?: string | null; price: string; stock: number | null; packSize?: number | null; packLabelTr?: string | null; packLabelFr?: string | null; packLabelEn?: string | null; images?: string | null; categoryId?: number | null }[]>([]);
   const [addToInvoiceSearch, setAddToInvoiceSearch] = useState('');
   const [addToInvoiceProduct, setAddToInvoiceProduct] = useState<typeof addToInvoiceProducts[0] | null>(null);
   const [addToInvoiceSellUnit, setAddToInvoiceSellUnit] = useState<'adet' | 'kutu'>('kutu');
   const [addToInvoiceQuantity, setAddToInvoiceQuantity] = useState<number | ''>('');
   const [addingToInvoice, setAddingToInvoice] = useState(false);
   const [invoiceProductSearch, setInvoiceProductSearch] = useState('');
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: number; name: string; nameFr?: string | null; nameEn?: string | null }[]>([]);
   const [addToInvoiceCategoryId, setAddToInvoiceCategoryId] = useState<string>('');
 
   useEffect(() => {
@@ -220,6 +221,14 @@ export default function SatisDetayPage() {
       console.error('Error fetching categories:', e);
     }
   }, []);
+
+  const getProductDisplayName = useCallback((p: typeof addToInvoiceProducts[0]) => {
+    const base = lang === 'fr' ? (p.baseNameFr || p.baseNameEn || p.name || '') : lang === 'en' ? (p.baseNameEn || p.baseNameFr || p.name || '') : (p.baseName || p.name || '');
+    const packSize = p.packSize ?? 1;
+    if (packSize <= 1) return base;
+    const packLabel = lang === 'fr' ? (p.packLabelFr || p.packLabelEn || 'Boîte') : lang === 'en' ? (p.packLabelEn || p.packLabelFr || 'Box') : (p.packLabelTr || 'Kutu');
+    return `${base} - ${packSize}'li ${packLabel}`;
+  }, [lang]);
 
   const handleAddProductToInvoice = useCallback(async () => {
     if (!dealerId || !saleId || !addToInvoiceProduct || addingToInvoice) return;
@@ -1054,9 +1063,10 @@ export default function SatisDetayPage() {
                   className="sm:w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                 >
                   <option value="">{mounted ? t('admin.products.allCategories') : 'Tüm kategoriler'}</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
+                  {categories.map((cat) => {
+                    const catLabel = lang === 'fr' ? (cat.nameFr || cat.nameEn || cat.name) : lang === 'en' ? (cat.nameEn || cat.nameFr || cat.name) : cat.name;
+                    return <option key={cat.id} value={cat.id}>{catLabel || '-'}</option>;
+                  })}
                 </select>
                 <input
                   type="text"
@@ -1070,16 +1080,16 @@ export default function SatisDetayPage() {
             <div className="flex-1 overflow-auto p-4">
               {addToInvoiceProduct ? (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-gray-700">{addToInvoiceProduct.baseName || addToInvoiceProduct.baseNameFr || addToInvoiceProduct.baseNameEn || addToInvoiceProduct.name}</p>
-                  <p className="text-xs text-gray-500">${parseFloat(addToInvoiceProduct.price || '0').toFixed(2)} / adet</p>
+                  <p className="text-sm font-medium text-gray-700">{getProductDisplayName(addToInvoiceProduct)}</p>
+                  <p className="text-xs text-gray-500">${parseFloat(addToInvoiceProduct.price || '0').toFixed(2)} / {mounted ? t('admin.dealers.piece') : 'adet'}</p>
                   <div className="flex gap-2">
                     {(addToInvoiceProduct.packSize ?? 1) > 1 ? (
                       <>
-                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('adet'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>Adet</button>
-                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('kutu'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{addToInvoiceProduct.packSize}&apos;li {addToInvoiceProduct.packLabelTr || 'Kutu'}</button>
+                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('adet'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{mounted ? t('admin.dealers.piece') : 'Adet'}</button>
+                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('kutu'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{addToInvoiceProduct.packSize}&apos;li {lang === 'fr' ? (addToInvoiceProduct.packLabelFr || addToInvoiceProduct.packLabelEn || (mounted ? t('admin.dealers.box') : 'Kutu')) : lang === 'en' ? (addToInvoiceProduct.packLabelEn || addToInvoiceProduct.packLabelFr || (mounted ? t('admin.dealers.box') : 'Kutu')) : (addToInvoiceProduct.packLabelTr || (mounted ? t('admin.dealers.box') : 'Kutu'))}</button>
                       </>
                     ) : (
-                      <span className="text-sm text-gray-600">Adet</span>
+                      <span className="text-sm text-gray-600">{mounted ? t('admin.dealers.piece') : 'Adet'}</span>
                     )}
                   </div>
                   <div>
@@ -1098,7 +1108,7 @@ export default function SatisDetayPage() {
                     />
                   </div>
                   <div className="flex gap-2 pt-2">
-                    <button type="button" onClick={() => setAddToInvoiceProduct(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Geri</button>
+                    <button type="button" onClick={() => setAddToInvoiceProduct(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{mounted ? t('admin.common.back') : 'Geri'}</button>
                     <button type="button" onClick={handleAddProductToInvoice} disabled={addingToInvoice || (addToInvoiceQuantity === '' ? 0 : addToInvoiceQuantity) <= 0} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">
                       {addingToInvoice ? (mounted ? t('admin.common.loading') : '...') : (mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ekle')}
                     </button>
@@ -1126,8 +1136,8 @@ export default function SatisDetayPage() {
                         }}
                         className="p-3 text-left border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors"
                       >
-                        <p className="font-medium text-gray-900 text-sm truncate">{p.baseName || p.baseNameFr || p.baseNameEn || p.name}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">${parseFloat(p.price || '0').toFixed(2)} · Stok: {p.stock ?? 0}</p>
+                        <p className="font-medium text-gray-900 text-sm truncate">{getProductDisplayName(p)}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">${parseFloat(p.price || '0').toFixed(2)} · {mounted ? t('admin.products.stock') : 'Stok'}: {p.stock ?? 0}</p>
                       </button>
                     ))}
                 </div>
