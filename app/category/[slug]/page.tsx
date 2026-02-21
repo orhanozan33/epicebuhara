@@ -30,7 +30,7 @@ export default function CategoryPage() {
           resolvedParams = await params;
         }
         
-        const slugParam = resolvedParams?.slug ? String(resolvedParams.slug).trim() : null;
+        const slugParam = resolvedParams?.slug ? decodeURIComponent(String(resolvedParams.slug)).trim() : null;
         
         if (!isActive) return;
         setSlug(slugParam);
@@ -38,16 +38,18 @@ export default function CategoryPage() {
           setCategoryId(null);
         }
         
-        // Slug'a göre kategori ID'sini bul (büyük/küçük harf duyarsız)
+        const normalizeSlug = (s: string) =>
+          s.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        
         if (slugParam) {
           try {
             const response = await fetch('/api/categories');
             if (!isActive) return;
             if (response.ok) {
               const categories = await response.json();
-              const slugLower = slugParam.toLowerCase();
+              const slugNormalized = normalizeSlug(slugParam);
               const category = Array.isArray(categories)
-                ? categories.find((cat: any) => (cat.slug || '').toString().trim().toLowerCase() === slugLower)
+                ? categories.find((cat: any) => normalizeSlug((cat.slug || '').toString()) === slugNormalized)
                 : null;
               if (isActive) {
                 setCategoryId(category ? String(category.id) : null);
