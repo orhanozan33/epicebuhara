@@ -966,7 +966,7 @@ export default function BayiSatisPage() {
                     )}
                     {discountPercent > 0 && (
                       <div className="flex justify-between text-xs text-gray-600 pb-1">
-                        <span>İskonto Sonrası:</span>
+                        <span>{mounted ? t('admin.dealers.discountAfter') : 'İskonto Sonrası'}:</span>
                         <span className="font-medium">${afterDiscount.toFixed(2)}</span>
                       </div>
                     )}
@@ -1025,7 +1025,7 @@ export default function BayiSatisPage() {
                     }}
                     rows={3}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-y"
-                    placeholder="Ek notlar..."
+                    placeholder={mounted ? t('admin.dealers.notesPlaceholder') : 'Ek notlar...'}
                   />
                 </div>
 

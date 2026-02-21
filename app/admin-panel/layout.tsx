@@ -113,7 +113,7 @@ export default function AdminLayout({
                     }`}
                   >
                     <span className="text-sm lg:text-lg xl:text-xl flex-shrink-0">{item.icon}</span>
-                    <span className="font-medium truncate">{mounted ? t(item.labelKey) : item.labelKey}</span>
+                    <span className="font-medium truncate">{t(item.labelKey)}</span>
                   </Link>
                 </li>
               );

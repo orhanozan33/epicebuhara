@@ -498,7 +498,7 @@ export default function EditProductPage() {
                   
                   setFormData({ ...formData, baseName: newBaseName, productGroup: newProductGroup });
                 }}
-                placeholder="Örn: Isot Pepper"
+                placeholder={mounted ? t('admin.products.examplePlaceholder') : 'Örn: Isot Pepper'}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
               />
               <p className="mt-1 text-xs text-gray-500">
@@ -545,7 +545,7 @@ export default function EditProductPage() {
                   });
                 }}
                 required
-                placeholder="Örn: Isot Pepper"
+                placeholder={mounted ? t('admin.products.examplePlaceholder') : 'Örn: Isot Pepper'}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
               />
             </div>
@@ -567,7 +567,7 @@ export default function EditProductPage() {
                     type="text"
                     value={formData.baseNameFr}
                     onChange={(e) => setFormData({ ...formData, baseNameFr: e.target.value })}
-                    placeholder="Manuel olarak girin"
+                    placeholder={mounted ? t('admin.common.enterManually') : 'Manuel olarak girin'}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                   />
                 </div>
@@ -581,7 +581,7 @@ export default function EditProductPage() {
                     type="text"
                     value={formData.baseNameEn}
                     onChange={(e) => setFormData({ ...formData, baseNameEn: e.target.value })}
-                    placeholder="Manuel olarak girin"
+                    placeholder={mounted ? t('admin.common.enterManually') : 'Manuel olarak girin'}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                   />
                 </div>
@@ -738,7 +738,7 @@ export default function EditProductPage() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Bir kutuda kaç adet</label>
+                  <label className="block text-xs text-gray-600 mb-1">{mounted ? t('admin.products.packSizeLabel') : 'Bir kutuda kaç adet'}</label>
                   <input
                     type="number"
                     min="1"
@@ -760,7 +760,7 @@ export default function EditProductPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Birim etiketi (TR) örn. Kutu, Paket</label>
+                  <label className="block text-xs text-gray-600 mb-1">{mounted ? t('admin.products.unitLabelHelp') : 'Birim etiketi (TR) örn. Kutu, Paket'}</label>
                   <input
                     type="text"
                     value={formData.packLabelTr}

@@ -246,7 +246,7 @@ export default function EditCategoryPage() {
                   type="text"
                   value={formData.nameFr}
                   onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
-                  placeholder="Manuel olarak girin"
+                  placeholder={mounted ? t('admin.common.enterManually') : 'Manuel olarak girin'}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
                 />
               </div>
@@ -260,7 +260,7 @@ export default function EditCategoryPage() {
                   type="text"
                   value={formData.nameEn}
                   onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
-                  placeholder="Manuel olarak girin"
+                  placeholder={mounted ? t('admin.common.enterManually') : 'Manuel olarak girin'}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63] bg-gray-50"
                 />
               </div>

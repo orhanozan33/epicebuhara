@@ -198,7 +198,7 @@ export default function UrunlerPage() {
 
   const handlePrint = () => {
     if (selectedCategories.length === 0) {
-      showToast('Lütfen en az bir kategori seçin', 'error');
+      showToast(mounted ? t('admin.products.selectAtLeastOneCategory') : 'Lütfen en az bir kategori seçin', 'error');
       return;
     }
 
@@ -433,7 +433,7 @@ export default function UrunlerPage() {
             onClick={handlePrintPriceList}
             className="bg-blue-600 text-white px-2 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-blue-700 transition-colors text-xs lg:text-sm whitespace-nowrap"
           >
-            🖨️ Ürün Listesi Yazdır
+            🖨️ {mounted ? t('admin.products.printProductList') : 'Ürün Listesi Yazdır'}
           </button>
           <Link
             href="/admin-panel/products/new"
@@ -682,13 +682,13 @@ export default function UrunlerPage() {
         {mounted ? t('admin.products.showingProducts', { count: filteredProducts.length }) : `Toplam ${filteredProducts.length} ürün gösteriliyor`}
       </div>
 
-      {/* Print Modal */}
+      {/* Print Modal - tüm metinler seçilen admin diline göre */}
       {showPrintModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Kategori Seçin</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">{mounted ? t('admin.products.selectCategory') : 'Kategori Seçin'}</h3>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Yazdırma dili</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{mounted ? t('admin.products.printLanguage') : 'Yazdırma dili'}</label>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -714,23 +714,26 @@ export default function UrunlerPage() {
               </div>
             </div>
             <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">
-              {categories.map((category) => (
-                <label key={category.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(category.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedCategories([...selectedCategories, category.id]);
-                      } else {
-                        setSelectedCategories(selectedCategories.filter(id => id !== category.id));
-                      }
-                    }}
-                    className="w-4 h-4 text-[#E91E63] focus:ring-[#E91E63] border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-900">{category.name}</span>
-                </label>
-              ))}
+              {categories.map((category) => {
+                const categoryLabel = lang === 'fr' ? (category.nameFr || category.nameEn || category.name) : lang === 'en' ? (category.nameEn || category.nameFr || category.name) : category.name;
+                return (
+                  <label key={category.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.includes(category.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategories([...selectedCategories, category.id]);
+                        } else {
+                          setSelectedCategories(selectedCategories.filter(id => id !== category.id));
+                        }
+                      }}
+                      className="w-4 h-4 text-[#E91E63] focus:ring-[#E91E63] border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-900">{categoryLabel || '-'}</span>
+                  </label>
+                );
+              })}
             </div>
             <div className="flex gap-3 justify-end">
               <button
@@ -740,14 +743,14 @@ export default function UrunlerPage() {
                 }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                İptal
+                {mounted ? t('admin.common.cancel') : 'İptal'}
               </button>
               <button
                 onClick={handlePrint}
                 disabled={selectedCategories.length === 0}
                 className="px-4 py-2 bg-[#E91E63] text-white rounded-lg hover:bg-[#C2185B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Yazdır
+                {mounted ? t('admin.products.printButton') : 'Yazdır'}
               </button>
             </div>
           </div>

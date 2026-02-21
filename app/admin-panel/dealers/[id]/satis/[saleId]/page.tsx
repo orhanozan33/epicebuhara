@@ -62,7 +62,7 @@ export default function SatisDetayPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
   const [showAddToInvoiceModal, setShowAddToInvoiceModal] = useState(false);
-  const [addToInvoiceProducts, setAddToInvoiceProducts] = useState<{ id: number; name: string; baseName?: string | null; baseNameFr?: string | null; baseNameEn?: string | null; price: string; stock: number | null; packSize?: number | null; packLabelTr?: string | null; packLabelFr?: string | null; packLabelEn?: string | null; images?: string | null; categoryId?: number | null }[]>([]);
+  const [addToInvoiceProducts, setAddToInvoiceProducts] = useState<{ id: number; name: string; baseName?: string | null; baseNameFr?: string | null; baseNameEn?: string | null; price: string; stock: number | null; packSize?: number | null; packLabelTr?: string | null; packLabelFr?: string | null; packLabelEn?: string | null; images?: string | null; categoryId?: number | null; weight?: string | null; unit?: string | null }[]>([]);
   const [addToInvoiceSearch, setAddToInvoiceSearch] = useState('');
   const [addToInvoiceProduct, setAddToInvoiceProduct] = useState<typeof addToInvoiceProducts[0] | null>(null);
   const [addToInvoiceSellUnit, setAddToInvoiceSellUnit] = useState<'adet' | 'kutu'>('kutu');
@@ -938,7 +938,7 @@ export default function SatisDetayPage() {
                       <label className="text-[10px] font-semibold text-blue-700 uppercase block mb-1">
                         {mounted ? t('admin.dealers.totalAmount') : 'Toplam Tutar'}
                         {discountPct > 0 && (
-                          <span className="text-blue-600 font-normal ml-1">(%{discountPct} iskonto sonrası)</span>
+                          <span className="text-blue-600 font-normal ml-1">{mounted ? t('admin.dealers.afterDiscountPct', { pct: discountPct }) : `(%${discountPct} iskonto sonrası)`}</span>
                         )}
                       </label>
                       <p className="text-xl font-bold text-blue-900">
@@ -1045,103 +1045,184 @@ export default function SatisDetayPage() {
         </div>
       )}
 
-      {/* Faturaya ürün ekle modal */}
+      {/* Faturaya ürün ekle modal - Bayi satışı gibi 2 sütun: sol ürünler, sağ fatura sepeti */}
       {showAddToInvoiceModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-auto">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-lg font-bold text-gray-900">{mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ürün ekle'}</h2>
-              <button type="button" onClick={() => { setShowAddToInvoiceModal(false); setAddToInvoiceProduct(null); }} className="text-gray-400 hover:text-gray-600">
+              <button type="button" onClick={() => { setShowAddToInvoiceModal(false); setAddToInvoiceProduct(null); }} className="text-gray-400 hover:text-gray-600 p-1">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-4 border-b border-gray-100 space-y-3">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <select
-                  value={addToInvoiceCategoryId}
-                  onChange={(e) => setAddToInvoiceCategoryId(e.target.value)}
-                  className="sm:w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-                >
-                  <option value="">{mounted ? t('admin.products.allCategories') : 'Tüm kategoriler'}</option>
-                  {categories.map((cat) => {
-                    const catLabel = lang === 'fr' ? (cat.nameFr || cat.nameEn || cat.name) : lang === 'en' ? (cat.nameEn || cat.nameFr || cat.name) : cat.name;
-                    return <option key={cat.id} value={cat.id}>{catLabel || '-'}</option>;
-                  })}
-                </select>
-                <input
-                  type="text"
-                  value={addToInvoiceSearch}
-                  onChange={(e) => setAddToInvoiceSearch(e.target.value)}
-                  placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
-                  className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                />
-              </div>
-            </div>
-            <div className="flex-1 overflow-auto p-4">
-              {addToInvoiceProduct ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-gray-700">{getProductDisplayName(addToInvoiceProduct)}</p>
-                  <p className="text-xs text-gray-500">${parseFloat(addToInvoiceProduct.price || '0').toFixed(2)} / {mounted ? t('admin.dealers.piece') : 'adet'}</p>
-                  <div className="flex gap-2">
-                    {(addToInvoiceProduct.packSize ?? 1) > 1 ? (
-                      <>
-                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('adet'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{mounted ? t('admin.dealers.piece') : 'Adet'}</button>
-                        <button type="button" onClick={() => { setAddToInvoiceSellUnit('kutu'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{addToInvoiceProduct.packSize}&apos;li {lang === 'fr' ? (addToInvoiceProduct.packLabelFr || addToInvoiceProduct.packLabelEn || (mounted ? t('admin.dealers.box') : 'Kutu')) : lang === 'en' ? (addToInvoiceProduct.packLabelEn || addToInvoiceProduct.packLabelFr || (mounted ? t('admin.dealers.box') : 'Kutu')) : (addToInvoiceProduct.packLabelTr || (mounted ? t('admin.dealers.box') : 'Kutu'))}</button>
-                      </>
-                    ) : (
-                      <span className="text-sm text-gray-600">{mounted ? t('admin.dealers.piece') : 'Adet'}</span>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">{addToInvoiceSellUnit === 'kutu' && (addToInvoiceProduct.packSize ?? 1) > 1 ? (mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?') : (mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?')}</label>
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 min-h-0 overflow-hidden">
+              {/* Sol: Arama + Kategori + Ürün grid (bayi satışı gibi) */}
+              <div className="lg:col-span-2 flex flex-col min-h-0 overflow-hidden">
+                <div className="flex flex-wrap gap-2 items-center mb-3 flex-shrink-0">
+                  <div className="relative flex-1 min-w-0 max-w-[200px] sm:max-w-[240px]">
+                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
                     <input
-                      type="number"
-                      min={0}
-                      value={addToInvoiceQuantity === '' ? '' : addToInvoiceQuantity}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (v === '') { setAddToInvoiceQuantity(''); return; }
-                        const n = parseInt(v, 10);
-                        if (!isNaN(n)) setAddToInvoiceQuantity(Math.max(0, n));
-                      }}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                      type="text"
+                      value={addToInvoiceSearch}
+                      onChange={(e) => setAddToInvoiceSearch(e.target.value)}
+                      placeholder={mounted ? t('admin.dealers.searchProducts') : 'Ürün ara...'}
+                      className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 outline-none"
                     />
                   </div>
-                  <div className="flex gap-2 pt-2">
-                    <button type="button" onClick={() => setAddToInvoiceProduct(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{mounted ? t('admin.common.back') : 'Geri'}</button>
-                    <button type="button" onClick={handleAddProductToInvoice} disabled={addingToInvoice || (addToInvoiceQuantity === '' ? 0 : addToInvoiceQuantity) <= 0} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">
-                      {addingToInvoice ? (mounted ? t('admin.common.loading') : '...') : (mounted ? t('admin.dealers.addToInvoice') : 'Faturaya ekle')}
-                    </button>
-                  </div>
+                  <select
+                    value={addToInvoiceCategoryId}
+                    onChange={(e) => setAddToInvoiceCategoryId(e.target.value)}
+                    className="py-2 pl-3 pr-8 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 outline-none min-w-[140px] bg-white"
+                  >
+                    <option value="">{mounted ? t('admin.products.allCategories') : 'Tüm kategoriler'}</option>
+                    {categories.map((cat) => {
+                      const catLabel = lang === 'fr' ? (cat.nameFr || cat.nameEn || cat.name) : lang === 'en' ? (cat.nameEn || cat.nameFr || cat.name) : cat.name;
+                      return <option key={cat.id} value={cat.id}>{catLabel || '-'}</option>;
+                    })}
+                  </select>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {addToInvoiceProducts
-                    .filter((p) => {
+                <div className="flex-1 overflow-auto min-h-0">
+                  {(() => {
+                    const filtered = addToInvoiceProducts.filter((p) => {
                       const catId = addToInvoiceCategoryId ? parseInt(addToInvoiceCategoryId, 10) : null;
                       if (catId != null && (p.categoryId ?? null) !== catId) return false;
                       const q = addToInvoiceSearch.trim().toLowerCase();
                       if (!q) return true;
                       const name = (p.baseName || p.baseNameFr || p.baseNameEn || p.name || '').toLowerCase();
                       return name.includes(q);
-                    })
-                    .map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => {
-                          setAddToInvoiceProduct(p);
-                          setAddToInvoiceSellUnit((p.packSize ?? 1) > 1 ? 'kutu' : 'adet');
-                          setAddToInvoiceQuantity('');
-                        }}
-                        className="p-3 text-left border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors"
-                      >
-                        <p className="font-medium text-gray-900 text-sm truncate">{getProductDisplayName(p)}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">${parseFloat(p.price || '0').toFixed(2)} · {mounted ? t('admin.products.stock') : 'Stok'}: {p.stock ?? 0}</p>
-                      </button>
-                    ))}
+                    });
+                    return filtered.length === 0 ? (
+                      <div className="text-center py-12 text-gray-500 text-sm">
+                        {addToInvoiceSearch.trim() ? (mounted ? t('admin.dealers.noSearchResults') : 'Arama sonucu bulunamadı') : (mounted ? t('admin.dealers.noProducts') : 'Ürün bulunamadı')}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+                        {filtered.map((p) => {
+                          const weightNum = p.weight ? parseFloat(p.weight) : null;
+                          const unit = p.unit || '';
+                          const weightDisplay = weightNum != null && unit
+                            ? (unit === 'Gr' && weightNum >= 1000 && weightNum % 1000 === 0 ? `${(weightNum / 1000)} Kg` : (weightNum % 1 === 0 ? weightNum + ' ' + unit : weightNum.toFixed(2) + ' ' + unit))
+                            : null;
+                          return (
+                            <div
+                              key={p.id}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => {
+                                setAddToInvoiceProduct(p);
+                                setAddToInvoiceSellUnit((p.packSize ?? 1) > 1 ? 'kutu' : 'adet');
+                                setAddToInvoiceQuantity('');
+                              }}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAddToInvoiceProduct(p); setAddToInvoiceSellUnit((p.packSize ?? 1) > 1 ? 'kutu' : 'adet'); setAddToInvoiceQuantity(''); } }}
+                              className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:border-emerald-500 transition-all flex flex-col cursor-pointer group"
+                            >
+                              <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+                                {p.images ? (
+                                  <img
+                                    src={(() => {
+                                      const imgSrc = (p.images || '').split(',')[0].trim();
+                                      return imgSrc && !imgSrc.startsWith('/') && !imgSrc.startsWith('http') ? `/uploads/products/${imgSrc}` : imgSrc || '';
+                                    })()}
+                                    alt={getProductDisplayName(p)}
+                                    className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
+                                    loading="lazy"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
+                                ) : (
+                                  <span className="text-gray-400 text-xs">{mounted ? t('admin.common.noImage') : 'Resim Yok'}</span>
+                                )}
+                              </div>
+                              <div className="p-2 flex-1 flex flex-col min-w-0">
+                                <div className="flex items-start justify-between gap-1 mb-0.5">
+                                  <h3 className="font-medium text-gray-900 text-[10px] sm:text-xs leading-tight line-clamp-2 flex-1">{getProductDisplayName(p)}</h3>
+                                  {weightDisplay && <span className="text-[10px] text-gray-500 whitespace-nowrap flex-shrink-0">{weightDisplay}</span>}
+                                </div>
+                                <div className="flex items-center justify-between mt-auto pt-1 gap-1">
+                                  <span className="text-xs font-bold text-emerald-600">${parseFloat(p.price || '0').toFixed(2)}</span>
+                                  <span className={`text-[10px] ${(p.stock ?? 0) > 0 ? 'text-green-600' : 'text-red-500'}`}>{mounted ? t('admin.products.stock') : 'Stok'}: {p.stock ?? 0}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
-              )}
+              </div>
+              {/* Sağ: Faturadaki ürünler (sepet) - bayi satışındaki Sepet gibi */}
+              <div className="lg:col-span-1 bg-gray-50 rounded-lg border border-gray-200 p-4 flex flex-col min-h-0">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <h3 className="text-base font-bold text-gray-900">{mounted ? t('cart.title') : 'Fatura'}</h3>
+                  {sale?.items && sale.items.length > 0 && (
+                    <span className="bg-emerald-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{sale.items.length}</span>
+                  )}
+                </div>
+                {!sale?.items || sale.items.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                    <svg className="w-14 h-14 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <p className="text-gray-500 text-sm font-medium">{mounted ? t('admin.dealers.emptyCart') : 'Fatura boş'}</p>
+                    <p className="text-gray-400 text-xs mt-1">{mounted ? t('admin.dealers.addProductsToCart') : 'Ürün eklemek için soldaki ürünlere tıklayın'}</p>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-auto space-y-2 min-h-0">
+                    {sale.items.map((item) => (
+                      <div key={item.id} className="flex gap-2 bg-white rounded-lg p-2 border border-gray-200">
+                        {item.productImage && (
+                          <div className="w-12 h-12 rounded bg-gray-100 flex-shrink-0 overflow-hidden">
+                            <img src={item.productImage.startsWith('/') || item.productImage.startsWith('http') ? item.productImage : `/uploads/products/${item.productImage}`} alt="" className="w-full h-full object-contain" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-900 truncate">{item.productName}</p>
+                          <p className="text-[10px] text-gray-500">{item.quantity} × ${parseFloat(item.price || '0').toFixed(2)} = ${parseFloat(item.total || '0').toFixed(2)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Miktar seçimi alt modalı (ürüne tıklanınca) */}
+      {addToInvoiceProduct && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-3" onClick={() => setAddToInvoiceProduct(null)}>
+          <div className="bg-white rounded-xl shadow-xl border border-gray-100 w-full max-w-[280px] p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <p className="text-sm font-medium text-gray-900 line-clamp-2">{getProductDisplayName(addToInvoiceProduct)}</p>
+            <p className="text-xs text-gray-500">${parseFloat(addToInvoiceProduct.price || '0').toFixed(2)} / {mounted ? t('admin.dealers.piece') : 'adet'}</p>
+            {(addToInvoiceProduct.packSize ?? 1) > 1 ? (
+              <>
+                <p className="text-[10px] text-gray-500 font-medium">{mounted ? t('admin.dealers.sellUnit') : 'Satış birimi'}</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => { setAddToInvoiceSellUnit('adet'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{mounted ? t('admin.dealers.piece') : 'Adet'}</button>
+                  <button type="button" onClick={() => { setAddToInvoiceSellUnit('kutu'); setAddToInvoiceQuantity(''); }} className={`flex-1 py-2 rounded-lg border text-sm font-medium ${addToInvoiceSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}>{addToInvoiceProduct.packSize}&apos;li {lang === 'fr' ? (addToInvoiceProduct.packLabelFr || addToInvoiceProduct.packLabelEn || (mounted ? t('admin.dealers.box') : 'Kutu')) : lang === 'en' ? (addToInvoiceProduct.packLabelEn || addToInvoiceProduct.packLabelFr || (mounted ? t('admin.dealers.box') : 'Kutu')) : (addToInvoiceProduct.packLabelTr || (mounted ? t('admin.dealers.box') : 'Kutu'))}</button>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">{addToInvoiceSellUnit === 'kutu' ? (mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?') : (mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?')}</label>
+                  <input type="number" min={0} value={addToInvoiceQuantity === '' ? '' : addToInvoiceQuantity} onChange={(e) => { const v = e.target.value; if (v === '') { setAddToInvoiceQuantity(''); return; } const n = parseInt(v, 10); if (!isNaN(n)) setAddToInvoiceQuantity(Math.max(0, n)); }} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">{mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?'}</label>
+                <input type="number" min={0} value={addToInvoiceQuantity === '' ? '' : addToInvoiceQuantity} onChange={(e) => { const v = e.target.value; if (v === '') { setAddToInvoiceQuantity(''); return; } const n = parseInt(v, 10); if (!isNaN(n)) setAddToInvoiceQuantity(Math.max(0, n)); }} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+              </div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button type="button" onClick={() => setAddToInvoiceProduct(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{mounted ? t('admin.common.cancel') : 'İptal'}</button>
+              <button type="button" onClick={handleAddProductToInvoice} disabled={addingToInvoice || (addToInvoiceQuantity === '' ? 0 : addToInvoiceQuantity) <= 0} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50">
+                {addingToInvoice ? (mounted ? t('admin.common.loading') : '...') : (mounted ? t('admin.dealers.addToCart') : 'Faturaya ekle')}
+              </button>
             </div>
           </div>
         </div>
