@@ -59,7 +59,7 @@ interface CompanySettings {
 
 export default function FaturaPage() {
   const params = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const isMountedRef = useRef(true);
   
@@ -75,9 +75,13 @@ export default function FaturaPage() {
 
   useEffect(() => {
     setMounted(true);
-    // Yazdırma sırasında sayfa başlığını değiştir
-    document.title = 'Fatura';
   }, []);
+
+  useEffect(() => {
+    if (mounted && i18n?.language) {
+      document.title = i18n.t('admin.invoices.invoice');
+    }
+  }, [mounted, i18n]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -172,7 +176,7 @@ export default function FaturaPage() {
                       quantity: item.quantity,
                       price: item.price,
                       total: item.total,
-                      productName: item.product?.baseName || item.product?.name || 'Ürün bulunamadı',
+                      productName: item.product?.baseName || item.product?.name || i18n.t('admin.common.notFound'),
                       productImage: item.product?.images || null,
                     }));
                     foundSale.items = formattedItems;

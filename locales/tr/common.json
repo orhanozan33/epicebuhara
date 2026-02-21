@@ -175,7 +175,8 @@
       "processingError": "İşlem sırasında hata oluştu",
       "remove": "Kaldır",
       "enterManually": "Manuel olarak girin",
-      "status": "Durum"
+      "status": "Durum",
+      "productLabel": "Ürün"
     },
     "dashboard": {
       "title": "Dashboard",

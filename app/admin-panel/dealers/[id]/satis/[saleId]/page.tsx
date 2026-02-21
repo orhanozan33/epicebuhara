@@ -561,7 +561,7 @@ export default function SatisDetayPage() {
                       type="button"
                       onClick={() => setInvoiceProductSearch('')}
                       className="p-2 text-gray-500 hover:text-gray-700 rounded"
-                      aria-label="Temizle"
+                      aria-label={mounted ? t('admin.common.clear') : 'Temizle'}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -598,7 +598,7 @@ export default function SatisDetayPage() {
                         <div className="w-16 h-16 bg-white rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 flex items-center justify-center">
                           <img
                             src={imageSrc}
-                            alt={item.productName || 'Ürün'}
+                            alt={item.productName || (mounted ? t('admin.common.productLabel') : 'Ürün')}
                             className="w-full h-full object-contain p-2"
                             loading="lazy"
                             onError={(e) => {
@@ -609,7 +609,7 @@ export default function SatisDetayPage() {
                               if (parent && !parent.querySelector('.error-placeholder')) {
                                 const placeholder = document.createElement('span');
                                 placeholder.className = 'error-placeholder text-gray-400 text-xs';
-                                placeholder.textContent = 'Resim Yüklenemedi';
+                                placeholder.textContent = i18n.t('admin.products.imageUploadError');
                                 parent.appendChild(placeholder);
                               }
                             }}
@@ -1090,8 +1090,9 @@ export default function SatisDetayPage() {
                       if (catId != null && (p.categoryId ?? null) !== catId) return false;
                       const q = addToInvoiceSearch.trim().toLowerCase();
                       if (!q) return true;
-                      const name = (p.baseName || p.baseNameFr || p.baseNameEn || p.name || '').toLowerCase();
-                      return name.includes(q);
+                      // FR/EN/TR arama: tüm isim alanlarında ara
+                      const searchable = [p.name, p.baseName, p.baseNameFr, p.baseNameEn].filter(Boolean).map(s => (s || '').toLowerCase());
+                      return searchable.some(s => s.includes(q));
                     });
                     return filtered.length === 0 ? (
                       <div className="text-center py-12 text-gray-500 text-sm">

@@ -208,7 +208,7 @@ export default function FaturaPage() {
                       quantity: item.quantity,
                       price: item.price,
                       total: item.total,
-                      productName: item.product?.baseName || item.product?.name || 'Ürün bulunamadı',
+                      productName: item.product?.baseName || item.product?.name || i18n.t('admin.common.notFound'),
                       productImage: item.product?.images || null,
                     }));
                     foundSale.items = formattedItems;

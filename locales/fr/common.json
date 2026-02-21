@@ -182,7 +182,8 @@
       "processingError": "Erreur survenue lors du traitement",
       "remove": "Retirer",
       "enterManually": "Saisir manuellement",
-      "status": "Statut"
+      "status": "Statut",
+      "productLabel": "Produit"
     },
     "dashboard": {
       "title": "Tableau de Bord",

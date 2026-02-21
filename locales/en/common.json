@@ -182,7 +182,8 @@
       "processingError": "Error occurred during processing",
       "remove": "Remove",
       "enterManually": "Enter manually",
-      "status": "Status"
+      "status": "Status",
+      "productLabel": "Product"
     },
     "dashboard": {
       "title": "Dashboard",
