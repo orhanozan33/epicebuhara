@@ -24,7 +24,8 @@
     "title": "Kategoriler",
     "allCategories": "Tüm Kategoriler",
     "loading": "Yükleniyor...",
-    "notFound": "Kategori bulunamadı"
+    "notFound": "Kategori bulunamadı",
+    "other": "Diğer"
   },
   "products": {
     "title": "Ürünler",

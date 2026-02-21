@@ -129,8 +129,9 @@ export async function GET(request: Request) {
       conditions.push(eq(products.slug, slug));
     }
 
-    if (categoryId) {
-      conditions.push(eq(products.categoryId, parseInt(categoryId)));
+    const parsedCategoryId = categoryId ? parseInt(categoryId, 10) : NaN;
+    if (!isNaN(parsedCategoryId)) {
+      conditions.push(eq(products.categoryId, parsedCategoryId));
     }
 
     if (featured) {

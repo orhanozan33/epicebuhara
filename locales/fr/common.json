@@ -24,7 +24,8 @@
     "title": "Catégories",
     "allCategories": "Toutes les Catégories",
     "loading": "Chargement...",
-    "notFound": "Aucune catégorie trouvée"
+    "notFound": "Aucune catégorie trouvée",
+    "other": "Autres"
   },
   "products": {
     "title": "Produits",

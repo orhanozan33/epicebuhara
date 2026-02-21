@@ -263,26 +263,10 @@ export default function ProductDetailPage() {
             return weightA - weightB;
           });
           
-          setVariants(variantsList);
-          
-          // Her varyantın tam ürün bilgilerini sakla (resimler dahil)
-          const variantProductsMap = new Map(groupProducts.map((p: Product) => [p.id, p]));
-          setVariantProducts(variantProductsMap);
-          
-          // Seçili varyantı ayarla: Önce mevcut ürünün ID'sine göre bul, bulunamazsa ilkini seç
-          if (variantsList.length > 0) {
-            // Mevcut ürünün ID'sine göre varyantı bul
-            const selectedVariantById = variantsList.find(v => v.id === foundProduct.id);
-            if (selectedVariantById) {
-              setSelectedVariant(selectedVariantById);
-            } else {
-              // Bulunamazsa ilk varyantı seç
-              setSelectedVariant(variantsList[0]);
-            }
-          } else {
-            // Varyant yoksa, mevcut ürünü seçili varyant olarak ayarla (göstermek için)
-            setSelectedVariant(null);
-          }
+          // Varyantlar kaldırıldı: her zaman tek ürün göster, gramaj seçenekleri yok
+          setVariants([]);
+          setVariantProducts(new Map());
+          setSelectedVariant(null);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -650,127 +634,9 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Gramaj Varyantları - Küçük ve Kompakt */}
-            {variants.length > 1 && (
-              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
-                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3">{mounted ? t('products.weightOptions') : 'Gramaj Seçenekleri'}</h3>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-                  {variants.map((variant) => {
-                    const variantHasDiscount = variant.comparePrice && parseFloat(variant.comparePrice) > parseFloat(variant.price);
-                    const isSelected = selectedVariant?.id === variant.id;
-                    
-                    // Weight gösterimi: 1000 gr ise 1 Kg göster
-                    let displayWeight = variant.weight;
-                    let displayUnit = variant.unit;
-                    if (variant.unit === 'Gr' && displayWeight && parseFloat(displayWeight) >= 1000 && parseFloat(displayWeight) % 1000 === 0) {
-                      const kgValue = parseFloat(displayWeight) / 1000;
-                      // Ondalık kısmı 0 ise sadece tam sayı göster
-                      displayWeight = kgValue % 1 === 0 ? kgValue.toString() : kgValue.toFixed(2);
-                      displayUnit = 'Kg';
-                    } else if (displayWeight) {
-                      const weightNum = parseFloat(displayWeight);
-                      // Ondalık kısmı 0 ise sadece tam sayı göster
-                      displayWeight = weightNum % 1 === 0 ? weightNum.toString() : weightNum.toFixed(2);
-                    }
-                    if (!displayWeight || displayWeight === '0') {
-                      displayWeight = '-';
-                      displayUnit = '';
-                    }
-                    
-                    // Her varyantın slug'ını al (eğer yoksa ID kullan)
-                    const variantProduct = variantProducts.get(variant.id);
-                    const variantSlug = variantProduct?.slug || variant.id.toString();
-                    const variantUrl = `/product/${variantSlug}`;
-                    
-                    return (
-                      <Link
-                        key={variant.id}
-                        href={variantUrl}
-                        onClick={(e) => {
-                          // Eğer aynı varyant seçiliyse, navigation'ı engelle
-                          if (variantSlug === slug) {
-                            e.preventDefault();
-                            return;
-                          }
-                          // Seçili varyantı güncelle
-                          setSelectedVariant(variant);
-                          // Link component otomatik olarak URL'yi güncelleyecek
-                          // Sayfanın en üstüne kaydır
-                          setTimeout(() => {
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }, 100);
-                        }}
-                        className={`flex-shrink-0 p-2 sm:p-3 border-2 rounded-lg text-center transition-all min-w-[80px] sm:min-w-[100px] block cursor-pointer ${
-                          isSelected
-                            ? 'border-green-300 bg-green-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-0.5 sm:mb-1">
-                          {displayWeight} {displayUnit ? displayUnit : ''}
-                        </div>
-                        {/* Fiyat Bilgisi - Gizlendi */}
-                      </Link>
-                    );
-                  })}
-                </div>
-                {/* Sepete Ekle Butonu - Varyantların Altında */}
-                <button
-                  onClick={async () => {
-                    const productIdToAdd = selectedVariant?.id || product?.id;
-                    if (!productIdToAdd) return;
-                    const q = quantity === '' ? 0 : quantity;
-                    if (q <= 0) {
-                      showToast(mounted ? t('admin.dealers.invalidQuantity') : 'Lütfen miktar girin', 'error');
-                      return;
-                    }
-                    const packSize = (selectedVariant as any)?.packSize ?? (displayProduct as any)?.packSize ?? 1;
-                    const quantityToAdd = packSize > 1
-                      ? (sellUnit === 'kutu' ? q * packSize : q)
-                      : q;
-                    
-                    setAddingToCart(true);
-                    try {
-                      const response = await fetch('/api/cart', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          productId: productIdToAdd,
-                          quantity: quantityToAdd,
-                        }),
-                      });
-
-                      if (response.ok) {
-                        showToast(mounted ? t('cart.addedToCart') : 'Ürün sepete eklendi!', 'success');
-                        // Sepet badge'ini güncelle
-                        window.dispatchEvent(new Event('cartUpdated'));
-                      } else {
-                        const error = await response.json();
-                        showToast(error.error || (mounted ? t('cart.addToCartError') : 'Ürün sepete eklenirken hata oluştu'), 'error');
-                      }
-                    } catch (error) {
-                      console.error('Error adding to cart:', error);
-                      showToast(mounted ? t('cart.addToCartError') : 'Ürün sepete eklenirken hata oluştu', 'error');
-                    } finally {
-                      setAddingToCart(false);
-                    }
-                  }}
-                         disabled={addingToCart || (quantity === '' ? 0 : quantity) <= 0 || (!selectedVariant && (!product || (product.stock ?? 0) === 0)) || (selectedVariant ? (selectedVariant.stock ?? 0) === 0 : false)}
-                         className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-[#E91E63] text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-[#C2185B] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                       >
-                         {addingToCart 
-                           ? (mounted ? t('products.addingToCart') : 'Ekleniyor...')
-                           : (selectedVariant && (selectedVariant.stock ?? 0) > 0) || (product && (product.stock ?? 0) > 0) 
-                             ? (mounted ? t('products.addToCart') : 'Sepete Ekle')
-                             : (mounted ? t('products.outOfStock') : 'Stokta Yok')}
-                </button>
-              </div>
-            )}
             
-            {/* Varyant yoksa sepete ekle butonu */}
-            {variants.length <= 1 && (
+            {/* Sepete ekle butonu */}
+            {(
               <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
                 <button
                   onClick={async () => {

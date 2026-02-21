@@ -30,24 +30,24 @@ export default function CategoryPage() {
           resolvedParams = await params;
         }
         
-        const slugParam = resolvedParams?.slug ? String(resolvedParams.slug) : null;
+        const slugParam = resolvedParams?.slug ? String(resolvedParams.slug).trim() : null;
         
         if (!isActive) return;
         setSlug(slugParam);
-        // Slug yoksa veya henüz çözülmediyse kategori listesini sıfırla (önceki kategori ürünleri görünmesin)
         if (!slugParam) {
           setCategoryId(null);
         }
         
-        // Slug'a göre kategori ID'sini bul
+        // Slug'a göre kategori ID'sini bul (büyük/küçük harf duyarsız)
         if (slugParam) {
           try {
             const response = await fetch('/api/categories');
             if (!isActive) return;
             if (response.ok) {
               const categories = await response.json();
+              const slugLower = slugParam.toLowerCase();
               const category = Array.isArray(categories)
-                ? categories.find((cat: any) => (cat.slug || '').toString() === slugParam)
+                ? categories.find((cat: any) => (cat.slug || '').toString().trim().toLowerCase() === slugLower)
                 : null;
               if (isActive) {
                 setCategoryId(category ? String(category.id) : null);

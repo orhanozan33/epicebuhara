@@ -24,7 +24,8 @@
     "title": "Categories",
     "allCategories": "All Categories",
     "loading": "Loading...",
-    "notFound": "No categories found"
+    "notFound": "No categories found",
+    "other": "Other"
   },
   "products": {
     "title": "Products",
