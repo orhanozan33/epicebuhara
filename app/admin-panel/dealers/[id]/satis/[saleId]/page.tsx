@@ -1085,14 +1085,16 @@ export default function SatisDetayPage() {
                 </div>
                 <div className="flex-1 overflow-auto min-h-0">
                   {(() => {
-                    const filtered = addToInvoiceProducts.filter((p) => {
+                    const normalizeForSearch = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                      const filtered = addToInvoiceProducts.filter((p) => {
                       const catId = addToInvoiceCategoryId ? parseInt(addToInvoiceCategoryId, 10) : null;
                       if (catId != null && (p.categoryId ?? null) !== catId) return false;
                       const q = addToInvoiceSearch.trim().toLowerCase();
                       if (!q) return true;
-                      // FR/EN/TR arama: tüm isim alanlarında ara
-                      const searchable = [p.name, p.baseName, p.baseNameFr, p.baseNameEn].filter(Boolean).map(s => (s || '').toLowerCase());
-                      return searchable.some(s => s.includes(q));
+                      const qNorm = normalizeForSearch(addToInvoiceSearch.trim());
+                      const pAny = p as { sku?: string | null };
+                      const searchable = [p.name, p.baseName, p.baseNameFr, p.baseNameEn, pAny.sku].filter(Boolean).map(s => normalizeForSearch(String(s)));
+                      return searchable.some(s => s.includes(qNorm));
                     });
                     return filtered.length === 0 ? (
                       <div className="text-center py-12 text-gray-500 text-sm">
@@ -1174,19 +1176,23 @@ export default function SatisDetayPage() {
                   </div>
                 ) : (
                   <div className="flex-1 overflow-auto space-y-2 min-h-0">
-                    {sale.items.map((item) => (
-                      <div key={item.id} className="flex gap-2 bg-white rounded-lg p-2 border border-gray-200">
-                        {item.productImage && (
-                          <div className="w-12 h-12 rounded bg-gray-100 flex-shrink-0 overflow-hidden">
-                            <img src={item.productImage.startsWith('/') || item.productImage.startsWith('http') ? item.productImage : `/uploads/products/${item.productImage}`} alt="" className="w-full h-full object-contain" />
+                    {sale.items.map((item) => {
+                      const productForName = addToInvoiceProducts.find((pr) => pr.id === item.productId);
+                      const displayName = productForName ? getProductDisplayName(productForName) : item.productName;
+                      return (
+                        <div key={item.id} className="flex gap-2 bg-white rounded-lg p-2 border border-gray-200">
+                          {item.productImage && (
+                            <div className="w-12 h-12 rounded bg-gray-100 flex-shrink-0 overflow-hidden">
+                              <img src={item.productImage.startsWith('/') || item.productImage.startsWith('http') ? item.productImage : `/uploads/products/${item.productImage}`} alt="" className="w-full h-full object-contain" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-900 truncate">{displayName}</p>
+                            <p className="text-[10px] text-gray-500">{item.quantity} × ${parseFloat(item.price || '0').toFixed(2)} = ${parseFloat(item.total || '0').toFixed(2)}</p>
                           </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-900 truncate">{item.productName}</p>
-                          <p className="text-[10px] text-gray-500">{item.quantity} × ${parseFloat(item.price || '0').toFixed(2)} = ${parseFloat(item.total || '0').toFixed(2)}</p>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
