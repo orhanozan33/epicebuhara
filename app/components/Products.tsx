@@ -193,10 +193,6 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
     return ordered;
   }, [showGroupedByCategory, productsList, categoriesList, mounted, t]);
 
-  if (loading) {
-    return <div className="text-center py-8">{mounted ? t('products.loading') : 'Yükleniyor...'}</div>;
-  }
-
   const renderProductCard = useCallback((product: any) => {
     const hasDiscount = product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price);
     const discountPercent = hasDiscount 
@@ -283,6 +279,10 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
   }, [currentLanguage, mounted, t]);
 
   const hasProductsToShow = showGroupedByCategory ? productsList.length > 0 : displayProducts.length > 0;
+
+  if (loading) {
+    return <div className="text-center py-8">{mounted ? t('products.loading') : 'Yükleniyor...'}</div>;
+  }
   if (!hasProductsToShow) {
     return (
       <div className="w-full min-w-0">
