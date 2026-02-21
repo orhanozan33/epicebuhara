@@ -34,20 +34,30 @@ export default function CategoryPage() {
         
         if (!isActive) return;
         setSlug(slugParam);
+        // Slug yoksa veya henüz çözülmediyse kategori listesini sıfırla (önceki kategori ürünleri görünmesin)
+        if (!slugParam) {
+          setCategoryId(null);
+        }
         
         // Slug'a göre kategori ID'sini bul
         if (slugParam) {
           try {
             const response = await fetch('/api/categories');
+            if (!isActive) return;
             if (response.ok) {
               const categories = await response.json();
-              const category = categories.find((cat: any) => cat.slug === slugParam);
-              if (category && isActive) {
-                setCategoryId(String(category.id));
+              const category = Array.isArray(categories)
+                ? categories.find((cat: any) => (cat.slug || '').toString() === slugParam)
+                : null;
+              if (isActive) {
+                setCategoryId(category ? String(category.id) : null);
               }
+            } else {
+              setCategoryId(null);
             }
           } catch (error) {
             console.error('Error fetching categories:', error);
+            if (isActive) setCategoryId(null);
           }
         }
       } catch (error: any) {
@@ -98,7 +108,7 @@ export default function CategoryPage() {
           </aside>
           {/* Sağ: Ürünler */}
           <main className="lg:w-4/5">
-            <Products categoryId={categoryId} />
+            <Products key={categoryId ?? 'all'} categoryId={categoryId} />
           </main>
         </div>
       </div>

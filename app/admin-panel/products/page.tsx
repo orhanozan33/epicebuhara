@@ -46,7 +46,8 @@ interface CompanySettings {
 
 export default function UrunlerPage() {
   const [mounted, setMounted] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = (i18n?.language || 'tr').split('-')[0] as 'tr' | 'fr' | 'en';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +57,17 @@ export default function UrunlerPage() {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [company, setCompany] = useState<CompanySettings | null>(null);
   const [printLanguage, setPrintLanguage] = useState<'tr' | 'en' | 'fr'>('tr');
+
+  const getProductDisplayName = (p: Product) => {
+    if (lang === 'fr') return p.baseNameFr || p.baseNameEn || p.name;
+    if (lang === 'en') return p.baseNameEn || p.baseNameFr || p.name;
+    return p.baseName || p.name;
+  };
+  const getCategoryDisplayName = (p: Product) => {
+    if (lang === 'fr') return p.categoryNameFr || p.categoryNameEn || p.categoryName || '-';
+    if (lang === 'en') return p.categoryNameEn || p.categoryNameFr || p.categoryName || '-';
+    return p.categoryName || '-';
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -169,15 +181,16 @@ export default function UrunlerPage() {
   };
 
   const filteredProducts = products.filter((product) => {
+    const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+      product.name.toLowerCase().includes(searchLower) ||
+      (product.baseNameFr && product.baseNameFr.toLowerCase().includes(searchLower)) ||
+      (product.baseNameEn && product.baseNameEn.toLowerCase().includes(searchLower)) ||
+      (product.sku && product.sku.toLowerCase().includes(searchLower));
     const matchesCategory =
-      selectedCategory === 'all' || product.categoryName === selectedCategory;
+      selectedCategory === 'all' || (product.categoryId != null && String(product.categoryId) === selectedCategory);
     return matchesSearch && matchesCategory;
   });
-
-  const categoryNames = Array.from(new Set(products.map((p) => p.categoryName).filter((cat): cat is string => !!cat)));
 
   const handlePrintPriceList = () => {
     setShowPrintModal(true);
@@ -456,11 +469,14 @@ export default function UrunlerPage() {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
             >
               <option value="all">{mounted ? t('admin.products.allCategories') : 'Tüm Kategoriler'}</option>
-              {categoryNames.filter(cat => cat).map((cat) => (
-                <option key={cat} value={cat || ''}>
-                  {cat || '-'}
-                </option>
-              ))}
+              {categories.map((cat) => {
+                const label = lang === 'fr' ? (cat.nameFr || cat.nameEn || cat.name) : lang === 'en' ? (cat.nameEn || cat.nameFr || cat.name) : cat.name;
+                return (
+                  <option key={cat.id} value={String(cat.id)}>
+                    {label || '-'}
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>
@@ -490,10 +506,10 @@ export default function UrunlerPage() {
                       {product.isActive !== false ? (mounted ? t('admin.common.active') : 'Aktif') : (mounted ? t('admin.common.inactive') : 'Pasif')}
                     </button>
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1 truncate">{product.name}</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1 truncate">{getProductDisplayName(product)}</h3>
                   <div className="flex flex-wrap gap-2 text-xs text-gray-600 mb-2">
-                    {product.categoryName && (
-                      <span className="bg-gray-100 px-2 py-0.5 rounded">📁 {product.categoryName}</span>
+                    {(getCategoryDisplayName(product) !== '-') && (
+                      <span className="bg-gray-100 px-2 py-0.5 rounded">📁 {getCategoryDisplayName(product)}</span>
                     )}
                     {product.sku && (
                       <span className="bg-gray-100 px-2 py-0.5 rounded">SKU: {product.sku}</span>
@@ -593,13 +609,13 @@ export default function UrunlerPage() {
                       {product.id}
                     </td>
                     <td className="px-3 py-3 text-sm font-medium text-gray-900">
-                      <div className="truncate max-w-[150px]" title={product.name}>
-                        {product.name}
+                      <div className="truncate max-w-[150px]" title={getProductDisplayName(product)}>
+                        {getProductDisplayName(product)}
                       </div>
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-500">
-                      <div className="truncate max-w-[120px]" title={product.categoryName || '-'}>
-                        {product.categoryName || '-'}
+                      <div className="truncate max-w-[120px]" title={getCategoryDisplayName(product)}>
+                        {getCategoryDisplayName(product)}
                       </div>
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-500">
