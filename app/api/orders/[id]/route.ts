@@ -288,7 +288,7 @@ export async function PUT(
               const finalSubtotal = Math.abs(orderSubtotal - subtotal) < 0.01 ? orderSubtotal : subtotal;
               const finalTotal = orderTotal;
 
-              // Bayi satışı oluştur (ödendi olarak işaretle, notes boş)
+              // Bayi satışı oluştur (ödendi olarak işaretle; isSaved: true ile fatura Faturalar'a otomatik kayıt)
               const newSale = await db.insert(dealerSales).values({
                 dealerId,
                 saleNumber,
@@ -299,7 +299,7 @@ export async function PUT(
                 isPaid: true,
                 paidAmount: finalTotal.toFixed(2),
                 paidAt: new Date(),
-                // notes alanını eklemiyoruz (nullable, default null)
+                isSaved: true,
               }).returning();
 
               const savedSale = newSale[0];

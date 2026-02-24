@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import { getProductImageSrc } from '@/lib/imageUrl';
 
 interface CartItem {
   id: number;
@@ -371,7 +372,7 @@ export default function SiparisPage() {
                       {item.product.images && (
                         <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                           <img
-                            src={item.product.images.split(',')[0].trim()}
+                            src={getProductImageSrc(item.product.images)}
                             alt={item.product.baseName || item.product.name}
                             className="w-full h-full object-contain p-1"
                           />

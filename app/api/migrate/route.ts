@@ -152,6 +152,22 @@ export async function POST(request: Request) {
         check: `SELECT 1 FROM information_schema.columns WHERE table_name = 'company_settings' AND column_name = 'updatedAt'`,
         migrate: `ALTER TABLE company_settings RENAME COLUMN "updatedAt" TO "updated_at"`,
       },
+      {
+        name: 'Create hero_banner_settings if not exists',
+        check: `SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'hero_banner_settings')`,
+        migrate: `CREATE TABLE hero_banner_settings (
+          id SERIAL PRIMARY KEY,
+          title VARCHAR(255),
+          subtitle TEXT,
+          button_text VARCHAR(255),
+          button_link VARCHAR(500),
+          discount_label1 VARCHAR(255),
+          discount_percent INTEGER,
+          discount_label2 VARCHAR(255),
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )`,
+      },
     ];
 
     // Her migration'ı kontrol et ve gerekirse uygula

@@ -95,7 +95,7 @@ export async function DELETE(
     const paidAmount = parseFloat(String(saleData.paidAmount || '0'));
     const isPaid = paidAmount >= newTotal && newTotal > 0;
 
-    // Satış toplamlarını güncelle
+    // Satış toplamlarını güncelle (isSaved: true korunur – fatura Faturalar'da tek kayıt olarak güncellenir)
     await db
       .update(dealerSales)
       .set({
@@ -103,6 +103,7 @@ export async function DELETE(
         total: newTotal.toFixed(2),
         isPaid,
         paidAmount: Math.min(paidAmount, newTotal).toFixed(2),
+        isSaved: true,
         updatedAt: new Date(),
       })
       .where(eq(dealerSales.id, saleIdNum));

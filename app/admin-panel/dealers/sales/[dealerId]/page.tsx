@@ -55,6 +55,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import { getProductImageSrc } from '@/lib/imageUrl';
 import Image from 'next/image';
 
 interface Product {
@@ -571,6 +572,18 @@ export default function BayiSatisPage() {
     return Math.round(afterDiscount * 100) / 100;
   }, [afterDiscount]);
 
+  // Sepetteki toplam kutu sayısı (packSize > 1 olan ürünlerde kutu = quantity / packSize)
+  const totalKutu = useMemo(() => {
+    const safeCart = Array.isArray(cart) ? cart : [];
+    return safeCart.reduce((sum, item) => {
+      const ps = (item as { packSize?: number }).packSize ?? 1;
+      if (ps > 1 && typeof item.quantity === 'number') {
+        return sum + Math.floor(item.quantity / ps);
+      }
+      return sum;
+    }, 0);
+  }, [cart]);
+
   const handleSubmit = useCallback(async () => {
     if (!isMountedRef.current) return;
     
@@ -974,6 +987,12 @@ export default function BayiSatisPage() {
                       <span>{mounted ? t('cart.total') : 'Toplam'}:</span>
                       <span className="text-blue-600">${total.toFixed(2)}</span>
                     </div>
+                    {totalKutu > 0 && (
+                      <div className="flex justify-between text-sm font-medium text-gray-700 pt-1">
+                        <span>{mounted ? t('admin.dealers.totalBoxes') : 'Toplam kutu'}:</span>
+                        <span>{totalKutu}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1147,14 +1166,7 @@ export default function BayiSatisPage() {
                       <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
                         {product.images ? (
                           <img 
-                            src={(() => {
-                              const imgSrc = product.images.split(',')[0].trim();
-                              // Eğer src / ile başlamıyorsa ve http ile başlamıyorsa, path ekle
-                              if (imgSrc && !imgSrc.startsWith('/') && !imgSrc.startsWith('http')) {
-                                return `/uploads/products/${imgSrc}`;
-                              }
-                              return imgSrc;
-                            })()}
+                            src={getProductImageSrc(product.images)}
                             alt={product.name || 'Ürün'} 
                             className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-300" 
                             loading="lazy"

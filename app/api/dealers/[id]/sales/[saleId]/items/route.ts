@@ -155,6 +155,7 @@ export async function POST(
         total: newTotal.toFixed(2),
         isPaid,
         paidAmount: Math.min(paidAmount, newTotal).toFixed(2),
+        isSaved: true,
         updatedAt: new Date(),
       })
       .where(eq(dealerSales.id, saleIdNum));

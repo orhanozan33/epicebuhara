@@ -353,25 +353,12 @@ export default function ProductDetailPage() {
   const productName = getProductName();
   
   const images = displayProduct?.images ? displayProduct.images.split(',').map(img => {
-    const trimmed = img.trim();
+    const trimmed = (img || '').replace(/\r\n|\r|\n/g, '').trim();
     if (!trimmed) return '';
     
-    // Eğer zaten tam URL ise (http/https veya Supabase Storage URL), olduğu gibi döndür
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-    
-    // Eğer / ile başlıyorsa, olduğu gibi döndür
-    if (trimmed.startsWith('/')) {
-      return trimmed;
-    }
-    
-    // Supabase Storage URL kontrolü (storage/v1/object/public içeriyorsa)
-    if (trimmed.includes('storage/v1/object/public')) {
-      return trimmed;
-    }
-    
-    // Local dosya yolu - /uploads/products/ ekle
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    if (trimmed.startsWith('/')) return trimmed;
+    if (trimmed.includes('storage/v1/object/public')) return trimmed;
     return `/uploads/products/${trimmed}`;
   }).filter(Boolean) : [];
 

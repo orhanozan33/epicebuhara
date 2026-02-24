@@ -101,6 +101,19 @@ export const cart = pgTable('cart', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+export const heroBannerSettings = pgTable('hero_banner_settings', {
+  id: serial('id').primaryKey().notNull(),
+  title: varchar('title', { length: 255 }),
+  subtitle: text('subtitle'),
+  buttonText: varchar('button_text', { length: 255 }),
+  buttonLink: varchar('button_link', { length: 500 }),
+  discountLabel1: varchar('discount_label1', { length: 255 }),
+  discountPercent: integer('discount_percent'),
+  discountLabel2: varchar('discount_label2', { length: 255 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 export const companySettings = pgTable('company_settings', {
   id: serial('id').primaryKey().notNull(),
   companyName: varchar('company_name', { length: 255 }),

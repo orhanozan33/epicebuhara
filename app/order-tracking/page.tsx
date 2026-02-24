@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import { getProductImageSrc } from '@/lib/imageUrl';
 
 interface Order {
   id: number;
@@ -450,28 +451,7 @@ function SiparisTakibiContent() {
                       {item.product?.images && (
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                           <img
-                            src={(() => {
-                              const imgSrc = item.product.images.split(',')[0].trim();
-                              if (!imgSrc) return '';
-
-                              // Eğer zaten tam URL ise (http/https veya Supabase Storage URL), olduğu gibi döndür
-                              if (imgSrc.startsWith('http://') || imgSrc.startsWith('https://')) {
-                                return imgSrc;
-                              }
-
-                              // Eğer / ile başlıyorsa, olduğu gibi döndür
-                              if (imgSrc.startsWith('/')) {
-                                return imgSrc;
-                              }
-
-                              // Supabase Storage URL kontrolü (storage/v1/object/public içeriyorsa)
-                              if (imgSrc.includes('storage/v1/object/public')) {
-                                return imgSrc;
-                              }
-
-                              // Local dosya yolu - /uploads/products/ ekle
-                              return `/uploads/products/${imgSrc}`;
-                            })()}
+                            src={getProductImageSrc(item.product.images)}
                             alt={item.product.baseName || item.product.name}
                             className="w-full h-full object-contain p-1 sm:p-2"
                             onError={(e) => {

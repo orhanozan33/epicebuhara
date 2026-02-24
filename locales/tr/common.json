@@ -349,6 +349,7 @@
       "clear": "Temizle",
       "notesOptional": "Notlar (Opsiyonel)",
       "notesPlaceholder": "Ek notlar...",
+      "totalBoxes": "Toplam kutu",
       "processing": "İşleniyor...",
       "invalidDealerId": "Geçersiz bayi ID. Lütfen bayi listesinden satış yapmak istediğiniz bayiyi seçin.",
       "dealerIdNotFound": "Bayi ID bulunamadı",
@@ -518,7 +519,18 @@
       "passwordMinLength": "Yeni şifre en az 6 karakter olmalıdır",
       "passwordsDoNotMatch": "Yeni şifreler eşleşmiyor",
       "passwordChanged": "Kullanıcı adı ve/veya şifre başarıyla güncellendi",
-      "saving": "Kaydediliyor..."
+      "saving": "Kaydediliyor...",
+      "heroBanner": "Ana Sayfa Banner",
+      "heroBannerDesc": "Ana sayfadaki pembe banner alanını düzenleyin",
+      "heroBannerTitle": "Başlık",
+      "heroBannerSubtitle": "Alt başlık",
+      "heroBannerButtonText": "Buton metni",
+      "heroBannerButtonLink": "Buton linki (URL)",
+      "heroBannerDiscount1": "İndirim kutusu üst metin",
+      "heroBannerDiscountPercent": "İndirim yüzdesi (örn. 50)",
+      "heroBannerDiscount2": "İndirim kutusu alt metin",
+      "save": "Kaydet",
+      "cancel": "İptal"
     },
     "notifications": {
       "order": "Sipariş",

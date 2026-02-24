@@ -327,10 +327,9 @@ export async function POST(
       );
     }
 
-    // Satış oluştur
+    // Satış oluştur (isSaved: true ile fatura otomatik olarak Faturalar'a kaydedilir)
     const isPaid = paymentMethod !== 'ODENMEDI';
     
-    // Sadece gerekli alanları ekle, nullable alanları atla
     const newSale = await db.insert(dealerSales).values({
       dealerId,
       saleNumber,
@@ -340,7 +339,7 @@ export async function POST(
       total: total.toFixed(2),
       isPaid,
       paidAmount: isPaid ? total.toFixed(2) : '0',
-      // paidAt, notes, isSaved alanlarını eklemiyoruz (nullable, default değerleri var)
+      isSaved: true,
     }).returning();
     
     // Eğer ödendi ise paidAt'i güncelle

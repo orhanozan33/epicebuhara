@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import { getProductImageSrc } from '@/lib/imageUrl';
 
 interface SaleItem {
   id: number;
@@ -576,21 +577,7 @@ export default function SatisDetayPage() {
                     return (item.productName || '').toLowerCase().includes(q);
                   })
                   .map((item) => {
-                  const imageUrl = item.productImage 
-                    ? (item.productImage.includes(',') 
-                        ? item.productImage.split(',')[0].trim() 
-                        : item.productImage.trim())
-                    : null;
-                  
-                  const imageSrc = imageUrl
-                    ? (() => {
-                        // Eğer src / ile başlamıyorsa ve http ile başlamıyorsa, path ekle
-                        if (imageUrl && !imageUrl.startsWith('/') && !imageUrl.startsWith('http')) {
-                          return `/uploads/products/${imageUrl}`;
-                        }
-                        return imageUrl;
-                      })()
-                    : null;
+                  const imageSrc = item.productImage ? getProductImageSrc(item.productImage) : null;
                   
                   return (
                     <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
@@ -1124,10 +1111,7 @@ export default function SatisDetayPage() {
                               <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
                                 {p.images ? (
                                   <img
-                                    src={(() => {
-                                      const imgSrc = (p.images || '').split(',')[0].trim();
-                                      return imgSrc && !imgSrc.startsWith('/') && !imgSrc.startsWith('http') ? `/uploads/products/${imgSrc}` : imgSrc || '';
-                                    })()}
+                                    src={getProductImageSrc(p.images)}
                                     alt={getProductDisplayName(p)}
                                     className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
                                     loading="lazy"
@@ -1183,7 +1167,7 @@ export default function SatisDetayPage() {
                         <div key={item.id} className="flex gap-2 bg-white rounded-lg p-2 border border-gray-200">
                           {item.productImage && (
                             <div className="w-12 h-12 rounded bg-gray-100 flex-shrink-0 overflow-hidden">
-                              <img src={item.productImage.startsWith('/') || item.productImage.startsWith('http') ? item.productImage : `/uploads/products/${item.productImage}`} alt="" className="w-full h-full object-contain" />
+                              <img src={getProductImageSrc(item.productImage)} alt="" className="w-full h-full object-contain" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">

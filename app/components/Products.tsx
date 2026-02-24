@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { showToast } from '@/components/Toast';
+import { getProductImageSrc } from '@/lib/imageUrl';
 
 interface ProductsProps {
   categoryId?: string | null;
@@ -216,14 +217,7 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
             )}
             {product.images ? (
               <img 
-                src={(() => {
-                  const imgSrc = product.images.split(',')[0].trim();
-                  if (!imgSrc) return '';
-                  if (imgSrc.startsWith('http://') || imgSrc.startsWith('https://')) return imgSrc;
-                  if (imgSrc.startsWith('/')) return imgSrc;
-                  if (imgSrc.includes('storage/v1/object/public')) return imgSrc;
-                  return `/uploads/products/${imgSrc}`;
-                })()}
+                src={getProductImageSrc(product.images)}
                 alt={productName} 
                 className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-300" 
                 loading="lazy"

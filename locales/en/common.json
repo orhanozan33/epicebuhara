@@ -356,6 +356,7 @@
       "clear": "Clear",
       "notesOptional": "Notes (Optional)",
       "notesPlaceholder": "Additional notes...",
+      "totalBoxes": "Total boxes",
       "processing": "Processing...",
       "invalidDealerId": "Invalid dealer ID. Please select a dealer from the dealer list to make a sale.",
       "dealerIdNotFound": "Dealer ID not found",
@@ -524,7 +525,18 @@
       "passwordMinLength": "New password must be at least 6 characters",
       "passwordsDoNotMatch": "New passwords do not match",
       "passwordChanged": "Username and/or password updated successfully",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "heroBanner": "Homepage Banner",
+      "heroBannerDesc": "Edit the pink banner area on the homepage",
+      "heroBannerTitle": "Title",
+      "heroBannerSubtitle": "Subtitle",
+      "heroBannerButtonText": "Button text",
+      "heroBannerButtonLink": "Button link (URL)",
+      "heroBannerDiscount1": "Discount box top text",
+      "heroBannerDiscountPercent": "Discount percent (e.g. 50)",
+      "heroBannerDiscount2": "Discount box bottom text",
+      "save": "Save",
+      "cancel": "Cancel"
     },
     "notifications": {
       "order": "Order",

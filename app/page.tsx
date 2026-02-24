@@ -6,13 +6,52 @@ import { Categories } from './components/Categories';
 import { Products } from './components/Products';
 import { useTranslation } from 'react-i18next';
 
+type HeroSettings = {
+  title: string | null;
+  subtitle: string | null;
+  buttonText: string | null;
+  buttonLink: string | null;
+  discountLabel1: string | null;
+  discountPercent: number | null;
+  discountLabel2: string | null;
+};
+
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
+  const [hero, setHero] = useState<HeroSettings | null>(null);
   const { t } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    fetch('/api/settings/hero-banner')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error && (data.title != null || data.buttonText != null || data.discountLabel1 != null)) {
+          setHero({
+            title: data.title ?? null,
+            subtitle: data.subtitle ?? null,
+            buttonText: data.buttonText ?? null,
+            buttonLink: data.buttonLink ?? null,
+            discountLabel1: data.discountLabel1 ?? null,
+            discountPercent: data.discountPercent ?? null,
+            discountLabel2: data.discountLabel2 ?? null,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const heroTitle = (hero?.title?.trim() || '') || (mounted ? t('home.title') : 'En İyi Fiyat Garantisi');
+  const heroSubtitle = (hero?.subtitle?.trim() || '') || (mounted ? t('home.subtitle') : 'Binlerce ürün çeşidi ile size en uygun fiyatları sunuyoruz');
+  const heroButtonText = (hero?.buttonText?.trim() || '') || (mounted ? t('home.startShopping') : 'Hemen Alışverişe Başla');
+  const heroButtonLink = hero?.buttonLink?.trim() || '/';
+  const discount1 = (hero?.discountLabel1?.trim() || '') || (mounted ? t('home.specialDiscounts') : 'Özel İndirimler');
+  const discountPercentVal = hero?.discountPercent;
+  const discountMiddle = discountPercentVal != null ? `%${discountPercentVal}'ye Varan` : (mounted ? t('home.upTo50') : "%50'ye Varan");
+  const discount2 = (hero?.discountLabel2?.trim() || '') || (mounted ? t('home.discounts') : 'İndirimler');
 
   return (
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
@@ -22,19 +61,22 @@ export default function HomePage() {
           <div className="flex flex-col lg:flex-row items-center gap-4 sm:gap-6">
             {/* Sol: Ana Mesaj */}
             <div className="flex-1 text-center lg:text-left min-w-0">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-1 sm:mb-2 break-words">{mounted ? t('home.title') : 'En İyi Fiyat Garantisi'}</h1>
-              <p className="text-sm sm:text-base md:text-lg mb-3 sm:mb-4 text-white/90 break-words">{mounted ? t('home.subtitle') : 'Binlerce ürün çeşidi ile size en uygun fiyatları sunuyoruz'}</p>
-              <button type="button" className="px-5 py-2 sm:px-6 sm:py-2.5 bg-white text-[#E91E63] font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg text-sm sm:text-base whitespace-nowrap">
-                {mounted ? t('home.startShopping') : 'Hemen Alışverişe Başla'}
-              </button>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-1 sm:mb-2 break-words">{heroTitle}</h1>
+              <p className="text-sm sm:text-base md:text-lg mb-3 sm:mb-4 text-white/90 break-words">{heroSubtitle}</p>
+              <Link
+                href={heroButtonLink}
+                className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 bg-white text-[#E91E63] font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg text-sm sm:text-base whitespace-nowrap"
+              >
+                {heroButtonText}
+              </Link>
             </div>
             
             {/* Sağ: İndirim Kutusu */}
             <div className="bg-[#C2185B] rounded-xl p-1.5 sm:p-5 lg:p-6 text-center lg:text-left w-full lg:w-auto lg:min-w-[288px] flex-shrink-0">
               <div className="text-white space-y-0 sm:space-y-1.5 lg:space-y-1.5">
-                <p className="text-[10px] sm:text-base font-medium">{mounted ? t('home.specialDiscounts') : 'Özel İndirimler'}</p>
-                <p className="text-xs sm:text-xl lg:text-3xl font-bold">{mounted ? t('home.upTo50') : "%50'ye Varan"}</p>
-                <p className="text-[10px] sm:text-base font-medium">{mounted ? t('home.discounts') : 'İndirimler'}</p>
+                <p className="text-[10px] sm:text-base font-medium">{discount1}</p>
+                <p className="text-xs sm:text-xl lg:text-3xl font-bold">{discountMiddle}</p>
+                <p className="text-[10px] sm:text-base font-medium">{discount2}</p>
               </div>
             </div>
           </div>

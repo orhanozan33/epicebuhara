@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import { getProductImageSrc } from '@/lib/imageUrl';
 
 interface CartItem {
   id: number;
@@ -155,7 +156,7 @@ export default function SepetPage() {
                   {item.product.images && (
                     <div className="w-full sm:w-24 h-32 sm:h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={item.product.images.split(',')[0].trim()}
+                        src={getProductImageSrc(item.product.images)}
                         alt={item.product.baseName || item.product.name}
                         className="w-full h-full object-contain p-1 sm:p-2"
                       />

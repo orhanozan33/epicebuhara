@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '@/components/Toast';
+import { getProductImageSrc } from '@/lib/imageUrl';
 
 interface Order {
   id: number;
@@ -296,7 +297,7 @@ export default function OrderDetailPage() {
                   {item.product?.images && (
                     <div className="w-20 h-20 bg-white rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={item.product.images.split(',')[0].trim()}
+                        src={getProductImageSrc(item.product.images)}
                         alt={item.product.baseName || item.product.name}
                         className="w-full h-full object-contain p-2"
                       />

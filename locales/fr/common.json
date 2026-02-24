@@ -356,6 +356,7 @@
       "clear": "Effacer",
       "notesOptional": "Notes (Optionnel)",
       "notesPlaceholder": "Notes supplémentaires...",
+      "totalBoxes": "Total boîtes",
       "processing": "Traitement...",
       "invalidDealerId": "ID de distributeur invalide. Veuillez sélectionner un distributeur dans la liste pour effectuer une vente.",
       "dealerIdNotFound": "ID de distributeur introuvable",
@@ -524,7 +525,18 @@
       "passwordMinLength": "Le nouveau mot de passe doit contenir au moins 6 caractères",
       "passwordsDoNotMatch": "Les nouveaux mots de passe ne correspondent pas",
       "passwordChanged": "Le nom d'utilisateur et/ou le mot de passe ont été mis à jour avec succès",
-      "saving": "Enregistrement..."
+      "saving": "Enregistrement...",
+      "heroBanner": "Bannière page d'accueil",
+      "heroBannerDesc": "Modifier la zone de bannière rose sur la page d'accueil",
+      "heroBannerTitle": "Titre",
+      "heroBannerSubtitle": "Sous-titre",
+      "heroBannerButtonText": "Texte du bouton",
+      "heroBannerButtonLink": "Lien du bouton (URL)",
+      "heroBannerDiscount1": "Texte du haut de la boîte réduction",
+      "heroBannerDiscountPercent": "Pourcentage de réduction (ex. 50)",
+      "heroBannerDiscount2": "Texte du bas de la boîte réduction",
+      "save": "Enregistrer",
+      "cancel": "Annuler"
     },
     "notifications": {
       "order": "Commande",
