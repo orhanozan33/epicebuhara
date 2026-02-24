@@ -18,18 +18,24 @@ const defaults = {
 export async function GET() {
   try {
     const rows = await db.select().from(heroBannerSettings).limit(1);
-    if (rows.length === 0) {
-      return NextResponse.json(defaults);
-    }
-    const row = rows[0];
-    return NextResponse.json({
-      title: row.title ?? defaults.title,
-      subtitle: row.subtitle ?? defaults.subtitle,
-      buttonText: row.buttonText ?? defaults.buttonText,
-      buttonLink: row.buttonLink ?? defaults.buttonLink,
-      discountLabel1: row.discountLabel1 ?? defaults.discountLabel1,
-      discountPercent: row.discountPercent ?? defaults.discountPercent,
-      discountLabel2: row.discountLabel2 ?? defaults.discountLabel2,
+    const body =
+      rows.length === 0
+        ? defaults
+        : (() => {
+            const row = rows[0];
+            const rawPercent = row.discountPercent ?? defaults.discountPercent;
+            return {
+              title: row.title ?? defaults.title,
+              subtitle: row.subtitle ?? defaults.subtitle,
+              buttonText: row.buttonText ?? defaults.buttonText,
+              buttonLink: row.buttonLink ?? defaults.buttonLink,
+              discountLabel1: row.discountLabel1 ?? defaults.discountLabel1,
+              discountPercent: rawPercent != null ? Number(rawPercent) : null,
+              discountLabel2: row.discountLabel2 ?? defaults.discountLabel2,
+            };
+          })();
+    return NextResponse.json(body, {
+      headers: { 'Cache-Control': 'no-store, no-cache, max-age=0' },
     });
   } catch (error: unknown) {
     console.error('Error fetching hero banner settings:', error);

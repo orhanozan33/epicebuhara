@@ -79,7 +79,11 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
           buttonText: form.buttonText || null,
           buttonLink: form.buttonLink || null,
           discountLabel1: form.discountLabel1 || null,
-          discountPercent: form.discountPercent === '' ? null : parseInt(form.discountPercent, 10),
+          discountPercent: (() => {
+            if (form.discountPercent === '') return null;
+            const num = parseInt(form.discountPercent, 10);
+            return Number.isNaN(num) ? null : Math.min(100, Math.max(0, num));
+          })(),
           discountLabel2: form.discountLabel2 || null,
         }),
       });

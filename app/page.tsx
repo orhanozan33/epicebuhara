@@ -26,10 +26,19 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/settings/hero-banner')
+    fetch('/api/settings/hero-banner', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
       .then((res) => res.json())
       .then((data) => {
-        if (!data.error && (data.title != null || data.buttonText != null || data.discountLabel1 != null)) {
+        const hasAny =
+          !data.error &&
+          (data.title != null ||
+            data.subtitle != null ||
+            data.buttonText != null ||
+            data.buttonLink != null ||
+            data.discountLabel1 != null ||
+            data.discountPercent != null ||
+            data.discountLabel2 != null);
+        if (hasAny) {
           setHero({
             title: data.title ?? null,
             subtitle: data.subtitle ?? null,
@@ -50,7 +59,10 @@ export default function HomePage() {
   const heroButtonLink = hero?.buttonLink?.trim() || '/';
   const discount1 = (hero?.discountLabel1?.trim() || '') || (mounted ? t('home.specialDiscounts') : 'Özel İndirimler');
   const discountPercentVal = hero?.discountPercent;
-  const discountMiddle = discountPercentVal != null ? `%${discountPercentVal}'ye Varan` : (mounted ? t('home.upTo50') : "%50'ye Varan");
+  const discountMiddle =
+    discountPercentVal != null && discountPercentVal !== ''
+      ? `%${Number(discountPercentVal)}'ye Varan`
+      : (mounted ? t('home.upTo50') : "%50'ye Varan");
   const discount2 = (hero?.discountLabel2?.trim() || '') || (mounted ? t('home.discounts') : 'İndirimler');
 
   return (
