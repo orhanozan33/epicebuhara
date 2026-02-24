@@ -60,9 +60,7 @@ export default function HomePage() {
   const discount1 = (hero?.discountLabel1?.trim() || '') || (mounted ? t('home.specialDiscounts') : 'Özel İndirimler');
   const discountPercentVal = hero?.discountPercent;
   const discountMiddle =
-    discountPercentVal != null && discountPercentVal !== ''
-      ? `%${Number(discountPercentVal)}'ye Varan`
-      : (mounted ? t('home.upTo50') : "%50'ye Varan");
+    discountPercentVal != null ? `%${Number(discountPercentVal)}'ye Varan` : (mounted ? t('home.upTo50') : "%50'ye Varan");
   const discount2 = (hero?.discountLabel2?.trim() || '') || (mounted ? t('home.discounts') : 'İndirimler');
 
   return (
