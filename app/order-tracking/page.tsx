@@ -33,6 +33,8 @@ interface OrderItem {
     id: number;
     name: string;
     baseName?: string;
+    baseNameFr?: string | null;
+    baseNameEn?: string | null;
     slug: string;
     images?: string;
   } | null;
@@ -43,14 +45,20 @@ function SiparisTakibiContent() {
   const { t, i18n } = useTranslation();
   
   // Dil koduna göre locale mapping
+  const lang = (mounted && i18n?.language ? i18n.language.split('-')[0] : 'fr') as 'tr' | 'fr' | 'en';
   const getLocale = () => {
-    const lang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'fr';
     const localeMap: Record<string, string> = {
       'tr': 'tr-TR',
       'fr': 'fr-CA',
       'en': 'en-CA',
     };
     return localeMap[lang] || 'fr-CA';
+  };
+  const getProductDisplayName = (p: OrderItem['product']) => {
+    if (!p) return '';
+    if (lang === 'fr') return p.baseNameFr || p.baseNameEn || p.baseName || p.name;
+    if (lang === 'en') return p.baseNameEn || p.baseNameFr || p.baseName || p.name;
+    return p.baseName || p.name;
   };
   const searchParams = useSearchParams();
   const [orderNumber, setOrderNumber] = useState(searchParams.get('orderNumber') || '');
@@ -452,7 +460,7 @@ function SiparisTakibiContent() {
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                           <img
                             src={getProductImageSrc(item.product.images)}
-                            alt={item.product.baseName || item.product.name}
+                            alt={getProductDisplayName(item.product)}
                             className="w-full h-full object-contain p-1 sm:p-2"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -464,7 +472,7 @@ function SiparisTakibiContent() {
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-1">
-                          {item.product?.baseName || item.product?.name || 'Ürün bulunamadı'}
+                          {getProductDisplayName(item.product) || (mounted ? t('admin.common.notFound') : 'Ürün bulunamadı')}
                         </h4>
                         <p className="text-xs sm:text-sm text-gray-500 mb-1">
                           {mounted ? t('cart.quantity') : 'Miktar'}: {item.quantity}

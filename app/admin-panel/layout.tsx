@@ -43,15 +43,17 @@ export default function AdminLayout({
     return <>{children}</>;
   }
 
+  // Fallbacks ensure server and client render the same text until hydration (avoids i18n hydration mismatch)
   const menuItems = [
-    { href: '/admin-panel/dashboard', labelKey: 'admin.menu.dashboard', icon: '📊' },
-    { href: '/admin-panel/products', labelKey: 'admin.menu.products', icon: '📦' },
-    { href: '/admin-panel/categories', labelKey: 'admin.menu.categories', icon: '📁' },
-    { href: '/admin-panel/orders', labelKey: 'admin.menu.orders', icon: '🛒' },
-    { href: '/admin-panel/dealers', labelKey: 'admin.menu.dealers', icon: '🏪' },
-    { href: '/admin-panel/reports', labelKey: 'admin.menu.reports', icon: '📈' },
-    { href: '/admin-panel/invoices', labelKey: 'admin.menu.invoices', icon: '🧾' },
-    { href: '/admin-panel/settings', labelKey: 'admin.menu.settings', icon: '⚙️' },
+    { href: '/admin-panel/dashboard', labelKey: 'admin.menu.dashboard', fallback: 'Dashboard', icon: '📊' },
+    { href: '/admin-panel/products', labelKey: 'admin.menu.products', fallback: 'Products', icon: '📦' },
+    { href: '/admin-panel/stock', labelKey: 'admin.menu.stock', fallback: 'Stock', icon: '📋' },
+    { href: '/admin-panel/categories', labelKey: 'admin.menu.categories', fallback: 'Categories', icon: '📁' },
+    { href: '/admin-panel/orders', labelKey: 'admin.menu.orders', fallback: 'Orders', icon: '🛒' },
+    { href: '/admin-panel/dealers', labelKey: 'admin.menu.dealers', fallback: 'Dealers', icon: '🏪' },
+    { href: '/admin-panel/reports', labelKey: 'admin.menu.reports', fallback: 'Reports', icon: '📈' },
+    { href: '/admin-panel/invoices', labelKey: 'admin.menu.invoices', fallback: 'Invoices', icon: '🧾' },
+    { href: '/admin-panel/settings', labelKey: 'admin.menu.settings', fallback: 'Settings', icon: '⚙️' },
   ];
 
   return (
@@ -113,7 +115,7 @@ export default function AdminLayout({
                     }`}
                   >
                     <span className="text-sm lg:text-lg xl:text-xl flex-shrink-0">{item.icon}</span>
-                    <span className="font-medium truncate">{t(item.labelKey)}</span>
+                    <span className="font-medium truncate">{mounted ? t(item.labelKey) : item.fallback}</span>
                   </Link>
                 </li>
               );

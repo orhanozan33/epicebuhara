@@ -76,7 +76,7 @@ export async function GET(
     ];
     const uniqueProductIds = [...new Set(allProductIds)];
 
-    // Product bilgilerini getir (kategori ve pack için)
+    // Product bilgilerini getir (kategori ve pack için) + çeviri alanları
     const productList = uniqueProductIds.length > 0
       ? await db.select({
           id: products.id,
@@ -86,39 +86,86 @@ export async function GET(
           categoryId: products.categoryId,
           packSize: products.packSize,
           packLabelTr: products.packLabelTr,
+          packLabelEn: products.packLabelEn,
+          packLabelFr: products.packLabelFr,
         })
           .from(products)
           .where(inArray(products.id, uniqueProductIds))
       : [];
 
-    // Kategori isimlerini getir
+    // base_name_fr, base_name_en (veritabanında var, schema'da opsiyonel)
+    const productNameFrEnMap = new Map<number, { baseNameFr: string | null; baseNameEn: string | null }>();
+    if (uniqueProductIds.length > 0) {
+      try {
+        for (const productId of uniqueProductIds) {
+          const res = await db.execute(sql`SELECT base_name_fr, base_name_en FROM products WHERE id = ${productId}`) as any;
+          const row = Array.isArray(res) ? res[0] : (res?.rows?.[0] ?? res);
+          if (row) {
+            productNameFrEnMap.set(productId, {
+              baseNameFr: row.base_name_fr ?? null,
+              baseNameEn: row.base_name_en ?? null,
+            });
+          }
+        }
+      } catch (_) { /* kolon yoksa görmezden gel */ }
+    }
+
+    // Kategori isimlerini getir + name_fr, name_en
     const categoryIds = [...new Set(productList.map(p => p.categoryId).filter((id): id is number => id != null))];
     const categoryList = categoryIds.length > 0
       ? await db.select({ id: categories.id, name: categories.name }).from(categories).where(inArray(categories.id, categoryIds))
       : [];
     const categoryMap = new Map(categoryList.map(c => [c.id, c.name]));
+    const categoryNameFrEnMap = new Map<number, { nameFr: string | null; nameEn: string | null }>();
+    if (categoryIds.length > 0) {
+      try {
+        for (const catId of categoryIds) {
+          const res = await db.execute(sql`SELECT name_fr, name_en FROM categories WHERE id = ${catId}`) as any;
+          const row = Array.isArray(res) ? res[0] : (res?.rows?.[0] ?? res);
+          if (row) {
+            categoryNameFrEnMap.set(catId, { nameFr: row.name_fr ?? null, nameEn: row.name_en ?? null });
+          }
+        }
+      } catch (_) { /* kolon yoksa görmezden gel */ }
+    }
 
     // Satışları öğelerle birleştir
     const salesWithItems = sales.map((sale) => {
       // Önce dealer_sale_items'tan öğeleri al (hem SAL- hem ORD- için)
+      const getItemWithTranslations = (item: typeof allItems[0], product: typeof productList[0] | undefined, packSize: number) => {
+        const frEn = product ? productNameFrEnMap.get(product.id) : null;
+        const catFrEn = product?.categoryId != null ? categoryNameFrEnMap.get(product.categoryId) : null;
+        const productNameTr = product?.baseName || product?.name || 'Ürün bulunamadı';
+        const productNameFr = frEn?.baseNameFr || frEn?.baseNameEn || product?.baseName || product?.name || null;
+        const productNameEn = frEn?.baseNameEn || frEn?.baseNameFr || product?.baseName || product?.name || null;
+        const categoryName = product?.categoryId != null ? (categoryMap.get(product.categoryId) || null) : null;
+        return {
+          id: item.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total,
+          productName: productNameTr,
+          productNameFr: productNameFr || productNameTr,
+          productNameEn: productNameEn || productNameTr,
+          productBaseName: product?.baseName || null,
+          productImage: product?.images || null,
+          categoryName: categoryName,
+          categoryNameFr: catFrEn?.nameFr || catFrEn?.nameEn || categoryName,
+          categoryNameEn: catFrEn?.nameEn || catFrEn?.nameFr || categoryName,
+          packSize: packSize > 1 ? packSize : null,
+          packLabelTr: product?.packLabelTr || null,
+          packLabelFr: product?.packLabelFr || product?.packLabelEn || null,
+          packLabelEn: product?.packLabelEn || product?.packLabelFr || null,
+        };
+      };
+
       let items = allItems
         .filter(item => item.saleId === sale.id)
         .map((item) => {
           const product = productList.find(p => p.id === item.productId);
           const packSize = product?.packSize ?? 1;
-          return {
-            id: item.id,
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-            total: item.total,
-            productName: product?.baseName || product?.name || 'Ürün bulunamadı',
-            productBaseName: product?.baseName || null,
-            productImage: product?.images || null,
-            categoryName: product?.categoryId != null ? (categoryMap.get(product.categoryId) || null) : null,
-            packSize: packSize > 1 ? packSize : null,
-            packLabelTr: product?.packLabelTr || null,
-          };
+          return getItemWithTranslations(item, product, packSize);
         });
 
       // Eğer ORD- satışıysa ve dealer_sale_items'tan öğe yoksa, order_items'tan al
@@ -130,19 +177,7 @@ export async function GET(
           items = ordItems.map((item) => {
             const product = productList.find(p => p.id === item.productId);
             const packSize = product?.packSize ?? 1;
-            return {
-              id: item.id,
-              productId: item.productId,
-              quantity: item.quantity,
-              price: item.price,
-              total: item.total,
-              productName: product?.baseName || product?.name || 'Ürün bulunamadı',
-              productBaseName: product?.baseName || null,
-              productImage: product?.images || null,
-              categoryName: product?.categoryId != null ? (categoryMap.get(product.categoryId) || null) : null,
-              packSize: packSize > 1 ? packSize : null,
-              packLabelTr: product?.packLabelTr || null,
-            };
+            return getItemWithTranslations(item as any, product, packSize);
           });
         }
       }

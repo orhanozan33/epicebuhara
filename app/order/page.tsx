@@ -15,6 +15,8 @@ interface CartItem {
     id: number;
     name: string;
     baseName?: string;
+    baseNameFr?: string | null;
+    baseNameEn?: string | null;
     slug: string;
     price: string;
     comparePrice?: string;
@@ -24,10 +26,18 @@ interface CartItem {
   } | null;
 }
 
+function getProductDisplayName(p: CartItem['product'], lang: string) {
+  if (!p) return '';
+  if (lang === 'fr') return p.baseNameFr || p.baseNameEn || p.baseName || p.name;
+  if (lang === 'en') return p.baseNameEn || p.baseNameFr || p.baseName || p.name;
+  return p.baseName || p.name;
+}
+
 export default function SiparisPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = (i18n?.language || 'tr').split('-')[0];
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkoutForm, setCheckoutForm] = useState({
@@ -373,14 +383,14 @@ export default function SiparisPage() {
                         <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                           <img
                             src={getProductImageSrc(item.product.images)}
-                            alt={item.product.baseName || item.product.name}
+                            alt={getProductDisplayName(item.product, lang)}
                             className="w-full h-full object-contain p-1"
                           />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-medium text-gray-900 truncate">
-                          {item.product.baseName || item.product.name}
+                          {getProductDisplayName(item.product, lang)}
                         </h3>
                         <p className="text-xs text-gray-500 mt-1">
                           {mounted ? t('cart.quantity') : 'Miktar'}: {item.quantity}

@@ -37,6 +37,8 @@ interface OrderItem {
     id: number;
     name: string;
     baseName: string | null;
+    baseNameFr?: string | null;
+    baseNameEn?: string | null;
     images: string | null;
   } | null;
 }
@@ -47,15 +49,20 @@ export default function OrderDetailPage() {
   const { t, i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
   
-  // Dil koduna göre locale mapping
+  const lang = (mounted && i18n?.language ? i18n.language.split('-')[0] : 'fr') as 'tr' | 'fr' | 'en';
   const getLocale = () => {
-    const lang = mounted && i18n?.language ? i18n.language.split('-')[0] : 'fr';
     const localeMap: Record<string, string> = {
       'tr': 'tr-TR',
       'fr': 'fr-CA',
       'en': 'en-CA',
     };
     return localeMap[lang] || 'fr-CA';
+  };
+  const getProductDisplayName = (p: OrderItem['product']) => {
+    if (!p) return '';
+    if (lang === 'fr') return p.baseNameFr || p.baseNameEn || p.baseName || p.name;
+    if (lang === 'en') return p.baseNameEn || p.baseNameFr || p.baseName || p.name;
+    return p.baseName || p.name;
   };
   const orderId = params?.id ? parseInt(params.id as string) : null;
 
@@ -298,14 +305,14 @@ export default function OrderDetailPage() {
                     <div className="w-20 h-20 bg-white rounded-lg overflow-hidden flex-shrink-0">
                       <img
                         src={getProductImageSrc(item.product.images)}
-                        alt={item.product.baseName || item.product.name}
+                        alt={getProductDisplayName(item.product)}
                         className="w-full h-full object-contain p-2"
                       />
                     </div>
                   )}
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 text-lg">
-                      {item.product?.baseName || item.product?.name || (mounted ? t('admin.common.notFound') : 'Ürün bulunamadı')}
+                      {getProductDisplayName(item.product) || (mounted ? t('admin.common.notFound') : 'Ürün bulunamadı')}
                     </p>
                     <p className="text-sm text-gray-500">{mounted ? t('cart.quantity') : 'Miktar'}: {item.quantity}</p>
                     <p className="text-sm text-gray-500">{mounted ? `Birim Fiyat: $${parseFloat(item.price).toFixed(2)}` : `Birim Fiyat: $${parseFloat(item.price).toFixed(2)}`}</p>

@@ -23,14 +23,16 @@ export async function PUT(
     const body = await request.json();
     const { amount, paymentMethod, discountPercent: bodyDiscountPercent } = body;
 
-    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+    const amountNum = parseFloat(amount);
+    const isUnpaid = paymentMethod === 'ODENMEDI';
+    if (!isUnpaid && (!amount || isNaN(amountNum) || amountNum <= 0)) {
       return NextResponse.json(
         { error: 'Geçerli bir ödeme tutarı giriniz' },
         { status: 400 }
       );
     }
 
-    if (!paymentMethod || !['NAKIT', 'KREDI_KARTI', 'CEK'].includes(paymentMethod)) {
+    if (!paymentMethod || !['NAKIT', 'KREDI_KARTI', 'CEK', 'ODENMEDI'].includes(paymentMethod)) {
       return NextResponse.json(
         { error: 'Geçerli bir ödeme yöntemi seçiniz' },
         { status: 400 }
@@ -82,16 +84,16 @@ export async function PUT(
       // Güncel satışı kullan (aynı request içinde tekrar okumaya gerek yok, değişkenleri güncelledik)
     }
 
-    const newPaidAmount = parseFloat(amount);
-    const totalPaidAmount = currentPaidAmount + newPaidAmount;
-    const isFullyPaid = totalPaidAmount >= totalAmount;
+    const newPaidAmount = isUnpaid ? 0 : (parseFloat(amount) || 0);
+    // Ödenmedi seçilirse ödenen tutar sıfırlanır (sadece iskonto uygulanır, borç kalır)
+    const totalPaidAmount = isUnpaid ? 0 : currentPaidAmount + newPaidAmount;
+    const isFullyPaid = !isUnpaid && totalPaidAmount >= totalAmount;
 
-    // Satışı güncelle (ödeme bilgisi)
     const updateData = {
       paymentMethod,
       isPaid: isFullyPaid,
       paidAmount: Math.min(totalPaidAmount, totalAmount).toFixed(2),
-      paidAt: new Date(),
+      ...(isUnpaid ? { paidAt: null } : { paidAt: new Date() }),
       updatedAt: new Date(),
     };
 

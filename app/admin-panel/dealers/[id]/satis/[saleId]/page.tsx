@@ -18,6 +18,8 @@ interface SaleItem {
   price: string;
   total: string;
   productName: string;
+  productNameFr?: string | null;
+  productNameEn?: string | null;
   productImage: string | null;
 }
 
@@ -59,7 +61,7 @@ export default function SatisDetayPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDiscountPercent, setPaymentDiscountPercent] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK'>('NAKIT');
+  const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK' | 'ODENMEDI'>('NAKIT');
   const [processingPayment, setProcessingPayment] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
   const [showAddToInvoiceModal, setShowAddToInvoiceModal] = useState(false);
@@ -230,6 +232,11 @@ export default function SatisDetayPage() {
     const packLabel = lang === 'fr' ? (p.packLabelFr || p.packLabelEn || 'Boîte') : lang === 'en' ? (p.packLabelEn || p.packLabelFr || 'Box') : (p.packLabelTr || 'Kutu');
     return `${base} - ${packSize}'li ${packLabel}`;
   }, [lang]);
+  const getItemProductDisplayName = useCallback((item: SaleItem) => {
+    if (lang === 'fr') return item.productNameFr || item.productNameEn || item.productName;
+    if (lang === 'en') return item.productNameEn || item.productNameFr || item.productName;
+    return item.productName;
+  }, [lang]);
 
   const handleAddProductToInvoice = useCallback(async () => {
     if (!dealerId || !saleId || !addToInvoiceProduct || addingToInvoice) return;
@@ -355,8 +362,9 @@ export default function SatisDetayPage() {
   const handleProcessPayment = useCallback(async () => {
     if (!dealerId || !saleId || !sale || !isMountedRef.current) return;
 
+    const isUnpaid = paymentMethod === 'ODENMEDI';
     const amount = parsePaymentAmount(paymentAmount);
-    if (isNaN(amount) || amount <= 0) {
+    if (!isUnpaid && (isNaN(amount) || amount <= 0)) {
       showToast(mounted ? t('admin.dealers.paymentAmountRequired') : 'Geçerli bir ödeme tutarı giriniz', 'error');
       return;
     }
@@ -364,7 +372,7 @@ export default function SatisDetayPage() {
     const subtotal = parseFloat(sale.subtotal || '0');
     const pct = paymentDiscountPercent !== '' ? Math.min(100, Math.max(0, parseFloat(String(paymentDiscountPercent).replace(',', '.')) || 0)) : null;
     const effectiveTotal = pct != null ? Math.max(0, subtotal - (subtotal * pct) / 100) : parseFloat(sale.total || '0');
-    if (amount > effectiveTotal) {
+    if (!isUnpaid && amount > effectiveTotal) {
       showToast(mounted ? t('admin.dealers.paymentAmountExceeds') : 'Ödeme tutarı toplam tutardan fazla olamaz', 'error');
       return;
     }
@@ -373,7 +381,7 @@ export default function SatisDetayPage() {
       setProcessingPayment(true);
 
       const body: { amount: string; paymentMethod: string; discountPercent?: number | string } = {
-        amount: amount.toFixed(2),
+        amount: (isUnpaid ? 0 : amount).toFixed(2),
         paymentMethod,
       };
       if (paymentDiscountPercent !== '' && !isNaN(parseFloat(paymentDiscountPercent))) {
@@ -399,7 +407,9 @@ export default function SatisDetayPage() {
       
       if (!isMountedRef.current) return;
 
-      if (result.isFullyPaid) {
+      if (isUnpaid) {
+        showToast(mounted ? t('admin.dealers.discountAppliedUnpaid') : 'İskonto uygulandı. Satış ödenmedi olarak kaydedildi.', 'success');
+      } else if (result.isFullyPaid) {
         showToast(mounted ? t('admin.dealers.paymentReceivedSuccess') : 'Ödeme başarıyla alındı. Satış tamamen ödendi.', 'success');
       } else {
         showToast(
@@ -471,7 +481,7 @@ export default function SatisDetayPage() {
     NAKIT: mounted ? t('admin.orders.cash') : 'Nakit',
     KREDI_KARTI: mounted ? t('admin.orders.creditCard') : 'Kredi Kartı',
     CEK: mounted ? t('admin.orders.check') : 'Çek',
-    ODENMEDI: mounted ? t('admin.orders.unpaid') : 'Ödenmedi (Borç)',
+    ODENMEDI: mounted ? t('admin.orders.unpaid') : 'Ödenmedi',
   };
 
   return (
@@ -604,7 +614,7 @@ export default function SatisDetayPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">{item.productName}</h3>
+                        <h3 className="font-semibold text-gray-900 truncate">{getItemProductDisplayName(item)}</h3>
                         <p className="text-sm text-gray-500">
                           {mounted ? t('admin.dealers.quantity') : 'Miktar'}: {item.quantity} × ${parseFloat(item.price || '0').toFixed(2)}
                         </p>
@@ -975,15 +985,17 @@ export default function SatisDetayPage() {
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                   {mounted ? t('admin.orders.paymentMethod') : 'Ödeme Yöntemi'} <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {(['NAKIT', 'KREDI_KARTI', 'CEK'] as const).map((method) => (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(['NAKIT', 'KREDI_KARTI', 'CEK', 'ODENMEDI'] as const).map((method) => (
                     <button
                       key={method}
                       type="button"
                       onClick={() => setPaymentMethod(method)}
                       className={`px-2 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
                         paymentMethod === method
-                          ? 'border-green-500 bg-green-50 text-green-700'
+                          ? method === 'ODENMEDI'
+                            ? 'border-amber-500 bg-amber-50 text-amber-700'
+                            : 'border-green-500 bg-green-50 text-green-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >
@@ -991,6 +1003,11 @@ export default function SatisDetayPage() {
                     </button>
                   ))}
                 </div>
+                {paymentMethod === 'ODENMEDI' && (
+                  <p className="text-[10px] text-amber-600 mt-1">
+                    {mounted ? t('admin.dealers.unpaidDiscountHint') : 'Sadece iskonto uygulanır, ödeme alınmaz.'}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1007,7 +1024,7 @@ export default function SatisDetayPage() {
               <button
                 type="button"
                 onClick={handleProcessPayment}
-                disabled={processingPayment || !paymentAmount || parsePaymentAmount(paymentAmount) <= 0}
+                disabled={processingPayment || (paymentMethod !== 'ODENMEDI' && (!paymentAmount || parsePaymentAmount(paymentAmount) <= 0))}
                 className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
               >
                 {processingPayment ? (

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { cart, products } from '@/src/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 
 // Session ID'yi al veya oluştur
@@ -129,6 +129,7 @@ export async function GET(request: Request) {
 
     // Ürünleri getir (IN query) - Boş array kontrolü
     let filteredProducts: any[] = [];
+    const productNameFrEnMap = new Map<number, { baseNameFr: string | null; baseNameEn: string | null }>();
     if (productIds.length > 0) {
       filteredProducts = await db.select({
         id: products.id,
@@ -144,10 +145,28 @@ export async function GET(request: Request) {
       })
         .from(products)
         .where(inArray(products.id, productIds));
+      try {
+        const rows = await db.execute(
+          sql`SELECT id, base_name_fr, base_name_en FROM products WHERE id IN (${sql.join(productIds.map((id) => sql`${id}`), sql`, `)})`
+        );
+        const arr = Array.isArray(rows) ? rows : (rows as { rows?: unknown[] })?.rows ?? [];
+        for (const row of arr) {
+          const r = row as { id: number; base_name_fr?: string | null; base_name_en?: string | null };
+          if (r && typeof r.id !== 'undefined') {
+            productNameFrEnMap.set(Number(r.id), {
+              baseNameFr: r.base_name_fr ?? null,
+              baseNameEn: r.base_name_en ?? null,
+            });
+          }
+        }
+      } catch {
+        // Kolon yoksa atla
+      }
     }
 
     const items = cartItems.map(cartItem => {
       const product = filteredProducts.find(p => p.id === cartItem.productId);
+      const frEn = product ? productNameFrEnMap.get(product.id) : null;
       return {
         id: cartItem.id,
         productId: cartItem.productId,
@@ -158,6 +177,8 @@ export async function GET(request: Request) {
           id: product.id,
           name: product.name,
           baseName: product.baseName,
+          baseNameFr: frEn?.baseNameFr ?? null,
+          baseNameEn: frEn?.baseNameEn ?? null,
           slug: product.slug,
           price: product.price,
           comparePrice: product.comparePrice,

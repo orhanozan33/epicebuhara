@@ -12,8 +12,12 @@ interface SaleItem {
   price: string;
   total: string;
   productName: string;
+  productNameFr?: string | null;
+  productNameEn?: string | null;
   productImage: string | null;
   categoryName?: string | null;
+  categoryNameFr?: string | null;
+  categoryNameEn?: string | null;
   packSize?: number | null;
   packLabelTr?: string | null;
 }
@@ -76,6 +80,20 @@ export default function FaturaPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const lang = (mounted && i18n?.language ? i18n.language.split('-')[0] : 'fr') as 'tr' | 'fr' | 'en';
+  const getProductDisplayName = (item: SaleItem) => {
+    if (lang === 'fr') return item.productNameFr || item.productNameEn || item.productName;
+    if (lang === 'en') return item.productNameEn || item.productNameFr || item.productName;
+    return item.productName;
+  };
+  const getCategoryDisplayName = (item: SaleItem) => {
+    if (lang === 'fr') return item.categoryNameFr || item.categoryNameEn || item.categoryName || '–';
+    if (lang === 'en') return item.categoryNameEn || item.categoryNameFr || item.categoryName || '–';
+    return item.categoryName || '–';
+  };
+  const boxLabel = mounted ? t('admin.invoices.box') : 'Kutu';
+  const pieceLabel = mounted ? t('admin.invoices.piece') : 'adet';
 
   useEffect(() => {
     if (mounted && i18n?.language) {
@@ -177,6 +195,8 @@ export default function FaturaPage() {
                       price: item.price,
                       total: item.total,
                       productName: item.product?.baseName || item.product?.name || i18n.t('admin.common.notFound'),
+                      productNameFr: item.product?.baseNameFr ?? null,
+                      productNameEn: item.product?.baseNameEn ?? null,
                       productImage: item.product?.images || null,
                     }));
                     foundSale.items = formattedItems;
@@ -377,9 +397,9 @@ export default function FaturaPage() {
           <table className="w-full border-collapse border-2 border-gray-800 min-w-0 lg:min-w-0">
             <thead>
               <tr className="bg-gray-100 border-b-2 border-gray-800">
-                <th className="text-left py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">Kategori</th>
+                <th className="text-left py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">{mounted ? t('admin.invoices.category') : 'Kategori'}</th>
                 <th className="text-left py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">{mounted ? t('admin.invoices.product') : 'Ürün'}</th>
-                <th className="text-center py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">Miktar (kutu / adet)</th>
+                <th className="text-center py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">{mounted ? `${t('admin.invoices.quantityLabel')} (${boxLabel} / ${pieceLabel})` : `Miktar (${boxLabel} / ${pieceLabel})`}</th>
                 <th className="text-right py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900 border-r border-gray-300">Birim Fiyat (adet)</th>
                 <th className="text-right py-1 lg:py-3 px-1.5 lg:px-3 font-bold text-[10px] lg:text-base text-gray-900">{mounted ? t('admin.invoices.total') : 'Toplam'}</th>
               </tr>
@@ -392,15 +412,15 @@ export default function FaturaPage() {
                 // Tüm kategorilerde packSize > 1 ise: "1 Kutu (12 adet)" formatı
                 const numKutu = packSize > 1 ? Math.floor(qty / packSize) : 0;
                 const quantityDisplay = packSize > 1
-                  ? `${numKutu} Kutu (${qty} adet)`
-                  : `${qty} adet`;
+                  ? `${numKutu} ${boxLabel} (${qty} ${pieceLabel})`
+                  : `${qty} ${pieceLabel}`;
                 const unitPriceDisplay = packSize > 1
-                  ? `${unitPrice.toFixed(2)} $/adet (1 ${item.packLabelTr || 'Kutu'} = ${unitPrice.toFixed(2)}×${packSize} = ${(unitPrice * packSize).toFixed(2)} $)`
+                  ? `${unitPrice.toFixed(2)} $/${pieceLabel} (1 ${item.packLabelTr || boxLabel} = ${unitPrice.toFixed(2)}×${packSize} = ${(unitPrice * packSize).toFixed(2)} $)`
                   : `${unitPrice.toFixed(2)} $`;
                 return (
                   <tr key={item.id} className={`border-b border-gray-300 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{item.categoryName || '–'}</td>
-                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{item.productName}</td>
+                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{getCategoryDisplayName(item)}</td>
+                    <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{getProductDisplayName(item)}</td>
                     <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-center text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{quantityDisplay}</td>
                     <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-right text-[10px] lg:text-sm text-gray-700 border-r border-gray-300">{unitPriceDisplay}</td>
                     <td className="py-1 lg:py-3 px-1.5 lg:px-3 text-right text-[10px] lg:text-sm font-semibold text-gray-900">${parseFloat(item.total || '0').toFixed(2)}</td>

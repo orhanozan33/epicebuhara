@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/src/db';
 import { orders, orderItems, cart, notifications, products } from '@/src/db/schema';
-import { eq, desc, ne, inArray } from 'drizzle-orm';
+import { eq, desc, ne, inArray, sql } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 
 // Force dynamic rendering
@@ -47,16 +47,45 @@ export async function GET(request: Request) {
         .leftJoin(products, eq(orderItems.productId, products.id))
         .where(eq(orderItems.orderId, order[0].id));
 
+      const productIds = items.map((i) => i.product?.id).filter((id): id is number => id != null);
+      const productNameFrEnMap = new Map<number, { baseNameFr: string | null; baseNameEn: string | null }>();
+      if (productIds.length > 0) {
+        try {
+          const rows = await db.execute(
+            sql`SELECT id, base_name_fr, base_name_en FROM products WHERE id IN (${sql.join(productIds.map((id) => sql`${id}`), sql`, `)})`
+          );
+          const arr = Array.isArray(rows) ? rows : (rows as { rows?: unknown[] })?.rows ?? [];
+          for (const row of arr) {
+            const r = row as { id: number; base_name_fr?: string | null; base_name_en?: string | null };
+            if (r && typeof r.id !== 'undefined') {
+              productNameFrEnMap.set(Number(r.id), {
+                baseNameFr: r.base_name_fr ?? null,
+                baseNameEn: r.base_name_en ?? null,
+              });
+            }
+          }
+        } catch {
+          // Kolon yoksa atla
+        }
+      }
+
       return NextResponse.json({
         order: order[0],
-        items: items.map(item => ({
-          id: item.id,
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.price,
-          total: item.total,
-          product: item.product,
-        })),
+        items: items.map(item => {
+          const frEn = item.product ? productNameFrEnMap.get(item.product.id) : null;
+          return {
+            id: item.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.total,
+            product: item.product ? {
+              ...item.product,
+              baseNameFr: frEn?.baseNameFr ?? null,
+              baseNameEn: frEn?.baseNameEn ?? null,
+            } : null,
+          };
+        }),
       });
     }
 

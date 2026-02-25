@@ -114,6 +114,12 @@ export const heroBannerSettings = pgTable('hero_banner_settings', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+export const stockSettings = pgTable('stock_settings', {
+  id: serial('id').primaryKey().notNull(),
+  lowStockThresholdBoxes: integer('low_stock_threshold_boxes').default(10),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 export const companySettings = pgTable('company_settings', {
   id: serial('id').primaryKey().notNull(),
   companyName: varchar('company_name', { length: 255 }),

@@ -89,12 +89,16 @@ interface Category {
 interface CartItem {
   productId: number;
   productName: string;
+  productNameFr?: string | null;
+  productNameEn?: string | null;
   productImage: string | null;
   price: number;
   quantity: number;
   total: number;
   packSize?: number;
   packLabelTr?: string | null;
+  packLabelFr?: string | null;
+  packLabelEn?: string | null;
 }
 
 interface Dealer {
@@ -362,6 +366,23 @@ export default function BayiSatisPage() {
     };
   }, [paramsLoaded, dealerId, fetchProducts, fetchDealer, fetchCategories]);
 
+  // Sepet kalemi için dile göre ürün adı (dil değişince güncellenir)
+  const getCartItemDisplayName = useCallback((item: CartItem) => {
+    const base = lang === 'fr'
+      ? (item.productNameFr || item.productNameEn || item.productName)
+      : lang === 'en'
+        ? (item.productNameEn || item.productNameFr || item.productName)
+        : item.productName;
+    const ps = item.packSize ?? 1;
+    if (ps <= 1) return base;
+    const packLabel = lang === 'fr'
+      ? (item.packLabelFr || item.packLabelEn || 'Boîte')
+      : lang === 'en'
+        ? (item.packLabelEn || item.packLabelFr || 'Box')
+        : (item.packLabelTr || 'Kutu');
+    return `${base} - ${ps}'li ${packLabel}`;
+  }, [lang]);
+
   // Ürün adı ve pack bilgisi seçilen dile göre (FR/EN/TR)
   const getProductDisplayName = useCallback((product: Product) => {
     const base = lang === 'fr'
@@ -441,17 +462,24 @@ export default function BayiSatisPage() {
             if (trimmed) imageUrl = trimmed.split(',')[0].trim();
           }
         } catch (_) {}
+        const packLabelTr = (product as Product & { packLabelTr?: string }).packLabelTr ?? undefined;
+        const packLabelFr = (product as Product & { packLabelFr?: string }).packLabelFr ?? undefined;
+        const packLabelEn = (product as Product & { packLabelEn?: string }).packLabelEn ?? undefined;
         return [
           ...safeCart,
           {
             productId: product.id,
             productName: getProductDisplayName(product) || (mounted ? t('admin.common.notFound') : 'İsimsiz Ürün'),
+            productNameFr: product.baseNameFr || product.baseNameEn || null,
+            productNameEn: product.baseNameEn || product.baseNameFr || null,
             productImage: imageUrl,
             price,
             quantity: addQty,
             total: price * addQty,
             packSize: packSize > 1 ? packSize : undefined,
-            packLabelTr: (product as Product & { packLabelTr?: string }).packLabelTr ?? undefined,
+            packLabelTr: packLabelTr ?? undefined,
+            packLabelFr: packLabelFr ?? undefined,
+            packLabelEn: packLabelEn ?? undefined,
           },
         ];
       });
@@ -845,7 +873,7 @@ export default function BayiSatisPage() {
                               // Değilse /uploads/products/ ekle
                               return `/uploads/products/${item.productImage}`;
                             })()}
-                            alt={item.productName || 'Ürün'}
+                            alt={getCartItemDisplayName(item) || 'Ürün'}
                             fill
                             className="object-cover"
                             sizes="80px"
@@ -858,7 +886,7 @@ export default function BayiSatisPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-sm text-gray-900 truncate mb-1">
-                          {item.productName}
+                          {getCartItemDisplayName(item)}
                         </h4>
                         <p className="text-blue-600 font-bold text-sm mb-2">
                           ${item.price.toFixed(2)}
@@ -879,7 +907,7 @@ export default function BayiSatisPage() {
                           </button>
                           <span className="text-sm font-bold text-gray-900 min-w-[4rem] text-center bg-white border-2 border-gray-200 rounded-lg py-1">
                             {item.packSize && item.packSize > 1
-                              ? `${Math.floor(item.quantity / item.packSize)} ${item.packLabelTr || 'Kutu'} (${item.quantity} adet)`
+                              ? `${Math.floor(item.quantity / item.packSize)} ${lang === 'fr' ? (item.packLabelFr || item.packLabelEn || 'Boîte') : lang === 'en' ? (item.packLabelEn || item.packLabelFr || 'Box') : (item.packLabelTr || 'Kutu')} (${item.quantity} ${mounted ? t('admin.invoices.piece') : 'adet'})`
                               : item.quantity}
                           </span>
                           <button

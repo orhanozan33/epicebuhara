@@ -168,6 +168,15 @@ export async function POST(request: Request) {
           updated_at TIMESTAMP DEFAULT NOW()
         )`,
       },
+      {
+        name: 'Create stock_settings if not exists',
+        check: `SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stock_settings')`,
+        migrate: `CREATE TABLE stock_settings (
+          id SERIAL PRIMARY KEY,
+          low_stock_threshold_boxes INTEGER DEFAULT 10,
+          updated_at TIMESTAMP DEFAULT NOW()
+        )`,
+      },
     ];
 
     // Her migration'ı kontrol et ve gerekirse uygula
