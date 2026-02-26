@@ -145,6 +145,18 @@
       "adminDashboard": "Admin Kontrol Paneli",
       "adminPanel": "Admin Panel"
     },
+    "login": {
+      "title": "Admin Giriş",
+      "pleaseEnter": "Lütfen giriş bilgilerinizi girin",
+      "username": "Kullanıcı Adı",
+      "usernamePlaceholder": "Kullanıcı adı",
+      "password": "Şifre",
+      "passwordPlaceholder": "Şifre",
+      "loggingIn": "Giriş yapılıyor...",
+      "submit": "Giriş Yap",
+      "failed": "Giriş başarısız",
+      "error": "Giriş sırasında hata oluştu"
+    },
     "common": {
       "loading": "Yükleniyor...",
       "search": "Arama",
@@ -224,7 +236,14 @@
       "boxesShort": "kutu",
       "packWithCount": "{{count}}'li Kutu ({{count}} adet)",
       "printUnitEach": "Adet",
-      "popupBlocked": "Pop-up engellendi. Yazdırma için tarayıcıda pop-up'lara izin verin."
+      "popupBlocked": "Pop-up engellendi. Yazdırma için tarayıcıda pop-up'lara izin verin.",
+      "changeSearchCriteria": "Arama kriterlerinizi değiştirin.",
+      "noResults": "Sonuç bulunamadı",
+      "totalProductsLabel": "Toplam Ürün",
+      "saved": "Kaydedildi",
+      "saveFailed": "Kaydedilemedi",
+      "loadFailed": "Yüklenemedi",
+      "inventoryTitle": "Envanteri"
     },
     "products": {
       "title": "Ürünler",
@@ -268,7 +287,15 @@
       "selectAtLeastOneCategory": "Lütfen en az bir kategori seçin",
       "printProductList": "Ürün Listesi Yazdır",
       "packSizeLabel": "Bir kutuda kaç adet",
-      "unitLabelHelp": "Birim etiketi (TR) örn. Kutu, Paket",
+      "unitLabelHelp": "Birim etiketi örn. Kutu, Paket",
+      "packBoxSectionTitle": "Paket / Kutu (Satış birimi)",
+      "packBoxSectionHelp": "1 = adet bazlı satış. >1 girilirse liste/detayda \"20'li Kutu\" gibi gösterilir. Birim etiketi: Kutu (TR), Box (EN), Boîte (FR).",
+      "unitLabelTr": "TR",
+      "unitLabelEn": "EN",
+      "unitLabelFr": "FR",
+      "unitPlaceholderTr": "Kutu",
+      "unitPlaceholderEn": "Box",
+      "unitPlaceholderFr": "Boîte",
       "examplePlaceholder": "Örn: Isot Pepper"
     },
     "categories": {
@@ -574,7 +601,18 @@
       "heroBannerDiscountPercent": "İndirim yüzdesi (örn. 50)",
       "heroBannerDiscount2": "İndirim kutusu alt metin",
       "save": "Kaydet",
-      "cancel": "İptal"
+      "cancel": "İptal",
+      "ariaClose": "Kapat",
+      "heroPlaceholderTitle": "En İyi Fiyat Garantisi",
+      "heroPlaceholderSubtitle": "Binlerce ürün çeşidi ile size en uygun fiyatları sunuyoruz",
+      "heroPlaceholderButton": "Hemen Alışverişe Başla",
+      "heroPlaceholderLink": "/ veya /discounted-products",
+      "heroDiscountBoxLabel": "İndirim kutusu (sağ kutu)",
+      "heroPlaceholderDiscount1": "Özel İndirimler",
+      "heroDisplayExample": "Görüntü: %50'ye Varan",
+      "heroPlaceholderDiscount2": "İndirimler",
+      "companyInfoEditDesc": "Firma bilgilerini düzenle",
+      "socialMediaEditDesc": "Sosyal medya linklerini düzenle"
     },
     "notifications": {
       "order": "Sipariş",

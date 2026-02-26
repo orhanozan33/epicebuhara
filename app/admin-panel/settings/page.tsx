@@ -43,7 +43,7 @@ export default function AyarlarPage() {
             </div>
             <div className="min-w-0">
               <h3 className="text-sm lg:text-lg font-semibold text-gray-900">{mounted ? t('admin.settings.companyInfo') : 'Firma Bilgileri'}</h3>
-              <p className="text-xs lg:text-sm text-gray-500 mt-0.5 lg:mt-1">{mounted ? (t('admin.settings.companyInfo') + ' ' + t('admin.settings.edit')) : 'Firma bilgilerini düzenle'}</p>
+              <p className="text-xs lg:text-sm text-gray-500 mt-0.5 lg:mt-1">{mounted ? t('admin.settings.companyInfoEditDesc') : 'Firma bilgilerini düzenle'}</p>
             </div>
           </div>
         </Link>
@@ -57,7 +57,7 @@ export default function AyarlarPage() {
             </div>
             <div className="min-w-0">
               <h3 className="text-sm lg:text-lg font-semibold text-gray-900">{mounted ? t('admin.settings.socialMedia') : 'Sosyal Medya'}</h3>
-              <p className="text-xs lg:text-sm text-gray-500 mt-0.5 lg:mt-1">{mounted ? (t('admin.settings.socialMedia') + ' ' + t('admin.settings.editLinks')) : 'Sosyal medya linklerini düzenle'}</p>
+              <p className="text-xs lg:text-sm text-gray-500 mt-0.5 lg:mt-1">{mounted ? t('admin.settings.socialMediaEditDesc') : 'Sosyal medya linklerini düzenle'}</p>
             </div>
           </div>
         </Link>

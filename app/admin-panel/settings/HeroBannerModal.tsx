@@ -119,13 +119,13 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
             type="button"
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
-            aria-label="Kapat"
+            aria-label={mounted ? t('admin.settings.ariaClose') : 'Kapat'}
           >
             <span className="text-xl leading-none">×</span>
           </button>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Yükleniyor...</div>
+          <div className="p-8 text-center text-gray-500">{mounted ? t('admin.common.loading') : 'Yükleniyor...'}</div>
         ) : (
           <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
             <div>
@@ -137,7 +137,7 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                placeholder="En İyi Fiyat Garantisi"
+                placeholder={mounted ? t('admin.settings.heroPlaceholderTitle') : 'En İyi Fiyat Garantisi'}
               />
             </div>
             <div>
@@ -149,7 +149,7 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
                 onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
                 rows={2}
-                placeholder="Binlerce ürün çeşidi ile size en uygun fiyatları sunuyoruz"
+                placeholder={mounted ? t('admin.settings.heroPlaceholderSubtitle') : 'Binlerce ürün çeşidi ile size en uygun fiyatları sunuyoruz'}
               />
             </div>
             <div>
@@ -161,7 +161,7 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
                 value={form.buttonText}
                 onChange={(e) => setForm((f) => ({ ...f, buttonText: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                placeholder="Hemen Alışverişe Başla"
+                placeholder={mounted ? t('admin.settings.heroPlaceholderButton') : 'Hemen Alışverişe Başla'}
               />
             </div>
             <div>
@@ -173,11 +173,11 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
                 value={form.buttonLink}
                 onChange={(e) => setForm((f) => ({ ...f, buttonLink: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                placeholder="/ veya /discounted-products"
+                placeholder={mounted ? t('admin.settings.heroPlaceholderLink') : '/ veya /discounted-products'}
               />
             </div>
             <div className="border-t border-gray-200 pt-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">İndirim kutusu (sağ kutu)</p>
+              <p className="text-sm font-medium text-gray-700 mb-2">{mounted ? t('admin.settings.heroDiscountBoxLabel') : 'İndirim kutusu (sağ kutu)'}</p>
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs text-gray-500 mb-0.5">
@@ -188,7 +188,7 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
                     value={form.discountLabel1}
                     onChange={(e) => setForm((f) => ({ ...f, discountLabel1: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="Özel İndirimler"
+                    placeholder={mounted ? t('admin.settings.heroPlaceholderDiscount1') : 'Özel İndirimler'}
                   />
                 </div>
                 <div>
@@ -204,7 +204,7 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
                     placeholder="50"
                   />
-                  <p className="text-xs text-gray-400 mt-0.5">Görüntü: %50&apos;ye Varan</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{mounted ? t('admin.settings.heroDisplayExample') : "Görüntü: %50'ye Varan"}</p>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-0.5">
@@ -215,7 +215,7 @@ export function HeroBannerModal({ open, onClose, onSaved }: Props) {
                     value={form.discountLabel2}
                     onChange={(e) => setForm((f) => ({ ...f, discountLabel2: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                    placeholder="İndirimler"
+                    placeholder={mounted ? t('admin.settings.heroPlaceholderDiscount2') : 'İndirimler'}
                   />
                 </div>
               </div>

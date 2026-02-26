@@ -731,10 +731,10 @@ export default function EditProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Paket / Kutu (Satış birimi)
+                {mounted ? t('admin.products.packBoxSectionTitle') : 'Paket / Kutu (Satış birimi)'}
               </label>
               <p className="text-xs text-gray-500 mb-2">
-                1 = adet bazlı satış. &gt;1 girilirse liste/detayda &quot;20&apos;li Kutu&quot; gibi gösterilir. Birim etiketi otomatik: Kutu (TR), Box (EN), Boîte (FR).
+                {mounted ? t('admin.products.packBoxSectionHelp') : '1 = adet bazlı satış. >1 girilirse liste/detayda "20\'li Kutu" gibi gösterilir. Birim etiketi otomatik: Kutu (TR), Box (EN), Boîte (FR).'}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -760,32 +760,32 @@ export default function EditProductPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">{mounted ? t('admin.products.unitLabelHelp') : 'Birim etiketi (TR) örn. Kutu, Paket'}</label>
+                  <label className="block text-xs text-gray-600 mb-1">{mounted ? t('admin.products.unitLabelHelp') : 'Birim etiketi örn. Kutu, Paket'}</label>
                   <input
                     type="text"
                     value={formData.packLabelTr}
                     onChange={(e) => setFormData({ ...formData, packLabelTr: e.target.value })}
-                    placeholder="Kutu"
+                    placeholder={mounted ? t('admin.products.unitPlaceholderTr') : 'Kutu'}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">EN</label>
+                  <label className="block text-xs text-gray-600 mb-1">{mounted ? t('admin.products.unitLabelEn') : 'EN'}</label>
                   <input
                     type="text"
                     value={formData.packLabelEn}
                     onChange={(e) => setFormData({ ...formData, packLabelEn: e.target.value })}
-                    placeholder="Box"
+                    placeholder={mounted ? t('admin.dealers.box') : 'Box'}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">FR</label>
+                  <label className="block text-xs text-gray-600 mb-1">{mounted ? t('admin.products.unitLabelFr') : 'FR'}</label>
                   <input
                     type="text"
                     value={formData.packLabelFr}
                     onChange={(e) => setFormData({ ...formData, packLabelFr: e.target.value })}
-                    placeholder="Boîte"
+                    placeholder={mounted ? t('admin.products.unitPlaceholderFr') : 'Boîte'}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
                   />
                 </div>

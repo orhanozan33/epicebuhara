@@ -53,10 +53,10 @@ export default function StokPage() {
         setData(json);
         setThresholdInput(String(json.lowStockThresholdBoxes ?? 10));
       } else {
-        showToast(json.error || (mounted ? t('admin.common.error') : 'Yüklenemedi'), 'error');
+        showToast(json.error || (mounted ? t('admin.stock.loadFailed') : 'Yüklenemedi'), 'error');
       }
     } catch {
-      showToast(mounted ? t('admin.common.error') : 'Yüklenemedi', 'error');
+      showToast(mounted ? t('admin.stock.loadFailed') : 'Yüklenemedi', 'error');
     } finally {
       setLoading(false);
     }
@@ -85,13 +85,13 @@ export default function StokPage() {
       });
       const json = await res.json();
       if (res.ok && json.success) {
-        showToast(mounted ? t('admin.common.success') : 'Kaydedildi', 'success');
+        showToast(mounted ? t('admin.stock.saved') : 'Kaydedildi', 'success');
         await fetchStock();
       } else {
-        showToast(json.error || (mounted ? t('admin.common.error') : 'Kaydedilemedi'), 'error');
+        showToast(json.error || (mounted ? t('admin.stock.saveFailed') : 'Kaydedilemedi'), 'error');
       }
     } catch {
-      showToast(mounted ? t('admin.common.error') : 'Kaydedilemedi', 'error');
+      showToast(mounted ? t('admin.stock.saveFailed') : 'Kaydedilemedi', 'error');
     } finally {
       setSavingThreshold(false);
     }
@@ -224,7 +224,7 @@ export default function StokPage() {
                 <h1 className={styles.title}>
                   Epice Buhara
                   <br />
-                  <em className={styles.titleEm}>Envanteri</em>
+                  <em className={styles.titleEm}>{mounted ? t('admin.stock.inventoryTitle') : 'Envanteri'}</em>
                 </h1>
               </div>
               <div className={styles.headerRight}>
@@ -280,7 +280,7 @@ export default function StokPage() {
             <div className={styles.statsRow}>
               <div className={`${styles.stat} ${styles.statTotal}`}>
                 <div className={styles.statNumber}>{list.length}</div>
-                <div className={styles.statLabel}>{mounted ? t('admin.stock.filterAll') : 'Toplam Ürün'}</div>
+                <div className={styles.statLabel}>{mounted ? t('admin.stock.totalProductsLabel') : 'Toplam Ürün'}</div>
               </div>
               <div className={`${styles.stat} ${styles.statLow}`}>
                 <div className={styles.statNumber}>{lowCount}</div>
@@ -360,10 +360,10 @@ export default function StokPage() {
                           <p className={styles.emptyTitle}>
                             {filter === 'low'
                               ? (mounted ? t('admin.stock.noLowStock') : 'Düşük stokta ürün yok.')
-                              : (mounted ? t('admin.common.notFound') : 'Sonuç bulunamadı')}
+                              : (mounted ? t('admin.stock.noResults') : 'Sonuç bulunamadı')}
                           </p>
                           <p className={styles.emptyText}>
-                            {search ? 'Arama kriterlerinizi değiştirin.' : ''}
+                            {search ? (mounted ? t('admin.stock.changeSearchCriteria') : 'Arama kriterlerinizi değiştirin.') : ''}
                           </p>
                         </div>
                       </td>

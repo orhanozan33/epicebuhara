@@ -152,6 +152,18 @@
       "adminDashboard": "Tableau de Bord Admin",
       "adminPanel": "Panneau d'Administration"
     },
+    "login": {
+      "title": "Connexion Admin",
+      "pleaseEnter": "Veuillez entrer vos identifiants",
+      "username": "Nom d'utilisateur",
+      "usernamePlaceholder": "nom d'utilisateur",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "mot de passe",
+      "loggingIn": "Connexion...",
+      "submit": "Se connecter",
+      "failed": "Échec de connexion",
+      "error": "Une erreur s'est produite lors de la connexion"
+    },
     "common": {
       "loading": "Chargement...",
       "search": "Recherche",
@@ -231,7 +243,14 @@
       "boxesShort": "caisses",
       "packWithCount": "Caisse de {{count}} ({{count}} unités)",
       "printUnitEach": "Unité",
-      "popupBlocked": "Pop-up bloqué. Autorisez les pop-ups dans votre navigateur pour imprimer."
+      "popupBlocked": "Pop-up bloqué. Autorisez les pop-ups dans votre navigateur pour imprimer.",
+      "changeSearchCriteria": "Modifiez vos critères de recherche.",
+      "noResults": "Aucun résultat trouvé",
+      "totalProductsLabel": "Total Produits",
+      "saved": "Enregistré",
+      "saveFailed": "Échec de l'enregistrement",
+      "loadFailed": "Échec du chargement",
+      "inventoryTitle": "Inventaire"
     },
     "products": {
       "title": "Produits",
@@ -275,7 +294,15 @@
       "selectAtLeastOneCategory": "Veuillez sélectionner au moins une catégorie",
       "printProductList": "Imprimer la liste des produits",
       "packSizeLabel": "Nombre d'unités par boîte",
-      "unitLabelHelp": "Libellé d'unité (TR) ex. Boîte, Paquet",
+      "unitLabelHelp": "Libellé d'unité (ex. Boîte, Paquet)",
+      "packBoxSectionTitle": "Paquet / Boîte (Unité de vente)",
+      "packBoxSectionHelp": "1 = vente à l'unité. Si >1, affiché en liste/détail comme \"Boîte de 20\". Libellé selon langue : Kutu (TR), Box (EN), Boîte (FR).",
+      "unitLabelTr": "TR",
+      "unitLabelEn": "EN",
+      "unitLabelFr": "FR",
+      "unitPlaceholderTr": "Kutu",
+      "unitPlaceholderEn": "Box",
+      "unitPlaceholderFr": "Boîte",
       "examplePlaceholder": "Ex. : Isot Pepper"
     },
     "categories": {
@@ -580,7 +607,18 @@
       "heroBannerDiscountPercent": "Pourcentage de réduction (ex. 50)",
       "heroBannerDiscount2": "Texte du bas de la boîte réduction",
       "save": "Enregistrer",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "ariaClose": "Fermer",
+      "heroPlaceholderTitle": "Meilleur prix garanti",
+      "heroPlaceholderSubtitle": "Des milliers de produits aux meilleurs prix",
+      "heroPlaceholderButton": "Commencer vos achats",
+      "heroPlaceholderLink": "/ ou /discounted-products",
+      "heroDiscountBoxLabel": "Encadré réduction (droite)",
+      "heroPlaceholderDiscount1": "Réductions spéciales",
+      "heroDisplayExample": "Affichage : Jusqu'à 50 %",
+      "heroPlaceholderDiscount2": "Réductions",
+      "companyInfoEditDesc": "Modifier les informations de l'entreprise",
+      "socialMediaEditDesc": "Modifier les liens des réseaux sociaux"
     },
     "notifications": {
       "order": "Commande",

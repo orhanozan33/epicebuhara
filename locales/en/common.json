@@ -152,6 +152,18 @@
       "adminDashboard": "Admin Dashboard",
       "adminPanel": "Admin Panel"
     },
+    "login": {
+      "title": "Admin Login",
+      "pleaseEnter": "Please enter your login details",
+      "username": "Username",
+      "usernamePlaceholder": "username",
+      "password": "Password",
+      "passwordPlaceholder": "password",
+      "loggingIn": "Logging in...",
+      "submit": "Log In",
+      "failed": "Login failed",
+      "error": "An error occurred while logging in"
+    },
     "common": {
       "loading": "Loading...",
       "search": "Search",
@@ -231,7 +243,14 @@
       "boxesShort": "boxes",
       "packWithCount": "Box of {{count}} ({{count}} units)",
       "printUnitEach": "Unit",
-      "popupBlocked": "Pop-up blocked. Please allow pop-ups in your browser to print."
+      "popupBlocked": "Pop-up blocked. Please allow pop-ups in your browser to print.",
+      "changeSearchCriteria": "Change your search criteria.",
+      "noResults": "No results found",
+      "totalProductsLabel": "Total Products",
+      "saved": "Saved",
+      "saveFailed": "Save failed",
+      "loadFailed": "Failed to load",
+      "inventoryTitle": "Inventory"
     },
     "products": {
       "title": "Products",
@@ -275,7 +294,15 @@
       "selectAtLeastOneCategory": "Please select at least one category",
       "printProductList": "Print Product List",
       "packSizeLabel": "Pieces per box",
-      "unitLabelHelp": "Unit label (TR) e.g. Box, Pack",
+      "unitLabelHelp": "Unit label (e.g. Box, Pack)",
+      "packBoxSectionTitle": "Pack / Box (Sales unit)",
+      "packBoxSectionHelp": "1 = piece-based sale. If >1, shown in list/detail as \"20-piece Box\". Unit label by language: Kutu (TR), Box (EN), Boîte (FR).",
+      "unitLabelTr": "TR",
+      "unitLabelEn": "EN",
+      "unitLabelFr": "FR",
+      "unitPlaceholderTr": "Kutu",
+      "unitPlaceholderEn": "Box",
+      "unitPlaceholderFr": "Boîte",
       "examplePlaceholder": "E.g.: Isot Pepper"
     },
     "categories": {
@@ -580,7 +607,18 @@
       "heroBannerDiscountPercent": "Discount percent (e.g. 50)",
       "heroBannerDiscount2": "Discount box bottom text",
       "save": "Save",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "ariaClose": "Close",
+      "heroPlaceholderTitle": "Best Price Guarantee",
+      "heroPlaceholderSubtitle": "Thousands of products at the best prices",
+      "heroPlaceholderButton": "Start Shopping Now",
+      "heroPlaceholderLink": "/ or /discounted-products",
+      "heroDiscountBoxLabel": "Discount box (right box)",
+      "heroPlaceholderDiscount1": "Special Discounts",
+      "heroDisplayExample": "Display: Up to 50%",
+      "heroPlaceholderDiscount2": "Discounts",
+      "companyInfoEditDesc": "Edit company information",
+      "socialMediaEditDesc": "Edit social media links"
     },
     "notifications": {
       "order": "Order",
