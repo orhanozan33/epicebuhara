@@ -103,10 +103,11 @@ export async function GET() {
       }
     }
 
+    // Stok artık kutu cinsinden saklanıyor (stock = kutu sayısı)
     const list = productsList.map((p) => {
-      const stockUnits = p.stock ?? 0;
+      const stockBoxes = p.stock ?? 0;
       const packSize = p.packSize ?? 1;
-      const stockBoxes = packSize > 1 ? Math.floor(stockUnits / packSize) : stockUnits;
+      const stockUnits = stockBoxes * packSize;
       const isLowStock = stockBoxes < threshold;
       const catFrEn = p.categoryId ? categoryNameFrEnMap.get(p.categoryId) : null;
       const prodFrEn = productNameFrEnMap.get(p.id);

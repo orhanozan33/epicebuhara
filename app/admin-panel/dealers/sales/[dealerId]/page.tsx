@@ -1183,7 +1183,8 @@ export default function BayiSatisPage() {
                         e.stopPropagation();
                         try {
                           setProductToAdd(product);
-                          setAddModalSellUnit(packSize > 1 ? 'kutu' : 'adet');
+                          setAddModalSellUnit('kutu');
+                          setAddModalQuantity('');
                           setAddModalQuantity('');
                         } catch (err: any) {
                           console.error('Error opening add modal:', err);
@@ -1241,7 +1242,7 @@ export default function BayiSatisPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
                             <span className={`text-[10px] ${product.stock && product.stock > 0 ? 'text-green-600 font-medium' : 'text-red-500'}`}>
-                              {mounted ? t('admin.products.stock') : 'Stok'}: {product.stock ?? 0}
+                              {mounted ? t('admin.products.stock') : 'Stok'}: {product.stock ?? 0} {mounted ? t('admin.dealers.box') : 'kutu'}
                             </span>
                           </div>
                         </div>
@@ -1260,70 +1261,26 @@ export default function BayiSatisPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-3" onClick={() => setProductToAdd(null)}>
           <div className="bg-white rounded-xl shadow-xl border border-gray-100 w-full max-w-[240px] p-3 space-y-2" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-semibold text-gray-900 text-[11px] leading-tight line-clamp-2">{getProductDisplayName(productToAdd)}</h3>
-            {((productToAdd as Product & { packSize?: number }).packSize ?? 1) > 1 ? (
-              <>
-                <p className="text-[10px] text-gray-500 font-medium">{mounted ? t('admin.dealers.sellUnit') : 'Satış birimi'}</p>
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => { setAddModalSellUnit('adet'); setAddModalQuantity(''); }}
-                    className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
-                  >
-                    {mounted ? t('admin.dealers.piece') : 'Adet'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setAddModalSellUnit('kutu'); setAddModalQuantity(''); }}
-                    className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
-                  >
-                    {(productToAdd as Product & { packSize?: number }).packSize}&apos;li {lang === 'fr' ? ((productToAdd as Product & { packLabelFr?: string }).packLabelFr || (productToAdd as Product & { packLabelEn?: string }).packLabelEn || t('admin.dealers.box')) : lang === 'en' ? ((productToAdd as Product & { packLabelEn?: string }).packLabelEn || (productToAdd as Product & { packLabelFr?: string }).packLabelFr || t('admin.dealers.box')) : ((productToAdd as Product & { packLabelTr?: string }).packLabelTr || (mounted ? t('admin.dealers.box') : 'Kutu'))}
-                  </button>
-                </div>
-                <div>
-                  <label className="block text-[10px] text-gray-500 mb-0.5">{addModalSellUnit === 'kutu' ? (mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?') : (mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?')}</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={addModalSellUnit === 'kutu'
-                      ? Math.max(0, Math.floor((productToAdd.stock ?? 0) / ((productToAdd as Product & { packSize?: number }).packSize ?? 1)))
-                      : Math.max(0, productToAdd.stock ?? 99)}
-                    value={addModalQuantity === '' ? '' : addModalQuantity}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v === '') { setAddModalQuantity(''); return; }
-                      const n = parseInt(v, 10);
-                      if (!isNaN(n)) {
-                        const maxVal = addModalSellUnit === 'kutu'
-                          ? Math.max(0, Math.floor((productToAdd.stock ?? 0) / ((productToAdd as Product & { packSize?: number }).packSize ?? 1)))
-                          : Math.max(0, productToAdd.stock ?? 99);
-                        setAddModalQuantity(Math.min(Math.max(0, n), maxVal));
-                      }
-                    }}
-                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-400/40 focus:border-blue-400 outline-none"
-                  />
-                </div>
-              </>
-            ) : (
-              <div>
-                <label className="block text-[10px] text-gray-500 mb-0.5">{mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?'}</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={Math.max(0, productToAdd.stock ?? 99)}
-                  value={addModalQuantity === '' ? '' : addModalQuantity}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === '') { setAddModalQuantity(''); return; }
-                    const n = parseInt(v, 10);
-                    if (!isNaN(n)) {
-                      const maxVal = Math.max(0, productToAdd.stock ?? 99);
-                      setAddModalQuantity(Math.min(Math.max(0, n), maxVal));
-                    }
-                  }}
-                  className="w-full px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-400/40 focus:border-blue-400 outline-none"
-                />
-              </div>
-            )}
+            {/* Satış birimi her zaman kutu */}
+            <div>
+              <label className="block text-[10px] text-gray-500 mb-0.5">{mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?'}</label>
+              <input
+                type="number"
+                min={0}
+                max={Math.max(0, productToAdd.stock ?? 0)}
+                value={addModalQuantity === '' ? '' : addModalQuantity}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === '') { setAddModalQuantity(''); return; }
+                  const n = parseInt(v, 10);
+                  if (!isNaN(n)) {
+                    const maxVal = Math.max(0, productToAdd.stock ?? 0);
+                    setAddModalQuantity(Math.min(Math.max(0, n), maxVal));
+                  }
+                }}
+                className="w-full px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-400/40 focus:border-blue-400 outline-none"
+              />
+            </div>
             <div className="flex gap-1 pt-0.5">
               <button type="button" onClick={() => setProductToAdd(null)} className="flex-1 py-1 rounded-md border border-gray-200 text-gray-600 text-[11px] font-medium hover:bg-gray-50">
                 {mounted ? t('admin.common.cancel') : 'İptal'}
@@ -1338,8 +1295,7 @@ export default function BayiSatisPage() {
                     return;
                   }
                   const ps = (productToAdd as Product & { packSize?: number }).packSize ?? 1;
-                  const qtyAdet = addModalSellUnit === 'kutu' ? qty * ps : qty;
-                  addToCart(productToAdd, qtyAdet);
+                  addToCart(productToAdd, qty * ps);
                   setProductToAdd(null);
                 }}
                 className="flex-1 py-1 rounded-md bg-blue-600 text-white text-[11px] font-medium hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"

@@ -151,7 +151,6 @@ export default function StokPage() {
     }
     const title = t('admin.stock.printTitle');
     const subtitle = t('admin.stock.printSubtitle');
-    const unitsShort = t('admin.stock.unitsShort');
     const boxesShort = t('admin.stock.boxesShort');
     const rows = lowStockList
       .map(
@@ -160,7 +159,6 @@ export default function StokPage() {
             <td>${String(i + 1).padStart(2, '0')}</td>
             <td>${getProductDisplayName(p).replace(/</g, '&lt;')}</td>
             <td>${getCategoryDisplayName(p).replace(/</g, '&lt;')}</td>
-            <td>${p.stockUnits} ${unitsShort}</td>
             <td>${p.stockBoxes} ${boxesShort}</td>
             <td>${getPackLabel(p).replace(/</g, '&lt;')}</td>
             <td>${(p.isLowStock ? t('admin.stock.lowStock') : t('admin.stock.normal')).replace(/</g, '&lt;')}</td>
@@ -190,7 +188,7 @@ export default function StokPage() {
   <table>
     <thead>
       <tr>
-        <th>${t('admin.stock.printNo').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printProductName').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printCategory').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printStockUnits').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printStockBoxes').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printPackUnit').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printStatus').replace(/</g, '&lt;')}</th>
+        <th>${t('admin.stock.printNo').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printProductName').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printCategory').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printStockBoxes').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printPackUnit').replace(/</g, '&lt;')}</th><th>${t('admin.stock.printStatus').replace(/</g, '&lt;')}</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -340,7 +338,6 @@ export default function StokPage() {
                     <th>No</th>
                     <th>{mounted ? t('admin.stock.product') : 'Ürün Adı'}</th>
                     <th>{mounted ? t('admin.stock.category') : 'Kategori'}</th>
-                    <th>{mounted ? t('admin.stock.stockUnits') : 'Stok (adet)'}</th>
                     <th>{mounted ? t('admin.stock.stockBoxes') : 'Stok (kutu)'}</th>
                     <th>{mounted ? t('admin.stock.pack') : 'Birim'}</th>
                     <th>{mounted ? t('admin.stock.status') : 'Durum'}</th>
@@ -350,7 +347,7 @@ export default function StokPage() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={8}>
+                      <td colSpan={7}>
                         <div className={styles.loading}>
                           {mounted ? t('admin.common.loading') : 'Yükleniyor...'}
                         </div>
@@ -358,7 +355,7 @@ export default function StokPage() {
                     </tr>
                   ) : filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={8}>
+                      <td colSpan={7}>
                         <div className={styles.empty}>
                           <p className={styles.emptyTitle}>
                             {filter === 'low'
@@ -393,10 +390,9 @@ export default function StokPage() {
                                   style={{ width: `${pct}%` }}
                                 />
                               </div>
-                              <span className={styles.stockValue}>{p.stockUnits} {mounted ? t('admin.stock.unitsShort') : 'adet'}</span>
+                              <span className={styles.stockValue}>{p.stockBoxes} {mounted ? t('admin.stock.boxesShort') : 'kutu'}</span>
                             </div>
                           </td>
-                          <td className={styles.stockValue}>{p.stockBoxes} {mounted ? t('admin.stock.boxesShort') : 'kutu'}</td>
                           <td>
                             <span className={styles.unitBadge}>
                               {getPackLabel(p)}

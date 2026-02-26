@@ -491,7 +491,7 @@ export default function ProductDetailPage() {
             <div>
               <p className={`text-xs sm:text-sm ${(displayProduct.stock ?? 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {(displayProduct.stock ?? 0) > 0 
-                  ? (mounted ? t('products.inStock', { count: displayProduct.stock ?? 0 }) : `Stokta: ${displayProduct.stock} adet`)
+                  ? (mounted ? t('products.inStock', { count: displayProduct.stock ?? 0 }) : `Stokta: ${displayProduct.stock ?? 0} kutu`)
                   : (mounted ? t('products.outOfStock') : 'Stokta Yok')}
               </p>
             </div>
@@ -529,7 +529,7 @@ export default function ProductDetailPage() {
                         type="number"
                         min={0}
                         max={sellUnit === 'kutu'
-                          ? Math.max(0, Math.floor(((displayProduct?.stock ?? 0) / ((displayProduct as any)?.packSize ?? 1))) || 99)
+                          ? Math.max(0, (displayProduct?.stock ?? 0) || 99)
                           : Math.max(0, displayProduct?.stock ?? 99)}
                         value={quantity === '' ? '' : quantity}
                         onChange={(e) => {
@@ -538,7 +538,7 @@ export default function ProductDetailPage() {
                           const n = parseInt(v, 10);
                           if (!isNaN(n)) {
                             const maxVal = sellUnit === 'kutu'
-                              ? Math.max(0, Math.floor(((displayProduct?.stock ?? 0) / ((displayProduct as any)?.packSize ?? 1))) || 99)
+                              ? Math.max(0, (displayProduct?.stock ?? 0) || 99)
                               : Math.max(0, displayProduct?.stock ?? 99);
                             setQuantity(Math.min(Math.max(0, n), maxVal));
                           }
@@ -550,7 +550,7 @@ export default function ProductDetailPage() {
                         aria-label={currentLanguage === 'fr' ? 'Augmenter' : currentLanguage === 'en' ? 'Increase' : 'Artır'}
                         onClick={() => {
                           const maxVal = sellUnit === 'kutu'
-                            ? Math.max(0, Math.floor(((displayProduct?.stock ?? 0) / ((displayProduct as any)?.packSize ?? 1))) || 99)
+                            ? Math.max(0, (displayProduct?.stock ?? 0) || 99)
                             : Math.max(0, displayProduct?.stock ?? 99);
                           const q = quantity === '' ? 0 : quantity;
                           if (q >= maxVal) return;

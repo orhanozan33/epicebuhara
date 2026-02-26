@@ -101,14 +101,16 @@ export async function POST(
       );
     }
 
-    // Stok kontrolü ve düşüm
+    // Stok kutu cinsinden: mevcut kutu * packSize >= istenen adet
     for (const item of saleItemsToInsert) {
       const product = productList.find(p => p.id === item.productId);
       if (product?.trackStock) {
-        const currentStock = product.stock ?? 0;
-        if (currentStock < item.quantity) {
+        const stockBoxes = product.stock ?? 0;
+        const packSize = product.packSize ?? 1;
+        const availableAdet = stockBoxes * packSize;
+        if (availableAdet < item.quantity) {
           return NextResponse.json(
-            { error: `"${product.baseName || product.name}" için yeterli stok yok (mevcut: ${currentStock}, istenen: ${item.quantity})` },
+            { error: `"${product.baseName || product.name}" için yeterli stok yok (mevcut: ${stockBoxes} kutu, istenen: ${item.quantity} adet)` },
             { status: 400 }
           );
         }
@@ -126,12 +128,14 @@ export async function POST(
       }))
     );
 
-    // Stok düş
+    // Stok düş (kutu cinsinden)
     for (const item of saleItemsToInsert) {
       const product = productList.find(p => p.id === item.productId);
       if (product?.trackStock) {
+        const packSize = product.packSize ?? 1;
+        const boxesToDeduct = Math.ceil(item.quantity / packSize);
         const currentStock = product.stock ?? 0;
-        const newStock = Math.max(0, currentStock - item.quantity);
+        const newStock = Math.max(0, currentStock - boxesToDeduct);
         await db.update(products).set({ stock: newStock }).where(eq(products.id, product.id));
       }
     }

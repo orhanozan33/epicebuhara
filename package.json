@@ -26,7 +26,8 @@
     "activate-all-products": "tsx scripts/activate-all-products.ts",
     "migrate": "tsx scripts/run-migration.ts",
     "check-images": "tsx scripts/check-product-images.ts",
-    "fix-missing-sale-items": "tsx scripts/fix-missing-sale-items.ts"
+    "fix-missing-sale-items": "tsx scripts/fix-missing-sale-items.ts",
+    "convert-stock-to-boxes": "tsx scripts/convert-stock-to-boxes.ts"
   },
   "dependencies": {
     "@prisma/client": "^7.2.0",

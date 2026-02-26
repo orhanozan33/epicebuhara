@@ -33,7 +33,7 @@
     "addingToCart": "Ekleniyor...",
     "loading": "Yükleniyor...",
     "notFound": "Henüz ürün bulunmamaktadır.",
-    "inStock": "Stokta: {{count}} adet",
+    "inStock": "Stokta: {{count}} kutu",
     "outOfStock": "Stokta Yok",
     "discountBadge": "%{{percent}} İNDİRİM",
     "weightOptions": "Gramaj Seçenekleri",

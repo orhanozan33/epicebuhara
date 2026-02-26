@@ -61,16 +61,18 @@ export async function DELETE(
     const quantity = item.quantity;
     const productId = item.productId;
 
-    // Ürün stokunu geri ekle (trackStock true ise)
+    // Ürün stokunu geri ekle (kutu cinsinden; quantity adet)
     const productRows = await db
-      .select({ stock: products.stock, trackStock: products.trackStock })
+      .select({ stock: products.stock, trackStock: products.trackStock, packSize: products.packSize })
       .from(products)
       .where(eq(products.id, productId))
       .limit(1);
 
     if (productRows.length > 0 && productRows[0].trackStock) {
+      const packSize = productRows[0].packSize ?? 1;
+      const boxesToAdd = Math.ceil(quantity / packSize);
       const currentStock = productRows[0].stock ?? 0;
-      const newStock = currentStock + quantity;
+      const newStock = currentStock + boxesToAdd;
       await db
         .update(products)
         .set({ stock: newStock })

@@ -53,15 +53,16 @@ export async function DELETE(
             .from(products)
             .where(inArray(products.id, productIds));
 
-          // Stokları geri ekle (trackStock true olan ürünler için)
+          // Stokları geri ekle (kutu cinsinden)
           for (const item of items) {
             if (!item.productId) continue;
             const product = productList.find(p => p.id === item.productId);
             if (product && product.trackStock) {
-              const quantityToAdd = parseInt(item.quantity.toString());
+              const quantityAdet = parseInt(item.quantity.toString());
+              const packSize = product.packSize ?? 1;
+              const boxesToAdd = Math.ceil(quantityAdet / packSize);
               const currentStock = product.stock ? parseInt(product.stock.toString()) : 0;
-              const newStock = currentStock + quantityToAdd;
-
+              const newStock = currentStock + boxesToAdd;
               await db.update(products)
                 .set({ stock: newStock })
                 .where(eq(products.id, product.id));
@@ -200,15 +201,16 @@ export async function PUT(
             .from(products)
             .where(inArray(products.id, productIds));
 
-          // Stokları geri ekle (trackStock true olan ürünler için)
+          // Stokları geri ekle (kutu cinsinden)
           for (const item of items) {
             if (!item.productId) continue;
             const product = productList.find(p => p.id === item.productId);
             if (product && product.trackStock) {
-              const quantityToAdd = parseInt(item.quantity.toString());
+              const quantityAdet = parseInt(item.quantity.toString());
+              const packSize = product.packSize ?? 1;
+              const boxesToAdd = Math.ceil(quantityAdet / packSize);
               const currentStock = product.stock ? parseInt(product.stock.toString()) : 0;
-              const newStock = currentStock + quantityToAdd;
-
+              const newStock = currentStock + boxesToAdd;
               await db.update(products)
                 .set({ stock: newStock })
                 .where(eq(products.id, product.id));
@@ -234,15 +236,16 @@ export async function PUT(
             .from(products)
             .where(inArray(products.id, productIds));
 
-          // Stok güncelle (trackStock true olan ürünler için)
+          // Stok düş (kutu cinsinden)
           for (const item of items) {
             if (!item.productId) continue;
             const product = productList.find(p => p.id === item.productId);
             if (product && product.trackStock) {
-              const quantityToSubtract = parseInt(item.quantity.toString());
+              const quantityAdet = parseInt(item.quantity.toString());
+              const packSize = product.packSize ?? 1;
+              const boxesToDeduct = Math.ceil(quantityAdet / packSize);
               const currentStock = product.stock ? parseInt(product.stock.toString()) : 0;
-              const newStock = Math.max(0, currentStock - quantityToSubtract);
-
+              const newStock = Math.max(0, currentStock - boxesToDeduct);
               await db.update(products)
                 .set({ stock: newStock })
                 .where(eq(products.id, product.id));

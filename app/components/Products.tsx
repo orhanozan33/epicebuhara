@@ -507,20 +507,14 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                   <input
                     type="number"
                     min={0}
-                    max={(() => {
-                      const ps = addToCartModalProduct.packSize ?? 1;
-                      const stock = addToCartModalProduct.stock ?? 0;
-                      return ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
-                    })()}
+                    max={Math.min(addToCartModalProduct.stock ?? 99, 99)}
                     value={addToCartBoxQty === '' ? '' : addToCartBoxQty}
                     onChange={(e) => {
                       const v = e.target.value;
                       if (v === '') { setAddToCartBoxQty(''); return; }
                       const n = parseInt(v, 10);
                       if (!isNaN(n)) {
-                        const ps = addToCartModalProduct.packSize ?? 1;
-                        const stock = addToCartModalProduct.stock ?? 0;
-                        const maxB = ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
+                        const maxB = Math.min(addToCartModalProduct.stock ?? 99, 99);
                         setAddToCartBoxQty(Math.min(maxB, Math.max(0, n)));
                       }
                     }}
@@ -529,9 +523,7 @@ export function Products({ categoryId, featured, newProducts, discounted }: Prod
                   <button
                     type="button"
                     onClick={() => {
-                      const ps = addToCartModalProduct.packSize ?? 1;
-                      const stock = addToCartModalProduct.stock ?? 0;
-                      const maxB = ps > 1 ? Math.max(0, Math.floor(stock / ps)) || 99 : Math.min(stock || 99, 99);
+                      const maxB = Math.min(addToCartModalProduct.stock ?? 99, 99);
                       const q = addToCartBoxQty === '' ? 0 : addToCartBoxQty;
                       setAddToCartBoxQty(Math.min(maxB, q + 1));
                     }}

@@ -36,7 +36,7 @@
     "productNotFound": "Product not found",
     "searchPlaceholder": "Search...",
     "description": "Description",
-    "inStock": "In Stock: {{count}} units",
+    "inStock": "In Stock: {{count}} boxes",
     "outOfStock": "Out of Stock",
     "discountBadge": "%{{percent}} OFF",
     "weightOptions": "Weight Options",

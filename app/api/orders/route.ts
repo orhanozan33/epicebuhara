@@ -253,10 +253,11 @@ export async function POST(request: Request) {
         if (!item.productId) continue;
         const product = productList.find(p => p.id === item.productId);
         if (product && product.trackStock) {
-          const quantityToSubtract = item.quantity;
+          const quantityAdet = item.quantity;
+          const packSize = product.packSize ?? 1;
+          const boxesToDeduct = Math.ceil(quantityAdet / packSize);
           const currentStock = product.stock ? parseInt(product.stock.toString()) : 0;
-          const newStock = Math.max(0, currentStock - quantityToSubtract);
-          
+          const newStock = Math.max(0, currentStock - boxesToDeduct);
           await db.update(products)
             .set({ stock: newStock })
             .where(eq(products.id, product.id));
