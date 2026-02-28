@@ -46,6 +46,7 @@ export default function FaturalarPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
+  const [companyFilter, setCompanyFilter] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [selectedInvoices, setSelectedInvoices] = useState<Set<number>>(new Set());
@@ -248,6 +249,8 @@ export default function FaturalarPage() {
     router.push(`/admin-panel/dealers/${invoice.dealerId}/sales/${invoice.id}/invoice`);
   };
 
+  const companyNames = [...new Set(invoices.map((inv) => inv.companyName).filter((name): name is string => !!name))].sort((a, b) => a.localeCompare(b, 'tr'));
+
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch =
       invoice.saleNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -258,7 +261,9 @@ export default function FaturalarPage() {
       (statusFilter === 'paid' && invoice.isPaid) ||
       (statusFilter === 'unpaid' && !invoice.isPaid);
 
-    return matchesSearch && matchesStatus;
+    const matchesCompany = !companyFilter || (invoice.companyName && invoice.companyName === companyFilter);
+
+    return matchesSearch && matchesStatus && matchesCompany;
   });
 
   const totalInvoices = filteredInvoices.length;
@@ -320,6 +325,25 @@ export default function FaturalarPage() {
               <option value="all">{mounted ? t('admin.common.total') : 'Tümü'}</option>
               <option value="paid">{mounted ? t('admin.invoices.paid') : 'Ödendi'}</option>
               <option value="unpaid">{mounted ? t('admin.invoices.unpaid') : 'Ödenmedi'}</option>
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 lg:gap-3 mb-3">
+          <div className="min-w-0 col-span-2 lg:col-span-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {mounted ? t('admin.invoices.customer') : 'Firma'}
+            </label>
+            <select
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
+              className="w-full min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+            >
+              <option value="">{mounted ? t('admin.common.total') : 'Tümü'}</option>
+              {companyNames.map((name) => (
+                <option key={name} value={name}>
+                  {name.length > 50 ? `${name.slice(0, 47)}...` : name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
