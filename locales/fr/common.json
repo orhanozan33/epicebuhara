@@ -489,6 +489,7 @@
       "totalAmount": "Montant Total",
       "invoiceNumber": "N° de Facture",
       "customer": "Client",
+      "company": "Entreprise",
       "date": "Date",
       "paymentMethod": "Méthode de Paiement",
       "total": "Total",

@@ -489,6 +489,7 @@
       "totalAmount": "Total Amount",
       "invoiceNumber": "Invoice No",
       "customer": "Customer",
+      "company": "Company",
       "date": "Date",
       "paymentMethod": "Payment Method",
       "total": "Total",

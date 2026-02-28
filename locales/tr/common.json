@@ -482,6 +482,7 @@
       "totalAmount": "Toplam Tutar",
       "invoiceNumber": "Fatura No",
       "customer": "Müşteri",
+      "company": "Firma",
       "date": "Tarih",
       "paymentMethod": "Ödeme Yöntemi",
       "total": "Toplam",

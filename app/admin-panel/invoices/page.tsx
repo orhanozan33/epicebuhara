@@ -300,7 +300,7 @@ export default function FaturalarPage() {
 
       {/* Filtreler */}
       <div className="bg-white border border-gray-200 rounded-lg p-2 lg:p-4 mb-2 lg:mb-4">
-        <div className="grid grid-cols-2 gap-2 lg:gap-3 mb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-[1fr_0.6fr_1fr] gap-2 lg:gap-3 mb-3 items-end">
           <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-700 mb-1">
               {mounted ? t('admin.common.search') : 'Arama'}
@@ -327,11 +327,9 @@ export default function FaturalarPage() {
               <option value="unpaid">{mounted ? t('admin.invoices.unpaid') : 'Ödenmedi'}</option>
             </select>
           </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2 lg:gap-3 mb-3">
-          <div className="min-w-0 col-span-2 lg:col-span-1">
+          <div className="min-w-0 col-span-2 sm:col-span-1">
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {mounted ? t('admin.invoices.customer') : 'Firma'}
+              {mounted ? t('admin.invoices.company') : 'Firma'}
             </label>
             <select
               value={companyFilter}
