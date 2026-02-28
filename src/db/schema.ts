@@ -76,6 +76,8 @@ export const dealerSales = pgTable('dealer_sales', {
   paidAt: timestamp('paid_at'),
   notes: text('notes'),
   isSaved: boolean('is_saved').default(false),
+  isShipped: boolean('is_shipped').default(false),
+  shippedAt: timestamp('shipped_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({

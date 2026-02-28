@@ -286,27 +286,27 @@ export default function BayiPage() {
 
       {/* Bayi Listesi */}
       {!showForm && (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-gray-200">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden w-full min-w-0">
+          <div className="overflow-x-auto md:overflow-x-visible w-full">
+            <table className="w-full min-w-full divide-y divide-gray-200 table-fixed md:table-auto">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-1/2 md:w-auto px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {mounted ? t('admin.dealers.companyName') : 'Firma İsmi'}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {mounted ? t('admin.dealers.phone') : 'Telefon'}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {mounted ? t('admin.dealers.email') : 'E-posta'}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {mounted ? t('admin.dealers.discount') : 'İskonto'}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {mounted ? t('admin.dealers.status') : 'Durum'}
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-1/2 md:w-auto px-2 md:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {mounted ? t('admin.dealers.actions') : 'İşlemler'}
                   </th>
                 </tr>
@@ -324,25 +324,25 @@ export default function BayiPage() {
                 ) : (
                   filteredDealers.map((dealer) => (
                     <tr key={dealer.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-2 md:px-4 py-4 text-sm font-medium text-gray-900 max-w-0">
                         <div className="truncate" title={dealer.companyName}>
                           {dealer.companyName}
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-500">
+                      <td className="hidden md:table-cell px-2 md:px-4 py-4 text-sm text-gray-500">
                         <div className="truncate" title={dealer.phone || ''}>
                           {dealer.phone || '-'}
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-500">
+                      <td className="hidden md:table-cell px-2 md:px-4 py-4 text-sm text-gray-500">
                         <div className="truncate" title={dealer.email || ''}>
                           {dealer.email || '-'}
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-500">
+                      <td className="hidden md:table-cell px-2 md:px-4 py-4 text-sm text-gray-500">
                         {parseFloat(dealer.discount || '0').toFixed(2)}%
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="hidden md:table-cell px-2 md:px-4 py-4">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             dealer.isActive
@@ -353,8 +353,8 @@ export default function BayiPage() {
                           {dealer.isActive ? (mounted ? t('admin.common.active') : 'Aktif') : (mounted ? t('admin.common.inactive') : 'Pasif')}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-right text-sm font-medium">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-2 md:px-4 py-4 text-right text-sm font-medium min-w-0">
+                        <div className="flex items-center justify-end gap-1.5 md:gap-2 flex-wrap">
                           <button
                             type="button"
                             onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
@@ -422,7 +422,7 @@ export default function BayiPage() {
                   <h3 className="text-sm font-semibold text-gray-900 truncate">{dealer.companyName}</h3>
                 </div>
                 <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ml-2 flex-shrink-0 ${
+                  className={`hidden md:inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 flex-shrink-0 ${
                     dealer.isActive
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
@@ -431,7 +431,7 @@ export default function BayiPage() {
                   {dealer.isActive ? (mounted ? t('admin.common.active') : 'Aktif') : (mounted ? t('admin.common.inactive') : 'Pasif')}
                 </span>
               </div>
-              <div className="space-y-2 text-xs text-gray-600 mb-3">
+              <div className="space-y-2 text-xs text-gray-600 mb-3 hidden md:block">
                 <div><span className="text-gray-500">{mounted ? t('admin.dealers.phone') : 'Telefon'}:</span> <span className="font-medium">{dealer.phone || '-'}</span></div>
                 <div className="truncate"><span className="text-gray-500">{mounted ? t('admin.dealers.email') : 'E-posta'}:</span> <span className="font-medium">{dealer.email || '-'}</span></div>
                 <div>

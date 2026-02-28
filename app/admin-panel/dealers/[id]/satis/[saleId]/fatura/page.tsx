@@ -32,6 +32,8 @@ interface Sale {
   isPaid: boolean;
   paidAmount: string | null;
   paidAt: string | null;
+  isShipped?: boolean;
+  shippedAt?: string | null;
   notes: string | null;
   createdAt: string;
   items: SaleItem[];
@@ -76,6 +78,7 @@ export default function FaturaPage() {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [markingShipped, setMarkingShipped] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -292,6 +295,30 @@ export default function FaturaPage() {
     }
   };
 
+  const handleMarkShipped = async () => {
+    if (!dealerId || !saleId || !sale || sale.isShipped) return;
+    setMarkingShipped(true);
+    try {
+      const response = await fetch(`/api/dealers/${dealerId}/sales/${saleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isShipped: true }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'İşlem başarısız');
+      }
+      const data = await response.json();
+      if (data.sale && isMountedRef.current) {
+        setSale({ ...sale, isShipped: true, shippedAt: data.sale.shippedAt || new Date().toISOString() });
+      }
+      showToast(mounted ? t('admin.dealers.shipped') : 'Gönderildi olarak işaretlendi.', 'success');
+    } catch (error: any) {
+      showToast(error?.message || (mounted ? t('admin.common.error') : 'Hata'), 'error');
+    } finally {
+      setMarkingShipped(false);
+    }
+  };
 
   if (loading || !sale || !dealer) {
     return (
@@ -346,6 +373,15 @@ export default function FaturaPage() {
         >
           {saving ? (mounted ? t('admin.invoices.saving') : 'Kaydediliyor...') : isSaved ? `✓ ${mounted ? t('admin.invoices.saved') : 'Kaydedildi'}` : `💾 ${mounted ? t('admin.invoices.saveInvoice') : 'Faturayı Kaydet'}`}
         </button>
+        {!sale.isShipped && (
+          <button
+            onClick={handleMarkShipped}
+            disabled={markingShipped}
+            className="px-3 lg:px-6 py-1.5 lg:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs lg:text-base font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {markingShipped ? (mounted ? t('admin.common.loading') : 'İşleniyor...') : `✅ ${mounted ? t('admin.dealers.markShipped') : 'Gönderildi'}`}
+          </button>
+        )}
       </div>
 
       <div className="invoice-content max-w-4xl mx-auto bg-white border-2 border-gray-300 p-8 print:border-0 print:shadow-none print:p-4">
@@ -447,6 +483,8 @@ export default function FaturaPage() {
                   month: '2-digit',
                   day: '2-digit',
                 }).replace(/\//g, '.')}</p>
+                <p><strong>{mounted ? t('admin.dealers.paymentStatus') : 'Ödeme'}:</strong> {paymentMethodText[sale.paymentMethod] || sale.paymentMethod} {!sale.isPaid ? `(${mounted ? t('admin.orders.unpaid') : 'Ödenmedi'})` : ''}</p>
+                <p><strong>{mounted ? t('admin.dealers.shippingStatusLabel') : 'Gönderim'}:</strong> {sale.isShipped ? (mounted ? t('admin.dealers.shipped') : 'Gönderildi') : (mounted ? t('admin.dealers.notShipped') : 'Gönderilmedi')}</p>
               </div>
             </div>
           </div>

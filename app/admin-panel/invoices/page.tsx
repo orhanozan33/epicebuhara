@@ -18,6 +18,8 @@ interface Invoice {
   isPaid: boolean;
   paidAmount: string | null;
   paidAt: string | null;
+  isShipped?: boolean;
+  shippedAt?: string | null;
   notes: string | null;
   isSaved: boolean;
   createdAt: string;
@@ -259,13 +261,6 @@ export default function FaturalarPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const paymentMethodText: Record<string, string> = {
-    NAKIT: mounted ? t('admin.orders.cash') : 'Nakit',
-    KREDI_KARTI: mounted ? t('admin.orders.creditCard') : 'Kredi Kartı',
-    CEK: mounted ? t('admin.orders.check') : 'Çek',
-    ODENMEDI: mounted ? t('admin.orders.unpaid') : 'Ödenmedi',
-  };
-
   const totalInvoices = filteredInvoices.length;
   const totalAmount = filteredInvoices.reduce((sum, inv) => sum + parseFloat(inv.total || '0'), 0);
 
@@ -300,8 +295,8 @@ export default function FaturalarPage() {
 
       {/* Filtreler */}
       <div className="bg-white border border-gray-200 rounded-lg p-2 lg:p-4 mb-2 lg:mb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-3 mb-3">
-          <div>
+        <div className="grid grid-cols-2 gap-2 lg:gap-3 mb-3">
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-700 mb-1">
               {mounted ? t('admin.common.search') : 'Arama'}
             </label>
@@ -310,17 +305,17 @@ export default function FaturalarPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={mounted ? `${t('admin.invoices.invoiceNumber')} ${t('admin.common.search').toLowerCase()}` : 'Fatura no veya müşteri ara...'}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+              className="w-full min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-700 mb-1">
               {mounted ? t('admin.invoices.status') : 'Durum'}
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'all' | 'paid' | 'unpaid')}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
+              className="w-full min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
             >
               <option value="all">{mounted ? t('admin.common.total') : 'Tümü'}</option>
               <option value="paid">{mounted ? t('admin.invoices.paid') : 'Ödendi'}</option>
@@ -328,8 +323,8 @@ export default function FaturalarPage() {
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-3">
-          <div>
+        <div className="grid grid-cols-2 gap-2 lg:gap-3">
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-700 mb-1">
               {mounted ? t('admin.invoices.startDate') : 'Başlangıç Tarihi'}
             </label>
@@ -340,7 +335,7 @@ export default function FaturalarPage() {
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E91E63]"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-700 mb-1">
               {mounted ? t('admin.invoices.endDate') : 'Bitiş Tarihi'}
             </label>
@@ -428,11 +423,26 @@ export default function FaturalarPage() {
                       <p className="text-xs text-gray-700 mt-1">{invoice.companyName || '-'}</p>
                     </div>
                   </div>
-                  <span className={`px-2 py-1 text-[10px] font-semibold rounded-full ml-2 flex-shrink-0 ${
-                    invoice.isPaid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {invoice.isPaid ? (mounted ? t('admin.invoices.paid') : 'Ödendi') : (mounted ? t('admin.invoices.unpaid') : 'Ödenmedi')}
-                  </span>
+                  <div className="flex flex-nowrap items-center gap-1 ml-2 flex-shrink-0">
+                    {invoice.isPaid ? (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                        ✓ {mounted ? t('admin.invoices.paid') : 'Ödendi'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                        ⚠ {mounted ? t('admin.invoices.unpaid') : 'Ödenmedi'}
+                      </span>
+                    )}
+                    {invoice.isShipped ? (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                        ✓ {mounted ? t('admin.dealers.shipped') : 'Gönderildi'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">
+                        📦 {mounted ? t('admin.dealers.notShipped') : 'Gönderilmedi'}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-1 text-xs text-gray-600 mb-3">
                   <div><span className="text-gray-500">{mounted ? t('admin.invoices.date') : 'Tarih'}:</span> <span className="font-medium">
@@ -506,9 +516,6 @@ export default function FaturalarPage() {
                 <th className="px-3 lg:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {mounted ? t('admin.invoices.date') : 'Tarih'}
                 </th>
-                <th className="px-3 lg:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {mounted ? t('admin.invoices.paymentMethod') : 'Ödeme Yöntemi'}
-                </th>
                 <th className="px-3 lg:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {mounted ? t('admin.invoices.total') : 'Toplam'}
                 </th>
@@ -526,7 +533,7 @@ export default function FaturalarPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 lg:px-4 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-3 lg:px-4 py-8 text-center text-gray-500">
                     {mounted ? t('admin.common.notFound') : (searchQuery || statusFilter !== 'all'
                       ? 'Arama kriterlerine uygun fatura bulunamadı'
                       : 'Henüz fatura bulunmamaktadır')}
@@ -560,24 +567,32 @@ export default function FaturalarPage() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td className="px-3 lg:px-4 py-4 text-sm text-gray-600 truncate">
-                      {paymentMethodText[invoice.paymentMethod] || invoice.paymentMethod}
-                    </td>
                     <td className="px-3 lg:px-4 py-4 text-right">
                       <span className="font-bold text-blue-600 text-base">
                         ${parseFloat(invoice.total || '0').toFixed(2)}
                       </span>
                     </td>
-                    <td className="px-3 lg:px-4 py-4 text-center">
-                      {invoice.isPaid ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                          ✓ {mounted ? t('admin.invoices.paid') : 'Ödendi'}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-                          ⚠ {mounted ? t('admin.invoices.unpaid') : 'Ödenmedi'}
-                        </span>
-                      )}
+                    <td className="px-3 lg:px-4 py-4">
+                      <div className="flex flex-nowrap items-center justify-center gap-1.5">
+                        {invoice.isPaid ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                            ✓ {mounted ? t('admin.invoices.paid') : 'Ödendi'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                            ⚠ {mounted ? t('admin.invoices.unpaid') : 'Ödenmedi'}
+                          </span>
+                        )}
+                        {invoice.isShipped ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                            ✓ {mounted ? t('admin.dealers.shipped') : 'Gönderildi'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                            📦 {mounted ? t('admin.dealers.notShipped') : 'Gönderilmedi'}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 lg:px-4 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">

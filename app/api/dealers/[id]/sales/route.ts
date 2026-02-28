@@ -233,7 +233,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { items, paymentMethod, notes, discountPercent: bodyDiscountPercent } = body;
+    const { items, paymentMethod, notes, discountPercent: bodyDiscountPercent, isShipped: bodyIsShipped } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -364,7 +364,8 @@ export async function POST(
 
     // Satış oluştur (isSaved: true ile fatura otomatik olarak Faturalar'a kaydedilir)
     const isPaid = paymentMethod !== 'ODENMEDI';
-    
+    const isShipped = bodyIsShipped === true || bodyIsShipped === 'true';
+
     const newSale = await db.insert(dealerSales).values({
       dealerId,
       saleNumber,
@@ -375,6 +376,8 @@ export async function POST(
       isPaid,
       paidAmount: isPaid ? total.toFixed(2) : '0',
       isSaved: true,
+      isShipped: isShipped || false,
+      shippedAt: isShipped ? new Date() : null,
     }).returning();
     
     // Eğer ödendi ise paidAt'i güncelle

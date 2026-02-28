@@ -127,9 +127,12 @@ export default function BayiSatisPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [categories, setCategories] = useState<Category[]>([]);
   const CART_STORAGE_KEY_PREFIX = 'dealer-sale-cart-';
+  /** Pots XL kategorisi: bu kategorideki ürünler adet olarak da satılabilir */
+  const POTS_XL_CATEGORY_NAMES = ['Pots XL', 'POTS XL', 'pots xl', 'XL PETLER', 'XL Petler', 'xl petler'];
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'NAKIT' | 'KREDI_KARTI' | 'CEK' | 'ODENMEDI'>('NAKIT');
+  const [isShipped, setIsShipped] = useState(false);
   const [notes, setNotes] = useState('');
   const [dealer, setDealer] = useState<Dealer | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -365,6 +368,13 @@ export default function BayiSatisPage() {
       abortController.abort();
     };
   }, [paramsLoaded, dealerId, fetchProducts, fetchDealer, fetchCategories]);
+
+  const isPotsXlProduct = useCallback((product: Product) => {
+    if (!product.categoryId || !categories.length) return false;
+    const cat = categories.find((c) => c.id === product.categoryId);
+    const name = (cat?.name || '').trim();
+    return POTS_XL_CATEGORY_NAMES.some((n) => name.toLowerCase() === n.toLowerCase());
+  }, [categories]);
 
   // Sepet kalemi için dile göre ürün adı (dil değişince güncellenir)
   const getCartItemDisplayName = useCallback((item: CartItem) => {
@@ -636,6 +646,7 @@ export default function BayiSatisPage() {
           quantity: item.quantity,
         })),
         paymentMethod,
+        isShipped,
         notes: notes.trim() || null,
         discountPercent: discountPercent,
       };
@@ -683,6 +694,7 @@ export default function BayiSatisPage() {
         }
         setNotes('');
         setPaymentMethod('NAKIT');
+        setIsShipped(false);
         setManualDiscount('');
       }
 
@@ -703,7 +715,7 @@ export default function BayiSatisPage() {
         setSubmitting(false);
       }
     }
-  }, [dealerId, cart, paymentMethod, notes, discountPercent, router, mounted, t]);
+  }, [dealerId, cart, paymentMethod, isShipped, notes, discountPercent, router, mounted, t]);
 
   // CRITICAL: Global cleanup effect - MUST be last effect
   // This ensures isMountedRef is always false when component unmounts
@@ -1053,6 +1065,30 @@ export default function BayiSatisPage() {
                   </select>
                 </div>
 
+                {/* Gönderim durumu */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                    {mounted ? t('admin.dealers.shippingStatus') : 'Gönderim durumu'}
+                  </label>
+                  <select
+                    value={isShipped ? 'GONDERILDI' : 'GONDERILMEDI'}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      try {
+                        setIsShipped(e.target.value === 'GONDERILDI');
+                      } catch (err: any) {
+                        console.error('Error updating shipping status:', err);
+                      }
+                    }}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+                  >
+                    <option value="GONDERILMEDI">📦 {mounted ? t('admin.dealers.notShipped') : 'Gönderilmedi'}</option>
+                    <option value="GONDERILDI">✅ {mounted ? t('admin.dealers.shipped') : 'Gönderildi'}</option>
+                  </select>
+                </div>
+
                 {/* Notlar */}
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -1183,8 +1219,7 @@ export default function BayiSatisPage() {
                         e.stopPropagation();
                         try {
                           setProductToAdd(product);
-                          setAddModalSellUnit('kutu');
-                          setAddModalQuantity('');
+                          setAddModalSellUnit(isPotsXlProduct(product) ? 'adet' : 'kutu');
                           setAddModalQuantity('');
                         } catch (err: any) {
                           console.error('Error opening add modal:', err);
@@ -1261,26 +1296,71 @@ export default function BayiSatisPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-3" onClick={() => setProductToAdd(null)}>
           <div className="bg-white rounded-xl shadow-xl border border-gray-100 w-full max-w-[240px] p-3 space-y-2" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-semibold text-gray-900 text-[11px] leading-tight line-clamp-2">{getProductDisplayName(productToAdd)}</h3>
-            {/* Satış birimi her zaman kutu */}
-            <div>
-              <label className="block text-[10px] text-gray-500 mb-0.5">{mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?'}</label>
-              <input
-                type="number"
-                min={0}
-                max={Math.max(0, productToAdd.stock ?? 0)}
-                value={addModalQuantity === '' ? '' : addModalQuantity}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === '') { setAddModalQuantity(''); return; }
-                  const n = parseInt(v, 10);
-                  if (!isNaN(n)) {
-                    const maxVal = Math.max(0, productToAdd.stock ?? 0);
-                    setAddModalQuantity(Math.min(Math.max(0, n), maxVal));
-                  }
-                }}
-                className="w-full px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-400/40 focus:border-blue-400 outline-none"
-              />
-            </div>
+            {/* Pots XL kategorisinde adet veya kutu; diğerlerinde sadece kutu */}
+            {isPotsXlProduct(productToAdd) && ((productToAdd as Product & { packSize?: number }).packSize ?? 1) > 1 ? (
+              <>
+                <p className="text-[10px] text-gray-500 font-medium">{mounted ? t('admin.dealers.sellUnit') : 'Satış birimi'}</p>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => { setAddModalSellUnit('adet'); setAddModalQuantity(''); }}
+                    className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'adet' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
+                  >
+                    {mounted ? t('admin.dealers.piece') : 'Adet'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAddModalSellUnit('kutu'); setAddModalQuantity(''); }}
+                    className={`flex-1 py-1 rounded-md border text-[11px] font-medium ${addModalSellUnit === 'kutu' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-gray-200 text-gray-600'}`}
+                  >
+                    {(productToAdd as Product & { packSize?: number }).packSize}&apos;li {lang === 'fr' ? ((productToAdd as Product & { packLabelFr?: string }).packLabelFr || (productToAdd as Product & { packLabelEn?: string }).packLabelEn || t('admin.dealers.box')) : lang === 'en' ? ((productToAdd as Product & { packLabelEn?: string }).packLabelEn || (productToAdd as Product & { packLabelFr?: string }).packLabelFr || t('admin.dealers.box')) : ((productToAdd as Product & { packLabelTr?: string }).packLabelTr || (mounted ? t('admin.dealers.box') : 'Kutu'))}
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-0.5">{addModalSellUnit === 'kutu' ? (mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?') : (mounted ? t('admin.dealers.howManyPieces') : 'Kaç adet?')}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={addModalSellUnit === 'kutu'
+                      ? Math.max(0, productToAdd.stock ?? 0)
+                      : Math.max(0, ((productToAdd.stock ?? 0) * ((productToAdd as Product & { packSize?: number }).packSize ?? 1)))}
+                    value={addModalQuantity === '' ? '' : addModalQuantity}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === '') { setAddModalQuantity(''); return; }
+                      const n = parseInt(v, 10);
+                      if (!isNaN(n)) {
+                        const maxVal = addModalSellUnit === 'kutu'
+                          ? Math.max(0, productToAdd.stock ?? 0)
+                          : Math.max(0, (productToAdd.stock ?? 0) * ((productToAdd as Product & { packSize?: number }).packSize ?? 1));
+                        setAddModalQuantity(Math.min(Math.max(0, n), maxVal));
+                      }
+                    }}
+                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-400/40 focus:border-blue-400 outline-none"
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-[10px] text-gray-500 mb-0.5">{mounted ? t('admin.dealers.howManyBoxes') : 'Kaç kutu?'}</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={Math.max(0, productToAdd.stock ?? 0)}
+                  value={addModalQuantity === '' ? '' : addModalQuantity}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '') { setAddModalQuantity(''); return; }
+                    const n = parseInt(v, 10);
+                    if (!isNaN(n)) {
+                      const maxVal = Math.max(0, productToAdd.stock ?? 0);
+                      setAddModalQuantity(Math.min(Math.max(0, n), maxVal));
+                    }
+                  }}
+                  className="w-full px-2 py-1 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-400/40 focus:border-blue-400 outline-none"
+                />
+              </div>
+            )}
             <div className="flex gap-1 pt-0.5">
               <button type="button" onClick={() => setProductToAdd(null)} className="flex-1 py-1 rounded-md border border-gray-200 text-gray-600 text-[11px] font-medium hover:bg-gray-50">
                 {mounted ? t('admin.common.cancel') : 'İptal'}
@@ -1295,7 +1375,9 @@ export default function BayiSatisPage() {
                     return;
                   }
                   const ps = (productToAdd as Product & { packSize?: number }).packSize ?? 1;
-                  addToCart(productToAdd, qty * ps);
+                  const isPotsXl = isPotsXlProduct(productToAdd);
+                  const qtyAdet = (isPotsXl && addModalSellUnit === 'adet') ? qty : qty * ps;
+                  addToCart(productToAdd, qtyAdet);
                   setProductToAdd(null);
                 }}
                 className="flex-1 py-1 rounded-md bg-blue-600 text-white text-[11px] font-medium hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"

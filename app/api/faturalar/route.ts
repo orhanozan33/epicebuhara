@@ -53,6 +53,8 @@ export async function GET(request: Request) {
       isPaid: sale.isPaid,
       paidAmount: sale.paidAmount,
       paidAt: sale.paidAt,
+      isShipped: sale.isShipped ?? false,
+      shippedAt: sale.shippedAt ?? null,
       notes: sale.notes,
       isSaved: sale.isSaved,
       createdAt: sale.createdAt,

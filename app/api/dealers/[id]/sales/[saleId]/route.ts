@@ -121,7 +121,7 @@ export async function PUT(
   }
 }
 
-// Ödemeyi iptal et (Ödenmedi yap)
+// Gönderildi işaretle veya ödemeyi iptal et (Ödenmedi yap)
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string; saleId: string }> }
@@ -153,6 +153,19 @@ export async function PATCH(
       );
     }
 
+    const body = await request.json().catch(() => ({}));
+    if (body && body.isShipped === true) {
+      const updatedSale = await db.update(dealerSales)
+        .set({
+          isShipped: true,
+          shippedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(dealerSales.id, saleIdNum))
+        .returning();
+      return NextResponse.json({ success: true, sale: updatedSale[0] });
+    }
+
     const updatedSale = await db.update(dealerSales)
       .set({
         isPaid: false,
@@ -168,9 +181,9 @@ export async function PATCH(
       sale: updatedSale[0],
     });
   } catch (error: any) {
-    console.error('Error cancelling payment (Drizzle):', error);
+    console.error('Error in PATCH sale (Drizzle):', error);
     return NextResponse.json(
-      { error: 'Ödeme iptal edilirken hata oluştu', details: error?.message || 'Bilinmeyen hata' },
+      { error: 'İşlem sırasında hata oluştu', details: error?.message || 'Bilinmeyen hata' },
       { status: 500 }
     );
   }
