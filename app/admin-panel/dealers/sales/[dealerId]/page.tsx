@@ -1065,13 +1065,13 @@ export default function BayiSatisPage() {
                   </select>
                 </div>
 
-                {/* Gönderim durumu */}
-                <div className="mb-4">
+                {/* Gönderim durumu - Ödeme Yöntemi altında */}
+                <div className="mb-4" data-section="gonderim-durumu">
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                     </svg>
-                    {mounted ? t('admin.dealers.shippingStatus') : 'Gönderim durumu'}
+                    <span>{mounted && t('admin.dealers.shippingStatus') ? t('admin.dealers.shippingStatus') : 'Gönderim durumu'}</span>
                   </label>
                   <select
                     value={isShipped ? 'GONDERILDI' : 'GONDERILMEDI'}
@@ -1083,9 +1083,10 @@ export default function BayiSatisPage() {
                       }
                     }}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+                    aria-label="Gönderim durumu"
                   >
-                    <option value="GONDERILMEDI">📦 {mounted ? t('admin.dealers.notShipped') : 'Gönderilmedi'}</option>
-                    <option value="GONDERILDI">✅ {mounted ? t('admin.dealers.shipped') : 'Gönderildi'}</option>
+                    <option value="GONDERILMEDI">📦 {mounted && t('admin.dealers.notShipped') ? t('admin.dealers.notShipped') : 'Gönderilmedi'}</option>
+                    <option value="GONDERILDI">✅ {mounted && t('admin.dealers.shipped') ? t('admin.dealers.shipped') : 'Gönderildi'}</option>
                   </select>
                 </div>
 
