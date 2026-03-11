@@ -16,6 +16,7 @@ export default function AdminLayout({
   const [isDesktop, setIsDesktop] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [authAllowed, setAuthAllowed] = useState<boolean | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
@@ -25,21 +26,49 @@ export default function AdminLayout({
     const checkDesktop = () => {
       const isDesktopWidth = window.innerWidth >= 1024;
       setIsDesktop(isDesktopWidth);
-      // Desktop'ta her zaman açık kalmalı
       if (isDesktopWidth) {
         setSidebarOpen(true);
       }
     };
-    
     checkDesktop();
     window.addEventListener('resize', checkDesktop);
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
-  // Login sayfası ve invoice/fatura detay sayfaları için layout gösterme (liste sayfası hariç)
-  if (pathname === '/admin-panel' || 
-      (pathname && pathname !== '/admin-panel/invoices' && 
-       (pathname.includes('/invoice') || pathname.includes('/fatura')))) {
+  // Giriş kontrolü: /admin-panel dışındaki tüm sayfalar için auth zorunlu
+  useEffect(() => {
+    if (!pathname) return;
+    if (pathname === '/admin-panel') {
+      setAuthAllowed(true);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    const hasAuth = localStorage.getItem('admin-auth') === 'true';
+    if (hasAuth) {
+      setAuthAllowed(true);
+    } else {
+      setAuthAllowed(false);
+      router.replace('/admin-panel');
+    }
+  }, [pathname, router]);
+
+  // Sadece giriş sayfası: layout olmadan çocukları göster
+  if (pathname === '/admin-panel') {
+    return <>{children}</>;
+  }
+
+  // Korunan sayfa ama henüz auth kontrolü yapılmadı veya giriş yok -> yükleme veya yönlendirme
+  if (authAllowed !== true) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500 text-sm">Loading...</p>
+      </div>
+    );
+  }
+
+  // Invoice/fatura detay sayfaları: sidebar olmadan sadece çocukları göster
+  if (pathname && pathname !== '/admin-panel/invoices' &&
+      (pathname.includes('/invoice') || pathname.includes('/fatura'))) {
     return <>{children}</>;
   }
 
